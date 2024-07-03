@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include "unique_handle.h"
+#include "util.h"
 
 enum class shader_type {
 	Vertex,
@@ -15,7 +16,7 @@ enum class shader_type {
 template <shader_type ShaderType>
 class shader {
 public:
-	shader(const char * const path) : 
+	shader(const char * const path, const std::string directives = "\n") :
 		id(0, [](unsigned int _handle) {
 			glDeleteShader(_handle);
 		})
@@ -51,10 +52,14 @@ public:
 		}
 
 		int status;
-		const char * const code_c_str = shader_code.c_str();
+		const char * const sources[] = {
+			"#version 330 core\n",
+			directives.c_str(),
+			shader_code.c_str()
+		};
 
 		id = glCreateShader(gl_shader_type);
-		glShaderSource(id, 1, &code_c_str, NULL);
+		glShaderSource(id, util::c_arr_size(sources), sources, NULL);
 		glCompileShader(id);
 		glGetShaderiv(id, GL_COMPILE_STATUS, &status);
 

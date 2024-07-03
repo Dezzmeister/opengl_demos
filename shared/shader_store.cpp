@@ -18,9 +18,13 @@ int shader_store::handle(program_start_event &event) {
 		shader<shader_type::Vertex>("../resources/basic_texture_vert.glsl"),
 		shader<shader_type::Fragment>("../resources/basic_texture_frag.glsl")
 	)));
-	shaders.insert(std::make_pair(std::string("phong"), shader_program(
+	shaders.insert(std::make_pair(std::string("phong_color"), shader_program(
 		shader<shader_type::Vertex>("../resources/phong_vert.glsl"),
 		shader<shader_type::Fragment>("../resources/phong_frag.glsl")
+	)));
+	shaders.insert(std::make_pair(std::string("phong_map"), shader_program(
+		shader<shader_type::Vertex>("../resources/phong_vert.glsl", "#define USE_MAPS\n"),
+		shader<shader_type::Fragment>("../resources/phong_frag.glsl", "#define USE_MAPS\n")
 	)));
 
 	return 0;

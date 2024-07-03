@@ -23,7 +23,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)key_controller.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)light.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)mesh.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)phong_material.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)phong_color_material.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)phong_map_material.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)plane.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)player.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)point_light.cpp" />
@@ -36,6 +37,7 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)camera.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)color_material.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)phong_map_material.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)shapes.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)event.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)events.h" />
@@ -45,7 +47,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)light.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)material.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)mesh.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)phong_material.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)phong_color_material.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)player.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)point_light.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)shader.h" />
@@ -55,5 +57,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)texture_material.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)texture_store.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)unique_handle.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)util.h" />
   </ItemGroup>
 </Project>

@@ -11,6 +11,8 @@ texture_store::texture_store(event_buses &_buses) :
 
 int texture_store::handle(program_start_event &event) {
 	textures.insert(std::make_pair("wall", texture("../resources/wall.jpg")));
+	textures.insert(std::make_pair("container2", texture("../resources/container2.png")));
+	textures.insert(std::make_pair("container2_specular", texture("../resources/container2_specular.png")));
 
 	return 0;
 }

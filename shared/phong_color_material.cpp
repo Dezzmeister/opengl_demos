@@ -1,7 +1,7 @@
-#include "phong_material.h"
+#include "phong_color_material.h"
 #include "point_light.h"
 
-phong_material_properties::phong_material_properties(
+phong_color_material_properties::phong_color_material_properties(
 	glm::vec3 _ambient,
 	glm::vec3 _diffuse,
 	glm::vec3 _specular,
@@ -13,19 +13,19 @@ phong_material_properties::phong_material_properties(
 	shininess(_shininess)
 {}
 
-const std::string phong_material::phong_shader_name("phong");
+const std::string phong_color_material::phong_shader_name("phong_color");
 
-phong_material::phong_material(phong_material_properties &_mat) :
+phong_color_material::phong_color_material(phong_color_material_properties &_mat) :
 	mat(_mat)
 {
 
 }
 
-void phong_material::create_gl() {
+void phong_color_material::create_gl() {
 
 }
 
-void phong_material::draw(draw_event &event, const shader_program &shader) {
+void phong_color_material::draw(draw_event &event, const shader_program &shader) {
 	const static std::string light_name("l");
 	static float angle = 0.0f;
 
@@ -53,6 +53,6 @@ void phong_material::draw(draw_event &event, const shader_program &shader) {
 	}
 }
 
-const std::string& phong_material::shader_name() const {
-	return phong_material::phong_shader_name;
+const std::string& phong_color_material::shader_name() const {
+	return phong_color_material::phong_shader_name;
 }

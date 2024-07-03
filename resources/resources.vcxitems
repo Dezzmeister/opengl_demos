@@ -22,6 +22,8 @@
     <None Include="$(MSBuildThisFileDirectory)phong_vert.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="$(MSBuildThisFileDirectory)container2.png" />
+    <Image Include="$(MSBuildThisFileDirectory)container2_specular.png" />
     <Image Include="$(MSBuildThisFileDirectory)epicface.png" />
     <Image Include="$(MSBuildThisFileDirectory)wall.jpg" />
   </ItemGroup>

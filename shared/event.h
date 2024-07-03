@@ -113,7 +113,11 @@ protected:
 public:
 	event_listener(event_channel<EventType> * _channel, int _priority = 0) : channel(_channel), id(nullptr), priority(_priority) {}
 
-	event_listener(const event_listener<EventType> &other) = delete;
+	event_listener(const event_listener<EventType> &other) : channel(other.channel), id(nullptr), priority(other.priority) {
+		if (other.id != nullptr) {
+			id = channel->_subscribe(this, priority);
+		}
+	}
 
 	event_listener(event_listener<EventType> &&other) : channel(other.channel), id(nullptr), priority(other.priority) {
 		if (other.id != nullptr) {
@@ -124,7 +128,21 @@ public:
 		}
 	}
 
-	event_listener<EventType>& operator=(const event_listener<EventType> &other) = delete;
+	event_listener<EventType>& operator=(const event_listener<EventType> &other) {
+		if (id != nullptr) {
+			channel->_unsubscribe();
+		}
+
+		channel = other.channel;
+		priority = other.priority;
+		id = nullptr;
+
+		if (other.id != nullptr) {
+			id = channel->_subscribe(this, priority);
+		}
+
+		return *this;
+	}
 
 	event_listener<EventType>& operator=(event_listener<EventType> &&other) {
 		if (id != nullptr) {
@@ -141,6 +159,8 @@ public:
 
 			id = channel->_subscribe(this, priority);
 		}
+
+		return *this;
 	}
 
 	~event_listener() {

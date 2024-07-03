@@ -1,9 +1,12 @@
-#version 330 core
-
 struct material {
+#ifdef USE_MAPS
+	sampler2D diffuse;
+	sampler2D specular;
+#else
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
+#endif
 	float shininess;
 };
 
@@ -17,6 +20,10 @@ struct light {
 
 in vec3 frag_pos;
 in vec3 frag_normal;
+
+#ifdef USE_MAPS
+in vec2 tex_coords;
+#endif
 
 out vec4 frag_color;
 
@@ -39,9 +46,15 @@ void main() {
 	float diff = max(dot(norm, light_dir), 0.0);
 	float spec = pow(max(dot(view_dir, reflect_dir), 0.0), mat.shininess);
 
+#ifdef USE_MAPS
+	vec3 ambient = l.ambient * vec3(texture(mat.diffuse, tex_coords));
+	vec3 diffuse = l.diffuse * diff * vec3(texture(mat.diffuse, tex_coords));
+	vec3 specular = l.specular * spec * vec3(texture(mat.specular, tex_coords));
+#else
 	vec3 ambient = l.ambient * mat.ambient;
-	vec3 diffuse = l.diffuse * (diff * mat.diffuse);
-	vec3 specular = l.specular * (spec * mat.specular);
+	vec3 diffuse = l.diffuse * diff * mat.diffuse;
+	vec3 specular = l.specular * spec * mat.specular;
+#endif
 
 	vec3 result = ambient + diffuse + specular;
 	frag_color = vec4(result, 1.0);

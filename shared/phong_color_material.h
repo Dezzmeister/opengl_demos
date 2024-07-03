@@ -1,22 +1,22 @@
 #pragma once
 #include "material.h"
 
-struct phong_material_properties {
+struct phong_color_material_properties {
 	glm::vec3 ambient;
 	glm::vec3 diffuse;
 	glm::vec3 specular;
 	float shininess;
 
-	phong_material_properties() = default;
+	phong_color_material_properties() = default;
 
-	phong_material_properties(glm::vec3 _ambient, glm::vec3 _diffuse, glm::vec3 _specular, float _shininess);
+	phong_color_material_properties(glm::vec3 _ambient, glm::vec3 _diffuse, glm::vec3 _specular, float _shininess);
 };
 
-class phong_material : public material {
+class phong_color_material : public material {
 public:
-	phong_material_properties &mat;
+	phong_color_material_properties &mat;
 
-	phong_material(phong_material_properties &_mat);
+	phong_color_material(phong_color_material_properties &_mat);
 
 	void create_gl() override;
 

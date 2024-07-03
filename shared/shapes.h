@@ -2,12 +2,12 @@
 #include <string>
 #include <variant>
 #include "mesh.h"
-#include "color_material.h"
-#include "phong_material.h"
-#include "texture_material.h"
+#include "material.h"
 
 class cube {
 public:
+	const static std::vector<float> uvs;
+
 	mesh cube_mesh;
 
 	cube(event_buses &buses, float size, material &mat);
@@ -15,6 +15,8 @@ public:
 
 class plane {
 public:
+	const static std::vector<float> uvs;
+
 	mesh plane_mesh;
 
 	plane(event_buses &buses, float size, material &mat);
