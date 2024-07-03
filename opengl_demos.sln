@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32421.90
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "materials_demo", "materials_demo\materials_demo.vcxproj", "{D953A32F-23E1-445C-9A8E-53084A2F2EA3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shared", "shared\shared.vcxitems", "{B399DBD9-F7EB-4EC2-99F9-BFE34F14606A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "resources", "resources\resources.vcxitems", "{348497E2-EAE3-4E26-A321-B8BF3B67A6D2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D953A32F-23E1-445C-9A8E-53084A2F2EA3}.Debug|x64.ActiveCfg = Debug|x64
+		{D953A32F-23E1-445C-9A8E-53084A2F2EA3}.Debug|x64.Build.0 = Debug|x64
+		{D953A32F-23E1-445C-9A8E-53084A2F2EA3}.Debug|x86.ActiveCfg = Debug|Win32
+		{D953A32F-23E1-445C-9A8E-53084A2F2EA3}.Debug|x86.Build.0 = Debug|Win32
+		{D953A32F-23E1-445C-9A8E-53084A2F2EA3}.Release|x64.ActiveCfg = Release|x64
+		{D953A32F-23E1-445C-9A8E-53084A2F2EA3}.Release|x64.Build.0 = Release|x64
+		{D953A32F-23E1-445C-9A8E-53084A2F2EA3}.Release|x86.ActiveCfg = Release|Win32
+		{D953A32F-23E1-445C-9A8E-53084A2F2EA3}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C8847C9C-FE5F-46E7-B2BD-4E1944933561}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		resources\resources.vcxitems*{348497e2-eae3-4e26-a321-b8bf3b67a6d2}*SharedItemsImports = 9
+		shared\shared.vcxitems*{b399dbd9-f7eb-4ec2-99f9-bfe34f14606a}*SharedItemsImports = 9
+		resources\resources.vcxitems*{d953a32f-23e1-445c-9a8e-53084a2f2ea3}*SharedItemsImports = 4
+		shared\shared.vcxitems*{d953a32f-23e1-445c-9a8e-53084a2f2ea3}*SharedItemsImports = 4
+	EndGlobalSection
+EndGlobal

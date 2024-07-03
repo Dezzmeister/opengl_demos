@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{b399dbd9-f7eb-4ec2-99f9-bfe34f14606a}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)camera.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)color_material.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cube.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)gdi_plus_context.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)geometry.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)glad.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)key_controller.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)light.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)mesh.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)phong_material.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)plane.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)player.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)point_light.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)shader_program.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)shader_store.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)texture.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)texture_material.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)texture_store.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)camera.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)color_material.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)shapes.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)event.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)events.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)gdi_plus_context.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)geometry.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)key_controller.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)light.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)material.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)mesh.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)phong_material.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)player.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)point_light.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)shader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)shader_program.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)shader_store.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)texture.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)texture_material.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)texture_store.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)unique_handle.h" />
+  </ItemGroup>
+</Project>

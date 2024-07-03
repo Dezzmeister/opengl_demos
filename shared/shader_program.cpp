@@ -1,0 +1,77 @@
+#include "shader_program.h"
+
+shader_program::shader_program(shader<shader_type::Vertex> vertex_shader, shader<shader_type::Fragment> fragment_shader) :
+	id(0, [](unsigned int _handle) {
+		glDeleteProgram(_handle);
+	})
+{
+	id = glCreateProgram();
+	glAttachShader(id, vertex_shader.get_id());
+	glAttachShader(id, fragment_shader.get_id());
+	glLinkProgram(id);
+
+	int status;
+
+	glGetProgramiv(id, GL_LINK_STATUS, &status);
+
+	if (!status) {
+		char info_log[512];
+
+		glGetProgramInfoLog(id, 512, NULL, info_log);
+		std::cout << "Shader linking failed\n" << info_log << std::endl;
+
+		// TODO: Proper errors
+		throw "Shader linking failed";
+	}
+}
+
+void shader_program::use() const {
+	glUseProgram(id);
+}
+
+unsigned int shader_program::get_id() const {
+	return id;
+}
+
+int shader_program::get_location(std::string name) const {
+	auto loc = uniforms.find(name);
+
+	if (loc != uniforms.end()) {
+		return loc->second;
+	}
+
+	int found_loc = glGetUniformLocation(id, name.c_str());
+	uniforms[name] = found_loc;
+
+	return found_loc;
+}
+
+void shader_program::set_uniform(const std::string name, float value) const {
+	const int loc = get_location(name);
+	glUniform1f(loc, value);
+}
+
+void shader_program::set_uniform(const std::string name, int value) const {
+	const int loc = get_location(name);
+	glUniform1i(loc, value);
+}
+
+void shader_program::set_uniform(const std::string name, unsigned int value) const {
+	const int loc = get_location(name);
+	glUniform1ui(loc, value);
+}
+
+void shader_program::set_uniform(const std::string name, const glm::mat4 &value) const {
+	const int loc = get_location(name);
+	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+void shader_program::set_uniform(const std::string name, const glm::vec3 &value) const {
+	const int loc = get_location(name);
+	glUniform3f(loc, value.x, value.y, value.z);
+}
+
+void shader_program::set_uniform(const std::string name, const glm::mat3 &value) const {
+	const int loc = get_location(name);
+	glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+}
