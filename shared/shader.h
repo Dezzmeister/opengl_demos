@@ -59,7 +59,7 @@ public:
 		};
 
 		id = glCreateShader(gl_shader_type);
-		glShaderSource(id, util::c_arr_size(sources), sources, NULL);
+		glShaderSource(id, (GLsizei)util::c_arr_size(sources), sources, NULL);
 		glCompileShader(id);
 		glGetShaderiv(id, GL_COMPILE_STATUS, &status);
 

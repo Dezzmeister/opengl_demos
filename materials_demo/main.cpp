@@ -6,10 +6,11 @@
 #include "../shared/gdi_plus_context.h"
 #include "../shared/key_controller.h"
 #include "../shared/phong_color_material.h"
-#include "../shared/phong_map_material.h";
+#include "../shared/phong_map_material.h"
 #include "../shared/player.h"
 #include "../shared/point_light.h"
 #include "../shared/shader_store.h"
+#include "../shared/spotlight.h"
 #include "../shared/texture_store.h"
 #include "../shared/util.h"
 
@@ -201,20 +202,20 @@ struct world {
 	// Unfortunately these have to be kept someplace where they can't move, because they are referenced by
 	// the cube meshes. The heap is a good place to put them.
 	std::vector<std::unique_ptr<phong_color_material>> mats;
-	point_light light_source;
+	std::unique_ptr<light> light_source;
 	plane floor;
 	cube wooden_cube;
 
 	world(
 		std::vector<cube> _cubes,
 		std::vector<std::unique_ptr<phong_color_material>> _mats,
-		point_light _light_source,
+		std::unique_ptr<light> _light_source,
 		plane _floor,
 		cube _wooden_cube
 	) : 
 		cubes(std::move(_cubes)),
 		mats(std::move(_mats)),
-		light_source(_light_source),
+		light_source(std::move(_light_source)),
 		floor(std::move(_floor)),
 		wooden_cube(std::move(_wooden_cube))
 	{}
@@ -224,7 +225,7 @@ struct world {
 			c.cube_mesh.add_to_world();
 		}
 
-		light_source.add_to_world();
+		light_source->add_to_world();
 		floor.plane_mesh.add_to_world();
 		wooden_cube.cube_mesh.add_to_world();
 	}
@@ -232,17 +233,15 @@ struct world {
 
 struct light_controller : public event_listener<pre_render_pass_event>, public event_listener<keydown_event> {
 	const player &pl;
-	point_light &light;
-	const glm::vec3 static_light_pos;
-	bool following_player;
+	std::unique_ptr<spotlight> flashlight;
+	bool enabled;
 
-	light_controller(event_buses &_buses, const player &_pl, point_light &_light) : 
+	light_controller(event_buses &_buses, const player &_pl, std::unique_ptr<spotlight> _flashlight) : 
 		event_listener<pre_render_pass_event>(&_buses.render, -25),
 		event_listener<keydown_event>(&_buses.input),
 		pl(_pl),
-		light(_light),
-		static_light_pos(light.pos),
-		following_player(false)
+		flashlight(std::move(_flashlight)),
+		enabled(false)
 	{}
 
 	void add_to_world() {
@@ -251,11 +250,10 @@ struct light_controller : public event_listener<pre_render_pass_event>, public e
 	}
 
 	int handle(pre_render_pass_event &event) override {
-		if (!following_player) {
-			light.pos = static_light_pos;
-		} else {
+		if (enabled) {
 			const camera &cam = pl.get_camera();
-			light.pos = cam.pos - cam.dir;
+			flashlight->pos = cam.pos;
+			flashlight->dir = cam.dir;
 		}
 
 		return 0;
@@ -263,7 +261,13 @@ struct light_controller : public event_listener<pre_render_pass_event>, public e
 
 	int handle(keydown_event &event) override {
 		if (event.key == GLFW_KEY_F) {
-			following_player = !following_player;
+			enabled = !enabled;
+
+			if (enabled) {
+				flashlight->add_to_world();
+			} else {
+				flashlight->remove_from_world();
+			}
 		}
 
 		return 0;
@@ -295,10 +299,14 @@ static world create_world(event_buses &buses) {
 		mats.push_back(std::move(mat));
 	}
 
-	point_light light_source(buses, glm::vec3(0.0, 0.0, 4.0f - width), light_properties(
+	std::unique_ptr<light> light_source = std::make_unique<point_light>(buses, glm::vec3(0.0, 0.0, 4.0f - width), light_properties(
 		glm::vec3(1.0f),
 		glm::vec3(1.0f),
 		glm::vec3(1.0f)
+	), attenuation_factors(
+		1.0f,
+		0.027f,
+		0.0028f
 	));
 
 	plane floor(buses, 1000, floor_mtl);
@@ -315,7 +323,7 @@ static world create_world(event_buses &buses) {
 		0.0f
 	));
 
-	return world(std::move(cubes), std::move(mats), light_source, std::move(floor), std::move(wooden_cube));
+	return world(std::move(cubes), std::move(mats), std::move(light_source), std::move(floor), std::move(wooden_cube));
 }
 
 static void on_window_resize(GLFWwindow * window, int width, int height) {
@@ -346,7 +354,7 @@ int main(int argc, const char * const * const argv) {
 
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, on_window_resize);
-	glClearColor(0.2f, 0.2f, 0.9f, 0.0f);
+	glClearColor(0.1f, 0.01f, 0.1f, 0.0f);
 
 	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -378,7 +386,23 @@ int main(int argc, const char * const * const argv) {
 	world world_objects = create_world(buses);
 	world_objects.add_to_world();
 
-	light_controller lc(buses, pl, world_objects.light_source);
+	light_controller lc(buses, pl, std::make_unique<spotlight>(
+		buses,
+		glm::vec3(0.0f),
+		glm::vec3(0.0f),
+		glm::radians(12.5f),
+		glm::radians(17.5f),
+		light_properties(
+			glm::vec3(1.0f),
+			glm::vec3(1.0f),
+			glm::vec3(1.0f)
+		),
+		attenuation_factors(
+			1.0f,
+			0.027f,
+			0.0028f
+		)
+	));
 	lc.add_to_world();
 
 	while (!glfwWindowShouldClose(window)) {

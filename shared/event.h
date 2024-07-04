@@ -177,12 +177,27 @@ public:
 			return;
 		}
 
-		if (id) {
+		if (id != nullptr) {
 			printf("Already subscribed\n");
 			return;
 		}
 
 		id = channel->_subscribe(this, priority);
+	}
+
+	void unsubscribe() {
+		if (channel == nullptr) {
+			printf("No channel to unsubscribe from\n");
+			return;
+		}
+
+		if (id == nullptr) {
+			printf("Not subscribed\n");
+			return;
+		}
+
+		channel->_unsubscribe(this);
+		id = nullptr;
 	}
 
 	virtual int handle(EventType &event) = 0;

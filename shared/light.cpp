@@ -6,6 +6,12 @@ light_properties::light_properties(glm::vec3 _ambient, glm::vec3 _diffuse, glm::
 	specular(_specular)
 {}
 
+attenuation_factors::attenuation_factors(float _constant, float _linear, float _quadratic) :
+	constant(_constant),
+	linear(_linear),
+	quadratic(_quadratic)
+{}
+
 light::light(light_type _type, event_buses &_buses) :
 	event_listener<draw_event>(&_buses.render, -50),
 	type(_type)
@@ -15,8 +21,12 @@ void light::add_to_world() {
 	event_listener<draw_event>::subscribe();
 }
 
+void light::remove_from_world() {
+	event_listener<draw_event>::unsubscribe();
+}
+
 int light::handle(draw_event &event) {
-	event.lights.push_back(this);
+	event.add_light(this);
 
 	return 0;
 }

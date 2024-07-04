@@ -5,9 +5,10 @@ class point_light : public light {
 public:
 	glm::vec3 pos;
 	light_properties props;
+	attenuation_factors att_factors;
 
-	point_light(event_buses &_buses, glm::vec3 _pos, light_properties _props);
+	point_light(event_buses &_buses, glm::vec3 _pos, light_properties _props, attenuation_factors _att_factors);
 
-	virtual void set_uniforms(const std::string &var_name, const shader_program &shader) const;
+	void set_uniforms(const std::string &var_name, const shader_program &shader) const override;
 };
 

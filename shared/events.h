@@ -59,7 +59,7 @@ struct draw_event {
 	texture_store &textures;
 	glm::mat4 * view;
 	// TODO: Make a "world" class, put lights and objects in it
-	std::vector<light *> lights;
+	static constexpr int MAX_LIGHTS = 20;
 
 	draw_event(GLFWwindow * _window, shader_store &_shaders, texture_store &_textures, glm::mat4 * _view) : 
 		window(_window),
@@ -78,6 +78,27 @@ struct draw_event {
 
 		return 0;
 	}
+
+	void add_light(light * l) {
+		if (lights.size() == MAX_LIGHTS) {
+			// TODO: Figure out what to do about this - maybe exclude some lights
+			// based on a heuristic
+			throw ("Maximum " + std::to_string(MAX_LIGHTS) + " lights");
+		}
+
+		lights.push_back(l);
+	}
+
+	light * light_at(size_t pos) const {
+		return lights.at(pos);
+	}
+
+	size_t num_lights() const {
+		return lights.size();
+	}
+
+private:
+	std::vector<light *> lights;
 };
 static_assert(effectful<draw_event>);
 

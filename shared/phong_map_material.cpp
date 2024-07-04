@@ -29,7 +29,6 @@ void phong_map_material::create_gl() {
 }
 
 void phong_map_material::draw(draw_event &event, const shader_program &shader) {
-	const static std::string light_name("l");
 	const texture &diffuse_map = event.textures.textures.at(diffuse_map_name);
 	const texture &specular_map = event.textures.textures.at(specular_map_name);
 
@@ -43,15 +42,12 @@ void phong_map_material::draw(draw_event &event, const shader_program &shader) {
 	shader.set_uniform("mat.specular", 1);
 	shader.set_uniform("mat.shininess", shininess);
 
-	// TODO: More lights
-	if (event.lights.size() == 1) {
-		const light * const l = event.lights.at(0);
+	for (size_t i = 0; i < event.num_lights(); i++) {
+		const light * const l = event.light_at(i);
 
-		if (l->type == light_type::point) {
-			const point_light * pl = static_cast<const point_light *>(l);
-			pl->set_uniforms(light_name, shader);
-		}
+		l->set_uniforms("lights[" + std::to_string(i) + "]", shader);
 	}
+	shader.set_uniform("num_lights", static_cast<int>(event.num_lights()));
 }
 
 const std::string& phong_map_material::shader_name() const {
