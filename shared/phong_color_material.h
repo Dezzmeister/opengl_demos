@@ -18,8 +18,6 @@ public:
 
 	phong_color_material(phong_color_material_properties &_mat);
 
-	void create_gl() override;
-
 	void draw(draw_event &event, const shader_program &shader) override;
 
 	virtual const std::string& shader_name() const override;

@@ -118,7 +118,12 @@ int player::handle(pre_render_pass_event &event) {
 		float bot_coincidence = glm::dot(bot_dir_right, bot_pot_dir_right);
 		
 		if (((1 - top_coincidence) <= 1e-6f) && ((1 - bot_coincidence) <= 1e-6f)) {
+			glm::vec3 old_dir = cam.dir;
 			cam.dir = pot_dir;
+			const glm::mat4& view = cam.update_view_mat();
+
+			player_look_event ple(*this, cam.pos, cam.dir, old_dir, view);
+			buses.player.fire(ple);
 		}
 	}
 
@@ -130,7 +135,15 @@ int player::handle(pre_render_pass_event &event) {
 	proj_right.y = 0;
 	proj_right = glm::normalize(proj_right);
 
-	cam.pos += (move_y * proj_dir) + (-move_x * proj_right);
+	glm::vec3 pos_diff = (move_y * proj_dir) + (-move_x * proj_right);
+
+	if (pos_diff.x == 0.0f && pos_diff.y == 0.0f && pos_diff.z == 0.0f) {
+		return 0;
+	}
+
+	player_move_event pme(*this, cam.pos + pos_diff, cam.pos, cam.dir);
+	buses.player.fire(pme);
+	cam.pos = pme.pos;
 
 	return 0;
 }

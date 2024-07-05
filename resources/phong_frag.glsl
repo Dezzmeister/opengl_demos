@@ -37,7 +37,7 @@ struct light {
 };
 
 in vec3 frag_pos_world;
-in vec3 frag_pos;
+in vec3 frag_pos_view;
 in vec3 frag_normal;
 
 #ifdef USE_MAPS
@@ -76,14 +76,14 @@ void main() {
 		if (l.type == point_light_type || l.type == spotlight_type) {
 			vec3 view_light_pos = vec3(view * vec4(l.pos, 1.0));
 
-			light_dir = normalize(view_light_pos - frag_pos);
+			light_dir = normalize(view_light_pos - frag_pos_view);
 		} else if (l.type == dir_light_type) {
 			vec3 view_light_dir = vec3(view * vec4(l.dir, 0.0));
 
 			light_dir = normalize(-view_light_dir);
 		}
 
-		vec3 view_dir = normalize(view_pos - frag_pos);
+		vec3 view_dir = normalize(view_pos - frag_pos_view);
 		vec3 reflect_dir = reflect(-light_dir, norm);
 
 		float diff = max(dot(norm, light_dir), 0.0);

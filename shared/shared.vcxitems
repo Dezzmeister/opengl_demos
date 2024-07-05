@@ -16,7 +16,6 @@
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)camera.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)color_material.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cube.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)directional_light.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)gdi_plus_context.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)geometry.cpp" />
@@ -26,11 +25,11 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)mesh.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)phong_color_material.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)phong_map_material.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)plane.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)player.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)point_light.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)shader_program.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)shader_store.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)shapes.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)spotlight.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)texture.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)texture_material.cpp" />

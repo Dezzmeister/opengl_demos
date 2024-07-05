@@ -16,6 +16,7 @@ public:
 	int handle(draw_event &event) override;
 
 	void update_right_vec();
+	const glm::mat4& update_view_mat();
 private:
 	glm::vec3 camera_up;
 	glm::vec3 target;

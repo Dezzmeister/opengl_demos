@@ -20,10 +20,7 @@ camera::camera(event_buses &_buses) :
 }
 
 int camera::handle(pre_render_pass_event &event) {
-	right = glm::normalize(glm::cross(world_up, dir));
-	camera_up = glm::cross(dir, right);
-	target = pos + dir;
-	view = glm::lookAt(pos, target, world_up);
+	update_view_mat();
 
 	return 0;
 }
@@ -43,4 +40,13 @@ int camera::handle(draw_event &event) {
 
 void camera::update_right_vec() {
 	right = glm::normalize(glm::cross(world_up, dir));
+}
+
+const glm::mat4& camera::update_view_mat() {
+	right = glm::normalize(glm::cross(world_up, dir));
+	camera_up = glm::cross(dir, right);
+	target = pos + dir;
+	view = glm::lookAt(pos, target, world_up);
+
+	return view;
 }

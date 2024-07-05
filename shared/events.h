@@ -123,12 +123,46 @@ struct keyup_event {
 	keyup_event(const short _key) : key(_key) {}
 };
 
+class player;
+
+struct player_look_event {
+	player &p;
+	glm::vec3 pos;
+	glm::vec3 dir;
+	glm::vec3 old_dir;
+	const glm::mat4 &view;
+
+	player_look_event(player &_p, glm::vec3 _pos, glm::vec3 _dir, glm::vec3 _old_dir, const glm::mat4 &_view) : 
+		p(_p),
+		pos(_pos),
+		dir(_dir),
+		old_dir(_old_dir),
+		view(_view)
+	{}
+};
+
+struct player_move_event {
+	player &p;
+	glm::vec3 pos;
+	glm::vec3 old_pos;
+	glm::vec3 dir;
+
+	player_move_event(player &_p, glm::vec3 _pos, glm::vec3 _old_pos, glm::vec3 _dir) :
+		p(_p),
+		pos(_pos),
+		old_pos(_old_pos),
+		dir(_dir)
+	{}
+};
+
 using lifecycle_event_bus = event_bus<program_start_event, program_stop_event>;
 using render_event_bus = event_bus<pre_render_pass_event, draw_event, post_render_pass_event, shader_use_event>;
 using input_event_bus = event_bus<keydown_event, keyup_event>;
+using player_event_bus = event_bus<player_look_event, player_move_event>;
 
 struct event_buses {
 	lifecycle_event_bus lifecycle;
 	render_event_bus render;
 	input_event_bus input;
+	player_event_bus player;
 };

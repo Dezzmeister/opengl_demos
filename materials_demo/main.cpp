@@ -5,6 +5,7 @@
 #include "../shared/events.h"
 #include "../shared/gdi_plus_context.h"
 #include "../shared/key_controller.h"
+#include "../shared/mesh.h"
 #include "../shared/phong_color_material.h"
 #include "../shared/phong_map_material.h"
 #include "../shared/player.h"
@@ -195,39 +196,39 @@ phong_color_material_properties floor_mtl_props(
 
 phong_color_material floor_mtl(floor_mtl_props);
 
-phong_map_material wooden_cube_mtl("container2", "container2_specular", cube::uvs, 32.0f);
+phong_map_material wooden_cube_mtl("container2", "container2_specular", 32.0f);
 
 struct world {
-	std::vector<cube> cubes;
+	std::vector<mesh> cubes;
 	// Unfortunately these have to be kept someplace where they can't move, because they are referenced by
 	// the cube meshes. The heap is a good place to put them.
 	std::vector<std::unique_ptr<phong_color_material>> mats;
 	std::unique_ptr<light> light_source;
-	plane floor;
-	cube wooden_cube;
+	mesh floor;
+	mesh wooden_cube;
 
 	world(
-		std::vector<cube> _cubes,
+		std::vector<mesh> _cubes,
 		std::vector<std::unique_ptr<phong_color_material>> _mats,
 		std::unique_ptr<light> _light_source,
-		plane _floor,
-		cube _wooden_cube
+		mesh _floor,
+		mesh _wooden_cube
 	) : 
-		cubes(std::move(_cubes)),
+		cubes(_cubes),
 		mats(std::move(_mats)),
 		light_source(std::move(_light_source)),
-		floor(std::move(_floor)),
-		wooden_cube(std::move(_wooden_cube))
+		floor(_floor),
+		wooden_cube(_wooden_cube)
 	{}
 
 	void add_to_world() {
-		for (cube &c : cubes) {
-			c.cube_mesh.add_to_world();
+		for (mesh &c : cubes) {
+			c.add_to_world();
 		}
 
 		light_source->add_to_world();
-		floor.plane_mesh.add_to_world();
-		wooden_cube.cube_mesh.add_to_world();
+		floor.add_to_world();
+		wooden_cube.add_to_world();
 	}
 };
 
@@ -275,7 +276,7 @@ struct light_controller : public event_listener<pre_render_pass_event>, public e
 };
 
 static world create_world(event_buses &buses) {
-	std::vector<cube> cubes;
+	std::vector<mesh> cubes;
 	std::vector<std::unique_ptr<phong_color_material>> mats;
 	const size_t num_materials = util::c_arr_size(materials);
 	const float cube_size = 0.5f;
@@ -287,15 +288,15 @@ static world create_world(event_buses &buses) {
 		std::unique_ptr<phong_color_material> mat = std::make_unique<phong_color_material>(material_props);
 		float pos = (i * (cube_size + spacing)) - (width / 2);
 
-		cube c(buses, cube_size, *mat);
+		mesh c(buses, *shapes::cube, *mat);
 
-		c.cube_mesh.model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(
+		c.model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(
 			pos,
 			0.0f,
 			4.0f
-		));
+		)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(cube_size));
 
-		cubes.push_back(std::move(c));
+		cubes.push_back(c);
 		mats.push_back(std::move(mat));
 	}
 
@@ -309,21 +310,23 @@ static world create_world(event_buses &buses) {
 		0.0028f
 	));
 
-	plane floor(buses, 1000, floor_mtl);
-	floor.plane_mesh.model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(
+	mesh floor(buses, *shapes::plane, floor_mtl);
+
+	floor.model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(
 		0.0f,
 		-1.0f,
 		0.0f
-	));
+	)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(500.0f, 1.0f, 500.0f));
 
-	cube wooden_cube(buses, 0.5f, wooden_cube_mtl);
-	wooden_cube.cube_mesh.model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(
+	mesh wooden_cube(buses, *shapes::cube, wooden_cube_mtl);
+
+	wooden_cube.model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(
 		-4.0f,
 		0.0f,
 		0.0f
-	));
+	)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(cube_size));
 
-	return world(std::move(cubes), std::move(mats), std::move(light_source), std::move(floor), std::move(wooden_cube));
+	return world(cubes, std::move(mats), std::move(light_source), floor, wooden_cube);
 }
 
 static void on_window_resize(GLFWwindow * window, int width, int height) {
@@ -382,6 +385,8 @@ int main(int argc, const char * const * const argv) {
 	});
 
 	buses.lifecycle.fire(program_start);
+
+	shapes::init();
 
 	world world_objects = create_world(buses);
 	world_objects.add_to_world();

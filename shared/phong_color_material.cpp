@@ -21,10 +21,6 @@ phong_color_material::phong_color_material(phong_color_material_properties &_mat
 
 }
 
-void phong_color_material::create_gl() {
-
-}
-
 void phong_color_material::draw(draw_event &event, const shader_program &shader) {
 	shader.set_uniform("mat.ambient", mat.ambient);
 	shader.set_uniform("mat.diffuse", mat.diffuse);

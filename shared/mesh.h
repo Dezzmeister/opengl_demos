@@ -8,7 +8,7 @@ class mesh : public event_listener<draw_event> {
 public:
 	glm::mat4 model;
 
-	mesh(event_buses &_buses, geometry _geom, material &_mat);
+	mesh(event_buses &_buses, geometry &_geom, material &_mat);
 
 	void add_to_world();
 
@@ -16,8 +16,7 @@ public:
 
 private: 
 	event_buses &buses;
-	unique_handle<unsigned int> vao;
-	geometry geom;
+	geometry &geom;
 	material &mat;
 };
 

@@ -1,5 +1,5 @@
 layout(location = 0) in vec3 pos;
-layout(location = 1) in vec2 tex_coord_in;
+layout(location = 2) in vec2 tex_coord_in;
 
 uniform mat4 model;
 uniform mat4 view;

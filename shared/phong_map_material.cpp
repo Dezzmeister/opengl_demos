@@ -7,26 +7,12 @@ const std::string phong_map_material::phong_map_shader_name("phong_map");
 phong_map_material::phong_map_material(
 	const std::string _diffuse_map_name,
 	const std::string _specular_map_name,
-	const std::vector<float> _uvs,
 	float _shininess
 ) :
 	diffuse_map_name(_diffuse_map_name),
 	specular_map_name(_specular_map_name),
-	shininess(_shininess),
-	uvs(_uvs),
-	vbo(0, [](unsigned int _vbo) {
-		glDeleteBuffers(1, &_vbo);
-	})
+	shininess(_shininess)
 {}
-
-void phong_map_material::create_gl() {
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(float), uvs.data(), GL_STATIC_DRAW);
-
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-}
 
 void phong_map_material::draw(draw_event &event, const shader_program &shader) {
 	const texture &diffuse_map = event.textures.textures.at(diffuse_map_name);

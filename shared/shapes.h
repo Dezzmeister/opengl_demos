@@ -1,23 +1,11 @@
 #pragma once
 #include <string>
 #include <variant>
-#include "mesh.h"
-#include "material.h"
+#include "geometry.h"
 
-class cube {
-public:
-	const static std::vector<float> uvs;
+namespace shapes {
+	extern std::unique_ptr<geometry> cube;
+	extern std::unique_ptr<geometry> plane;
 
-	mesh cube_mesh;
-
-	cube(event_buses &buses, float size, material &mat);
-};
-
-class plane {
-public:
-	const static std::vector<float> uvs;
-
-	mesh plane_mesh;
-
-	plane(event_buses &buses, float size, material &mat);
+	void init();
 };
