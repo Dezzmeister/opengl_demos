@@ -13,7 +13,7 @@ color_material::color_material(unsigned int _color) :
 {
 }
 
-void color_material::draw(draw_event &event, const shader_program &sp) {
+void color_material::prepare_draw(draw_event &event, const shader_program &sp) const {
 	sp.set_uniform("color", color_vec);
 }
 

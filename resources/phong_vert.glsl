@@ -1,11 +1,13 @@
+#extension GL_ARB_explicit_uniform_location : enable
+
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 normal;
 layout(location = 2) in vec2 tex_coords_in;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-uniform mat3 normal_mat;
+layout(location = 9) uniform mat4 model;
+layout(location = 10) uniform mat4 view;
+layout(location = 11) uniform mat4 projection;
+layout(location = 12) uniform mat3 normal_mat;
 
 out vec3 frag_pos_world;
 // In view space

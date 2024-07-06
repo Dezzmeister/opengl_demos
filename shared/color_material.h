@@ -7,7 +7,7 @@ public:
 
 	color_material(unsigned int _color);
 
-	void draw(draw_event &event, const shader_program &shader) override;
+	void prepare_draw(draw_event &event, const shader_program &shader) const override;
 
 	const std::string& shader_name() const override;
 

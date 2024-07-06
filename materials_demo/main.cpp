@@ -14,6 +14,7 @@
 #include "../shared/spotlight.h"
 #include "../shared/texture_store.h"
 #include "../shared/util.h"
+#include "../shared/world.h"
 
 // Materials taken from http://devernay.free.fr/cours/opengl/materials.html
 static phong_color_material_properties materials[] = {
@@ -198,54 +199,22 @@ phong_color_material floor_mtl(floor_mtl_props);
 
 phong_map_material wooden_cube_mtl("container2", "container2_specular", 32.0f);
 
-struct world {
-	std::vector<mesh> cubes;
-	// Unfortunately these have to be kept someplace where they can't move, because they are referenced by
-	// the cube meshes. The heap is a good place to put them.
-	std::vector<std::unique_ptr<phong_color_material>> mats;
-	std::unique_ptr<light> light_source;
-	mesh floor;
-	mesh wooden_cube;
-
-	world(
-		std::vector<mesh> _cubes,
-		std::vector<std::unique_ptr<phong_color_material>> _mats,
-		std::unique_ptr<light> _light_source,
-		mesh _floor,
-		mesh _wooden_cube
-	) : 
-		cubes(_cubes),
-		mats(std::move(_mats)),
-		light_source(std::move(_light_source)),
-		floor(_floor),
-		wooden_cube(_wooden_cube)
-	{}
-
-	void add_to_world() {
-		for (mesh &c : cubes) {
-			c.add_to_world();
-		}
-
-		light_source->add_to_world();
-		floor.add_to_world();
-		wooden_cube.add_to_world();
-	}
-};
-
 struct light_controller : public event_listener<pre_render_pass_event>, public event_listener<keydown_event> {
 	const player &pl;
+	world &w;
 	std::unique_ptr<spotlight> flashlight;
 	bool enabled;
+	bool added_to_world;
 
-	light_controller(event_buses &_buses, const player &_pl, std::unique_ptr<spotlight> _flashlight) : 
+	light_controller(event_buses &_buses, const player &_pl, world &_w, std::unique_ptr<spotlight> _flashlight) :
 		event_listener<pre_render_pass_event>(&_buses.render, -25),
 		event_listener<keydown_event>(&_buses.input),
 		pl(_pl),
+		w(_w),
 		flashlight(std::move(_flashlight)),
-		enabled(false)
-	{}
-
-	void add_to_world() {
+		enabled(false),
+		added_to_world(false)
+	{
 		event_listener<pre_render_pass_event>::subscribe();
 		event_listener<keydown_event>::subscribe();
 	}
@@ -255,6 +224,11 @@ struct light_controller : public event_listener<pre_render_pass_event>, public e
 			const camera &cam = pl.get_camera();
 			flashlight->pos = cam.pos;
 			flashlight->dir = cam.dir;
+
+			if (!added_to_world) {
+				w.add_light(flashlight.get());
+				added_to_world = true;
+			}
 		}
 
 		return 0;
@@ -265,9 +239,9 @@ struct light_controller : public event_listener<pre_render_pass_event>, public e
 			enabled = !enabled;
 
 			if (enabled) {
-				flashlight->add_to_world();
+				added_to_world = false;
 			} else {
-				flashlight->remove_from_world();
+				w.remove_light(flashlight.get());
 			}
 		}
 
@@ -275,59 +249,66 @@ struct light_controller : public event_listener<pre_render_pass_event>, public e
 	}
 };
 
-static world create_world(event_buses &buses) {
-	std::vector<mesh> cubes;
-	std::vector<std::unique_ptr<phong_color_material>> mats;
-	const size_t num_materials = util::c_arr_size(materials);
-	const float cube_size = 0.5f;
-	const float spacing = 0.5f;
-	const float width = (cube_size + spacing) * (num_materials - 1);
+struct static_object_controller {
+	std::vector<std::unique_ptr<material>> mtls{};
+	std::unique_ptr<light> static_light{};
 
-	for (size_t i = 0; i < num_materials; i++) {
-		phong_color_material_properties &material_props = materials[i];
-		std::unique_ptr<phong_color_material> mat = std::make_unique<phong_color_material>(material_props);
-		float pos = (i * (cube_size + spacing)) - (width / 2);
+	static_object_controller(world &w) {
+		const size_t num_materials = util::c_arr_size(materials);
+		const float cube_size = 0.5f;
+		const float spacing = 0.5f;
+		const float width = (cube_size + spacing) * (num_materials - 1);
 
-		mesh c(buses, *shapes::cube, *mat);
+		for (size_t i = 0; i < num_materials; i++) {
+			std::unique_ptr<phong_color_material> mtl = std::make_unique<phong_color_material>(materials[i]);
+			float pos = (i * (cube_size + spacing)) - (width / 2);
 
-		c.model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(
-			pos,
+			mesh cube(shapes::cube.get(), mtl.get());
+			cube.set_model(glm::translate(glm::identity<glm::mat4>(), glm::vec3(
+				pos,
+				0.0f,
+				4.0f
+			)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(cube_size)));
+
+			w.add_mesh(cube);
+			mtls.push_back(std::move(mtl));
+		}
+
+		static_light = std::make_unique<point_light>(
+			glm::vec3(0.0f, 0.0f, 4.0f - width),
+			light_properties(
+				glm::vec3(1.0f),
+				glm::vec3(1.0f),
+				glm::vec3(1.0f)
+			),
+			attenuation_factors(
+				1.0f,
+				0.027f,
+				0.0028f
+			)
+		);
+
+		w.add_light(static_light.get());
+
+		mesh floor(shapes::plane.get(), &floor_mtl);
+		floor.set_model(glm::translate(glm::identity<glm::mat4>(), glm::vec3(
 			0.0f,
-			4.0f
-		)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(cube_size));
+			-1.0f,
+			0.0f
+		)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(500.0f, 1.0f, 500.0f)));
 
-		cubes.push_back(c);
-		mats.push_back(std::move(mat));
+		w.add_mesh(floor);
+
+		mesh wooden_cube(shapes::cube.get(), &wooden_cube_mtl);
+		wooden_cube.set_model(glm::translate(glm::identity<glm::mat4>(), glm::vec3(
+			-4.0f,
+			0.0f,
+			0.0f
+		)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(cube_size)));
+
+		w.add_mesh(wooden_cube);
 	}
-
-	std::unique_ptr<light> light_source = std::make_unique<point_light>(buses, glm::vec3(0.0, 0.0, 4.0f - width), light_properties(
-		glm::vec3(1.0f),
-		glm::vec3(1.0f),
-		glm::vec3(1.0f)
-	), attenuation_factors(
-		1.0f,
-		0.027f,
-		0.0028f
-	));
-
-	mesh floor(buses, *shapes::plane, floor_mtl);
-
-	floor.model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(
-		0.0f,
-		-1.0f,
-		0.0f
-	)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(500.0f, 1.0f, 500.0f));
-
-	mesh wooden_cube(buses, *shapes::cube, wooden_cube_mtl);
-
-	wooden_cube.model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(
-		-4.0f,
-		0.0f,
-		0.0f
-	)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(cube_size));
-
-	return world(cubes, std::move(mats), std::move(light_source), floor, wooden_cube);
-}
+};
 
 static void on_window_resize(GLFWwindow * window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -371,7 +352,7 @@ int main(int argc, const char * const * const argv) {
 	pre_render_pass_event pre_render_event(window);
 	shader_store shaders(buses);
 	texture_store textures(buses);
-	draw_event draw_event_inst(window, shaders, textures, nullptr);
+	draw_event draw_event_inst(window, shaders, textures);
 	post_render_pass_event post_render_event;
 
 	key_controller keys(buses, {
@@ -388,11 +369,10 @@ int main(int argc, const char * const * const argv) {
 
 	shapes::init();
 
-	world world_objects = create_world(buses);
-	world_objects.add_to_world();
+	world w(buses);
+	static_object_controller static_objects(w);
 
-	light_controller lc(buses, pl, std::make_unique<spotlight>(
-		buses,
+	light_controller lc(buses, pl, w, std::make_unique<spotlight>(
 		glm::vec3(0.0f),
 		glm::vec3(0.0f),
 		glm::radians(12.5f),
@@ -408,7 +388,6 @@ int main(int argc, const char * const * const argv) {
 			0.0028f
 		)
 	));
-	lc.add_to_world();
 
 	while (!glfwWindowShouldClose(window)) {
 		buses.render.fire(pre_render_event);

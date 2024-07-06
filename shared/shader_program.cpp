@@ -33,7 +33,7 @@ unsigned int shader_program::get_id() const {
 	return id;
 }
 
-int shader_program::get_location(std::string name) const {
+int shader_program::get_location(const std::string &name) const {
 	auto loc = uniforms.find(name);
 
 	if (loc != uniforms.end()) {
@@ -73,5 +73,29 @@ void shader_program::set_uniform(const std::string name, const glm::vec3 &value)
 
 void shader_program::set_uniform(const std::string name, const glm::mat3 &value) const {
 	const int loc = get_location(name);
+	glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+void shader_program::set_uniform(int loc, float value) const {
+	glUniform1f(loc, value);
+}
+
+void shader_program::set_uniform(int loc, int value) const {
+	glUniform1i(loc, value);
+}
+
+void shader_program::set_uniform(int loc, unsigned int value) const {
+	glUniform1ui(loc, value);
+}
+
+void shader_program::set_uniform(int loc, const glm::mat4 &value) const {
+	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+void shader_program::set_uniform(int loc, const glm::vec3 &value) const {
+	glUniform3f(loc, value.x, value.y, value.z);
+}
+
+void shader_program::set_uniform(int loc, const glm::mat3 &value) const {
 	glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(value));
 }

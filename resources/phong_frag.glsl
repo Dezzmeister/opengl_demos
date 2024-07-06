@@ -1,3 +1,5 @@
+#extension GL_ARB_explicit_uniform_location : enable
+
 #define MAX_LIGHTS 20
 
 struct material {
@@ -17,22 +19,33 @@ const int dir_light_type = 1;
 const int spotlight_type = 2;
 
 struct light {
+	// offset = 0
 	int type;
 
+	// offset = 1
 	vec3 pos;
+	// offset = 2
 	vec3 dir;
 
+	// offset = 3
 	vec3 ambient;
+	// offset = 4
 	vec3 diffuse;
+	// offset = 5
 	vec3 specular;
 
 	// Attenuation factors
+	// offset = 6
 	float att_c;
+	// offset = 7
 	float att_l;
+	// offset = 8
 	float att_q;
 
 	// Cosine of spotlight cutoff angles
+	// offset = 9
 	float inner_cutoff;
+	// offset = 10
 	float outer_cutoff;
 };
 
@@ -46,11 +59,12 @@ in vec2 tex_coords;
 
 out vec4 frag_color;
 
-uniform material mat;
-uniform light lights[MAX_LIGHTS];
-uniform int num_lights;
+layout(location = 10) uniform mat4 view;
+layout(location = 13) uniform material mat;
 
-uniform mat4 view;
+layout(location = 20) uniform int num_lights;
+layout(location = 21) uniform light lights[MAX_LIGHTS];
+
 
 // Lighting computations are done in view space so that we don't need to know
 // the camera pos

@@ -31,7 +31,10 @@ geometry::geometry(std::vector<float> _vbo_data) :
 	glEnableVertexAttribArray(2);
 }
 
-void geometry::draw() const {
+void geometry::prepare_draw() const {
 	glBindVertexArray(vao);
+}
+
+void geometry::draw() const {
 	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)num_vertices);
 }

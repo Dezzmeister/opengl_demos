@@ -7,13 +7,13 @@
 #include "../shared/key_controller.h"
 #include "../shared/mesh.h"
 #include "../shared/phong_color_material.h"
-#include "../shared/phong_map_material.h"
 #include "../shared/player.h"
 #include "../shared/point_light.h"
 #include "../shared/shader_store.h"
 #include "../shared/spotlight.h"
 #include "../shared/texture_store.h"
 #include "../shared/util.h"
+#include "../shared/world.h"
 
 static void on_window_resize(GLFWwindow * window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -29,9 +29,7 @@ struct debug_instrument : public event_listener<pre_render_pass_event>, public e
 	debug_instrument(event_buses &_buses) :
 		event_listener<pre_render_pass_event>(&_buses.render, -30),
 		event_listener<keydown_event>(&_buses.input)
-	{}
-
-	void add_to_world() {
+	{
 		event_listener<pre_render_pass_event>::subscribe();
 		event_listener<keydown_event>::subscribe();
 	}
@@ -65,7 +63,7 @@ struct debug_instrument : public event_listener<pre_render_pass_event>, public e
 	}
 
 	int handle(keydown_event &event) override {
-		if (event.key == GLFW_KEY_F) {
+		if (event.key == GLFW_KEY_R) {
 			is_measuring = !is_measuring;
 
 			if (is_measuring) {
@@ -80,6 +78,56 @@ struct debug_instrument : public event_listener<pre_render_pass_event>, public e
 				printf("\tMax: %f ms\n", max_ms);
 				printf("\tNo. of Frames: %d\n", num_frames);
 				printf("\tAvg. FPS: %f\n", avg_fps);
+			}
+		}
+
+		return 0;
+	}
+};
+
+struct light_controller : public event_listener<pre_render_pass_event>, public event_listener<keydown_event> {
+	const player &pl;
+	world &w;
+	std::unique_ptr<spotlight> flashlight;
+	bool enabled;
+	bool added_to_world;
+
+	light_controller(event_buses &_buses, const player &_pl, world &_w, std::unique_ptr<spotlight> _flashlight) :
+		event_listener<pre_render_pass_event>(&_buses.render, -25),
+		event_listener<keydown_event>(&_buses.input),
+		pl(_pl),
+		w(_w),
+		flashlight(std::move(_flashlight)),
+		enabled(false),
+		added_to_world(false)
+	{
+		event_listener<pre_render_pass_event>::subscribe();
+		event_listener<keydown_event>::subscribe();
+	}
+
+	int handle(pre_render_pass_event &event) override {
+		if (enabled) {
+			const camera &cam = pl.get_camera();
+			flashlight->pos = cam.pos;
+			flashlight->dir = cam.dir;
+
+			if (!added_to_world) {
+				w.add_light(flashlight.get());
+				added_to_world = true;
+			}
+		}
+
+		return 0;
+	}
+
+	int handle(keydown_event &event) override {
+		if (event.key == GLFW_KEY_F) {
+			enabled = !enabled;
+
+			if (enabled) {
+				added_to_world = false;
+			} else {
+				w.remove_light(flashlight.get());
 			}
 		}
 
@@ -125,7 +173,7 @@ int main(int argc, const char * const * const argv) {
 	pre_render_pass_event pre_render_event(window);
 	shader_store shaders(buses);
 	texture_store textures(buses);
-	draw_event draw_event_inst(window, shaders, textures, nullptr);
+	draw_event draw_event_inst(window, shaders, textures);
 	post_render_pass_event post_render_event;
 
 	key_controller keys(buses, {
@@ -135,6 +183,7 @@ int main(int argc, const char * const * const argv) {
 		GLFW_KEY_D,
 		GLFW_KEY_LEFT_SHIFT,
 		GLFW_KEY_F,
+		GLFW_KEY_R,
 		GLFW_KEY_ESCAPE
 	});
 
@@ -142,39 +191,13 @@ int main(int argc, const char * const * const argv) {
 
 	shapes::init();
 
-	// Gold
-	phong_color_material_properties gold_mtl_props(
-		glm::vec3(0.24725, 0.1995, 0.0745),
-		glm::vec3(0.75164, 0.60648, 0.22648),
-		glm::vec3(0.628281, 0.555802, 0.366065),
-		128 * 0.4f
-	);
-
-	phong_color_material gold_mtl(gold_mtl_props);
-	std::vector<mesh> cubes;
-
 	constexpr float cube_size = 0.5f;
 	constexpr float cube_spacing = 0.5f;
-	constexpr int cubes_per_axis = 14;
+	constexpr int cubes_per_axis = 50;
 	constexpr float step = cube_size + cube_spacing;
 	constexpr float width = step * cubes_per_axis;
 
-	for (float x = -width / 2; x < width / 2; x += step) {
-		for (float y = 0.0f; y < width; y += step) {
-			for (float z = 2.0f; z < (width + 2.0f); z += step) {
-				mesh c(buses, *shapes::cube, gold_mtl);
-
-				c.model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(
-					x, y, z
-				)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(0.5f));
-				c.add_to_world();
-				cubes.push_back(c);
-			}
-		}
-	}
-
-	point_light light(
-		buses,
+	point_light static_light(
 		glm::vec3(0, width / 2, 0),
 		light_properties(
 			glm::vec3(1.0f),
@@ -187,11 +210,65 @@ int main(int argc, const char * const * const argv) {
 			0.0028f
 		)
 	);
-	light.add_to_world();
+
+	world w(buses, {}, { &static_light });
+
+	// Gold
+	phong_color_material_properties gold_mtl_props(
+		glm::vec3(0.24725, 0.1995, 0.0745),
+		glm::vec3(0.75164, 0.60648, 0.22648),
+		glm::vec3(0.628281, 0.555802, 0.366065),
+		128 * 0.4f
+	);
+
+	// Obsidian
+	phong_color_material_properties obsidian_mtl_props(
+		glm::vec3(0.05375, 0.05, 0.06625),
+		glm::vec3(0.18275, 0.17, 0.22525),
+		glm::vec3(0.332741, 0.328634, 0.346435),
+		128 * 0.3f
+	);
+
+	phong_color_material gold_mtl(gold_mtl_props);
+	phong_color_material obsidian_mtl(obsidian_mtl_props);
+
+	bool mtl_flag = false;
+
+	for (float x = -width / 2; x < width / 2; x += step) {
+		for (float y = 0.0f; y < width; y += step) {
+			for (float z = 2.0f; z < (width + 2.0f); z += step) {
+				material * const mtl = mtl_flag ? &gold_mtl : &obsidian_mtl;
+				mtl_flag = !mtl_flag;
+
+				mesh c(shapes::cube.get(), mtl);
+
+				c.set_model(glm::translate(glm::identity<glm::mat4>(), glm::vec3(
+					x, y, z
+				)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(0.5f)));
+				w.add_mesh_unsorted(c);
+			}
+		}
+	}
+
+	light_controller lc(buses, pl, w, std::make_unique<spotlight>(
+		glm::vec3(0.0f),
+		glm::vec3(0.0f),
+		glm::radians(12.5f),
+		glm::radians(17.5f),
+		light_properties(
+			glm::vec3(1.0f),
+			glm::vec3(1.0f),
+			glm::vec3(1.0f)
+		),
+		attenuation_factors(
+			1.0f,
+			0.027f,
+			0.0028f
+		)
+	));
 
 	debug_instrument instr(buses);
-	instr.add_to_world();
-	printf("Press 'f' to start measuring and 'f' again to stop\n");
+	printf("Press 'r' to start measuring and 'r' again to stop\n");
 
 	while (!glfwWindowShouldClose(window)) {
 		buses.render.fire(pre_render_event);

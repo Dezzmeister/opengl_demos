@@ -16,7 +16,8 @@ class light;
 // Fires before the game loop starts, but after the GL and GDI contexts are
 // created.
 struct program_start_event {
-
+	shader_store * shaders{ nullptr };
+	texture_store * textures{ nullptr };
 };
 
 // Fires after the game loop ends, but before the GL context is destroyed.
@@ -58,49 +59,16 @@ struct draw_event {
 	shader_store &shaders;
 	texture_store &textures;
 	glm::mat4 * view;
-	// TODO: Make a "world" class, put lights and objects in it
-	static constexpr int MAX_LIGHTS = 20;
+	glm::mat4 * inv_view;
 
-	draw_event(GLFWwindow * _window, shader_store &_shaders, texture_store &_textures, glm::mat4 * _view) : 
+	draw_event(GLFWwindow * _window, shader_store &_shaders, texture_store &_textures) : 
 		window(_window),
 		shaders(_shaders),
 		textures(_textures),
-		view(_view),
-		lights()
+		view(nullptr),
+		inv_view(nullptr)
 	{}
-
-	int before_fire() {
-		return 0;
-	}
-
-	int after_fire() {
-		lights.clear();
-
-		return 0;
-	}
-
-	void add_light(light * l) {
-		if (lights.size() == MAX_LIGHTS) {
-			// TODO: Figure out what to do about this - maybe exclude some lights
-			// based on a heuristic
-			throw ("Maximum " + std::to_string(MAX_LIGHTS) + " lights");
-		}
-
-		lights.push_back(l);
-	}
-
-	light * light_at(size_t pos) const {
-		return lights.at(pos);
-	}
-
-	size_t num_lights() const {
-		return lights.size();
-	}
-
-private:
-	std::vector<light *> lights;
 };
-static_assert(effectful<draw_event>);
 
 struct post_render_pass_event {
 };

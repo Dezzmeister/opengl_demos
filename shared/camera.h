@@ -17,9 +17,11 @@ public:
 
 	void update_right_vec();
 	const glm::mat4& update_view_mat();
+
 private:
 	glm::vec3 camera_up;
 	glm::vec3 target;
 	glm::mat4 view;
+	glm::mat4 inv_view;
 	glm::mat4 projection;
 };

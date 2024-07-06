@@ -8,7 +8,7 @@ public:
 
 	texture_material(std::string _texture_name);
 
-	void draw(draw_event &event, const shader_program &shader) override;
+	void prepare_draw(draw_event &event, const shader_program &shader) const override;
 
 	const std::string& shader_name() const override;
 

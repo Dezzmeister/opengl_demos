@@ -12,6 +12,7 @@ camera::camera(event_buses &_buses) :
 	camera_up(glm::cross(dir, right)),
 	target(glm::vec3(0.0f, 0.0f, 1.0f)),
 	view(glm::mat4(1.0f)),
+	inv_view(glm::inverse(view)),
 	projection(glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f))
 {
 	event_listener<pre_render_pass_event>::subscribe();
@@ -34,6 +35,7 @@ int camera::handle(shader_use_event &event) {
 
 int camera::handle(draw_event &event) {
 	event.view = &view;
+	event.inv_view = &inv_view;
 
 	return 0;
 }
@@ -47,6 +49,7 @@ const glm::mat4& camera::update_view_mat() {
 	camera_up = glm::cross(dir, right);
 	target = pos + dir;
 	view = glm::lookAt(pos, target, world_up);
+	inv_view = glm::inverse(view);
 
 	return view;
 }

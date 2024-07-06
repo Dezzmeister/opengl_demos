@@ -1,7 +1,7 @@
 #include "shader_store.h"
 
 shader_store::shader_store(event_buses &_buses) :
-	event_listener<program_start_event>(&_buses.lifecycle),
+	event_listener<program_start_event>(&_buses.lifecycle, -100),
 	event_listener<program_stop_event>(&_buses.lifecycle),
 	shaders()
 {
@@ -26,6 +26,8 @@ int shader_store::handle(program_start_event &event) {
 		shader<shader_type::Vertex>("../resources/phong_vert.glsl", "#define USE_MAPS\n"),
 		shader<shader_type::Fragment>("../resources/phong_frag.glsl", "#define USE_MAPS\n")
 	)));
+
+	event.shaders = this;
 
 	return 0;
 }

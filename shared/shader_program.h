@@ -22,9 +22,16 @@ public:
 	void set_uniform(const std::string name, const glm::vec3 &value) const;
 	void set_uniform(const std::string name, const glm::mat3 &value) const;
 
+	void set_uniform(int loc, float value) const;
+	void set_uniform(int loc, int value) const;
+	void set_uniform(int loc, unsigned int value) const;
+	void set_uniform(int loc, const glm::mat4 &value) const;
+	void set_uniform(int loc, const glm::vec3 &value) const;
+	void set_uniform(int loc, const glm::mat3 &value) const;
+
 private:
 	unique_handle<unsigned int> id;
 	mutable std::unordered_map<std::string, int> uniforms;
 
-	int get_location(std::string name) const;
+	int get_location(const std::string &name) const;
 };

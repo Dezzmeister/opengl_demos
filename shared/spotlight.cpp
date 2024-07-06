@@ -1,7 +1,6 @@
 #include "spotlight.h"
 
 spotlight::spotlight(
-	event_buses &_buses,
 	const glm::vec3 _pos,
 	const glm::vec3 _dir,
 	float _inner_cutoff,
@@ -9,7 +8,7 @@ spotlight::spotlight(
 	const light_properties _props,
 	const attenuation_factors _att_factors
 ) :
-	light::light(light_type::spot, _buses),
+	light::light(light_type::spot),
 	pos(_pos),
 	dir(_dir),
 	cos_inner_cutoff(cosf(_inner_cutoff)),
@@ -18,16 +17,34 @@ spotlight::spotlight(
 	att_factors(_att_factors)
 {}
 
-void spotlight::set_uniforms(const std::string &var_name, const shader_program &shader) const {
-	shader.set_uniform(var_name + ".type", static_cast<int>(type));
-	shader.set_uniform(var_name + ".pos", pos);
-	shader.set_uniform(var_name + ".dir", dir);
-	shader.set_uniform(var_name + ".ambient", props.ambient);
-	shader.set_uniform(var_name + ".diffuse", props.diffuse);
-	shader.set_uniform(var_name + ".specular", props.specular);
-	shader.set_uniform(var_name + ".inner_cutoff", cos_inner_cutoff);
-	shader.set_uniform(var_name + ".outer_cutoff", cos_outer_cutoff);
-	shader.set_uniform(var_name + ".att_c", att_factors.constant);
-	shader.set_uniform(var_name + ".att_l", att_factors.linear);
-	shader.set_uniform(var_name + ".att_q", att_factors.quadratic);
+void spotlight::prepare_draw(int index, const shader_program &shader) const {
+	const int i = (index * light_struct_size);
+
+	shader.set_uniform(lights_loc + i + type_loc, static_cast<int>(type));
+	shader.set_uniform(lights_loc + i + pos_loc, pos);
+	shader.set_uniform(lights_loc + i + dir_loc, dir);
+	shader.set_uniform(lights_loc + i + ambient_loc, props.ambient);
+	shader.set_uniform(lights_loc + i + diffuse_loc, props.diffuse);
+	shader.set_uniform(lights_loc + i + specular_loc, props.specular);
+	shader.set_uniform(lights_loc + i + inner_cutoff_loc, cos_inner_cutoff);
+	shader.set_uniform(lights_loc + i + outer_cutoff_loc, cos_outer_cutoff);
+	shader.set_uniform(lights_loc + i + att_c_loc, att_factors.constant);
+	shader.set_uniform(lights_loc + i + att_l_loc, att_factors.linear);
+	shader.set_uniform(lights_loc + i + att_q_loc, att_factors.quadratic);
+}
+
+bool spotlight::is_eq(const light &other) const {
+	if (type != other.type) {
+		return false;
+	}
+
+	const spotlight &sl = static_cast<const spotlight&>(other);
+
+	return
+		(pos == sl.pos) &&
+		(dir == sl.dir) &&
+		(cos_inner_cutoff == sl.cos_inner_cutoff) &&
+		(cos_outer_cutoff == sl.cos_outer_cutoff) &&
+		(props == sl.props) &&
+		(att_factors == sl.att_factors);
 }

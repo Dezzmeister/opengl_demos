@@ -7,8 +7,12 @@ public:
 	light_properties props;
 	attenuation_factors att_factors;
 
-	point_light(event_buses &_buses, glm::vec3 _pos, light_properties _props, attenuation_factors _att_factors);
+	point_light(glm::vec3 _pos, light_properties _props, attenuation_factors _att_factors);
 
-	void set_uniforms(const std::string &var_name, const shader_program &shader) const override;
+	void prepare_draw(int index, const shader_program &shader) const override;
+
+protected:
+
+	bool is_eq(const light &other) const override;
 };
 

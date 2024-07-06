@@ -14,15 +14,15 @@ struct phong_color_material_properties {
 
 class phong_color_material : public material {
 public:
-	phong_color_material_properties &mat;
-
 	phong_color_material(phong_color_material_properties &_mat);
 
-	void draw(draw_event &event, const shader_program &shader) override;
+	const std::string& shader_name() const override;
 
-	virtual const std::string& shader_name() const override;
+	void prepare_draw(draw_event &event, const shader_program &shader) const override;
 
 private:
 	const static std::string phong_shader_name;
+
+	const phong_color_material_properties &mat;
 };
 

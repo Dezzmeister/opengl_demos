@@ -12,21 +12,18 @@ attenuation_factors::attenuation_factors(float _constant, float _linear, float _
 	quadratic(_quadratic)
 {}
 
-light::light(light_type _type, event_buses &_buses) :
-	event_listener<draw_event>(&_buses.render, -50),
+light::light(light_type _type) :
 	type(_type)
 {}
 
-void light::add_to_world() {
-	event_listener<draw_event>::subscribe();
+bool operator==(const light_properties &a, const light_properties &b) {
+	return (a.ambient == b.ambient) && (a.diffuse == b.diffuse) && (a.specular == b.specular);
 }
 
-void light::remove_from_world() {
-	event_listener<draw_event>::unsubscribe();
+bool operator==(const attenuation_factors &a, const attenuation_factors &b) {
+	return (a.constant == b.constant) && (a.linear == b.linear) && (a.quadratic == b.quadratic);
 }
 
-int light::handle(draw_event &event) {
-	event.add_light(this);
-
-	return 0;
+bool operator==(const light &a, const light &b) {
+	return a.is_eq(b);
 }

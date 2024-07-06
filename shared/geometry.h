@@ -8,6 +8,8 @@ public:
 	// Vertices, normals, and UVs are interleaved
 	geometry(std::vector<float> _vbo_data);
 
+	void prepare_draw() const;
+
 	void draw() const;
 
 private:

@@ -11,7 +11,6 @@ public:
 	attenuation_factors att_factors;
 
 	spotlight(
-		event_buses &_buses,
 		const glm::vec3 _pos,
 		const glm::vec3 _dir,
 		float _inner_cutoff,
@@ -20,5 +19,9 @@ public:
 		const attenuation_factors _att_factors
 	);
 
-	void set_uniforms(const std::string &var_name, const shader_program &shader) const override;
+	void prepare_draw(int index, const shader_program &shader) const override;
+
+protected:
+
+	bool is_eq(const light &other) const override;
 };

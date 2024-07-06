@@ -4,19 +4,28 @@
 #include "geometry.h"
 #include "unique_handle.h"
 
-class mesh : public event_listener<draw_event> {
+class world;
+
+class mesh {
 public:
-	glm::mat4 model;
 
-	mesh(event_buses &_buses, geometry &_geom, material &_mat);
+	mesh(geometry * _geom, material * _mat);
 
-	void add_to_world();
+	void draw(draw_event &event, const shader_program &shader) const;
 
-	int handle(draw_event &event) override;
+	void set_model(const glm::mat4 &_model);
+
+	const glm::mat4& get_model() const;
+
+	friend bool operator<(const mesh &a, const mesh &b);
+	friend bool operator==(const mesh &a, const mesh &b);
+
+	friend class world;
 
 private: 
-	event_buses &buses;
-	geometry &geom;
-	material &mat;
+	glm::mat4 model;
+	glm::mat4 inv_model;
+	geometry * geom;
+	material * mat;
 };
 

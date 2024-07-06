@@ -34,6 +34,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)texture.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)texture_material.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)texture_store.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)world.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)camera.h" />
@@ -61,5 +62,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)texture_store.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)unique_handle.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)util.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)world.h" />
   </ItemGroup>
 </Project>
