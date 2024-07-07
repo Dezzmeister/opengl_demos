@@ -4,6 +4,7 @@
 #include "../shared/shapes.h"
 #include "../shared/events.h"
 #include "../shared/gdi_plus_context.h"
+#include "../shared/instanced_mesh.h"
 #include "../shared/key_controller.h"
 #include "../shared/mesh.h"
 #include "../shared/phong_color_material.h"
@@ -193,9 +194,10 @@ int main(int argc, const char * const * const argv) {
 
 	constexpr float cube_size = 0.5f;
 	constexpr float cube_spacing = 0.5f;
-	constexpr int cubes_per_axis = 50;
+	constexpr int cubes_per_axis = 100;
 	constexpr float step = cube_size + cube_spacing;
 	constexpr float width = step * cubes_per_axis;
+	constexpr int total_cubes = cubes_per_axis * cubes_per_axis * cubes_per_axis;
 
 	point_light static_light(
 		glm::vec3(0, width / 2, 0),
@@ -232,23 +234,36 @@ int main(int argc, const char * const * const argv) {
 	phong_color_material gold_mtl(gold_mtl_props);
 	phong_color_material obsidian_mtl(obsidian_mtl_props);
 
+	instanced_mesh gold_cubes(shapes::cube.get(), &gold_mtl, total_cubes / 2);
+	instanced_mesh obsidian_cubes(shapes::cube.get(), &obsidian_mtl, total_cubes / 2);
+
 	bool mtl_flag = false;
+	int gold_ct = 0;
+	int obsidian_ct = 0;
 
 	for (float x = -width / 2; x < width / 2; x += step) {
 		for (float y = 0.0f; y < width; y += step) {
 			for (float z = 2.0f; z < (width + 2.0f); z += step) {
-				material * const mtl = mtl_flag ? &gold_mtl : &obsidian_mtl;
-				mtl_flag = !mtl_flag;
+				instanced_mesh * im = nullptr;
+				int ct = 0;
 
-				mesh c(shapes::cube.get(), mtl);
+				if (obsidian_ct > gold_ct) {
+					im = &gold_cubes;
+					ct = gold_ct++;
+				} else {
+					im = &obsidian_cubes;
+					ct = obsidian_ct++;
+				}
 
-				c.set_model(glm::translate(glm::identity<glm::mat4>(), glm::vec3(
+				im->set_model(ct, glm::translate(glm::identity<glm::mat4>(), glm::vec3(
 					x, y, z
 				)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(0.5f)));
-				w.add_mesh_unsorted(c);
 			}
 		}
 	}
+
+	w.add_instanced_mesh(std::move(gold_cubes));
+	w.add_instanced_mesh(std::move(obsidian_cubes));
 
 	light_controller lc(buses, pl, w, std::make_unique<spotlight>(
 		glm::vec3(0.0f),

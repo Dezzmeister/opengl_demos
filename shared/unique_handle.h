@@ -26,6 +26,10 @@ public:
 	// and the held handle is not null, the held handle will be deleted.
 	T& operator=(T other) noexcept;
 
+	friend bool operator==(const unique_handle<T> &a, const unique_handle<T> &b) {
+		return a.handle == b.handle;
+	}
+
 	~unique_handle();
 private:
 	T handle;
@@ -61,6 +65,8 @@ unique_handle<T>& unique_handle<T>::operator=(unique_handle<T> &&other) noexcept
 	delete_handle = other.delete_handle;
 
 	other.handle = other.null_handle;
+
+	return *this;
 }
 
 template <typename T>

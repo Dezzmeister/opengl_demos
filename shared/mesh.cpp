@@ -3,8 +3,8 @@
 #include "util.h"
 
 static constexpr util::str_kv_pair<int> uniform_locs[] = {
-	{ "model", 9 },
-	{ "normal_mat", 12 }
+	{ "model", 20 },
+	{ "normal_mat", 23 }
 };
 
 mesh::mesh(geometry * _geom, material * _mat) :

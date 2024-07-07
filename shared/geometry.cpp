@@ -2,8 +2,8 @@
 #include <glad/glad.h>
 
 geometry::geometry(std::vector<float> _vbo_data) :
+	num_vertices(_vbo_data.size() / 8),
 	vbo_data(_vbo_data),
-	num_vertices(vbo_data.size() / 8),
 	vao(0, [](unsigned int handle) {
 		glDeleteVertexArrays(1, &handle);
 	}),

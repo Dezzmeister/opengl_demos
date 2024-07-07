@@ -6,7 +6,8 @@ world::world(event_buses &_buses, std::vector<mesh> _meshes, std::vector<light *
 	buses(_buses),
 	meshes(_meshes),
 	lights(_lights),
-	meshes_need_sorting(false)
+	meshes_need_sorting(false),
+	instanced_meshes{}
 {
 	// The meshes are sorted by material first, then by geometry. This allows us to minimize
 	// the number of set_uniform and shader use calls per render pass; these are quite costly.
@@ -16,6 +17,8 @@ world::world(event_buses &_buses, std::vector<mesh> _meshes, std::vector<light *
 }
 
 int world::handle(draw_event &event) {
+	draw_instanced_meshes(event);
+
 	if (meshes.size() == 0) {
 		return 0;
 	}
@@ -59,6 +62,25 @@ int world::handle(draw_event &event) {
 	return 0;
 }
 
+void world::draw_instanced_meshes(draw_event &event) const {
+	if (instanced_meshes.size() == 0) {
+		return;
+	}
+
+	for (const instanced_mesh &im : instanced_meshes) {
+		shader_program &shader = event.shaders.shaders.at(im.mtl->shader_name() + "_instanced");
+		shader.use();
+
+		shader_use_event shader_event(shader);
+		buses.render.fire(shader_event);
+
+		im.mtl->prepare_draw(event, shader);
+		prepare_draw_lights(shader);
+
+		im.draw(event, shader);
+	}
+}
+
 void world::add_mesh(mesh &m) {
 	decltype(meshes)::iterator pos = std::upper_bound(std::begin(meshes), std::end(meshes), m);
 	meshes.insert(pos, m);
@@ -80,6 +102,16 @@ void world::add_light(light * l) {
 
 void world::remove_light(const light * l) {
 	std::erase(lights, l);
+}
+
+instanced_mesh& world::add_instanced_mesh(instanced_mesh _mesh) {
+	instanced_meshes.push_back(std::move(_mesh));
+
+	return instanced_meshes[instanced_meshes.size() - 1];
+}
+
+void world::remove_instanced_mesh(const instanced_mesh &_mesh) {
+	std::erase(instanced_meshes, _mesh);
 }
 
 void world::prepare_draw_lights(const shader_program &shader) const {

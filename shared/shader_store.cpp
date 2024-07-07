@@ -26,6 +26,14 @@ int shader_store::handle(program_start_event &event) {
 		shader<shader_type::Vertex>("../resources/phong_vert.glsl", "#define USE_MAPS\n"),
 		shader<shader_type::Fragment>("../resources/phong_frag.glsl", "#define USE_MAPS\n")
 	)));
+	shaders.insert(std::make_pair(std::string("phong_color_instanced"), shader_program(
+		shader<shader_type::Vertex>("../resources/phong_vert.glsl", "#define INSTANCED\n"),
+		shader<shader_type::Fragment>("../resources/phong_frag.glsl")
+	)));
+	shaders.insert(std::make_pair(std::string("phong_map_instanced"), shader_program(
+		shader<shader_type::Vertex>("../resources/phong_vert.glsl", "#define USE_MAPS\n#define INSTANCED\n"),
+		shader<shader_type::Fragment>("../resources/phong_frag.glsl", "#define USE_MAPS\n")
+	)));
 
 	event.shaders = this;
 

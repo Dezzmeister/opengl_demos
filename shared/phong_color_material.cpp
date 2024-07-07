@@ -3,10 +3,10 @@
 #include "util.h"
 
 static constexpr util::str_kv_pair<int> uniform_locs[] = {
-	{ "mat.ambient", 13 },
-	{ "mat.diffuse", 14 },
-	{ "mat.specular", 15 },
-	{ "mat.shininess", 16 }
+	{ "mat.ambient", 24 },
+	{ "mat.diffuse", 25 },
+	{ "mat.specular", 26 },
+	{ "mat.shininess", 27 }
 };
 
 phong_color_material_properties::phong_color_material_properties(

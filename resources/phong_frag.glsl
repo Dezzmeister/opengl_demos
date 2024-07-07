@@ -59,11 +59,11 @@ in vec2 tex_coords;
 
 out vec4 frag_color;
 
-layout(location = 10) uniform mat4 view;
-layout(location = 13) uniform material mat;
+layout(location = 21) uniform mat4 view;
+layout(location = 24) uniform material mat;
 
-layout(location = 20) uniform int num_lights;
-layout(location = 21) uniform light lights[MAX_LIGHTS];
+layout(location = 30) uniform int num_lights;
+layout(location = 31) uniform light lights[MAX_LIGHTS];
 
 
 // Lighting computations are done in view space so that we don't need to know

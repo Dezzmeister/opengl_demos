@@ -4,9 +4,9 @@
 #include "util.h"
 
 static constexpr util::str_kv_pair<int> uniform_locs[] = {
-	{ "mat.diffuse", 13 },
-	{ "mat.specular", 14 },
-	{ "mat.shininess", 15 }
+	{ "mat.diffuse", 24 },
+	{ "mat.specular", 25 },
+	{ "mat.shininess", 26 }
 };
 
 const std::string phong_map_material::phong_map_shader_name("phong_map");

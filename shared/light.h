@@ -44,8 +44,8 @@ public:
 	friend class world;
 
 protected:
-	static constexpr int num_lights_loc = 20;
-	static constexpr int lights_loc = 21;
+	static constexpr int num_lights_loc = 30;
+	static constexpr int lights_loc = 31;
 	static constexpr int type_loc = 0;
 	static constexpr int pos_loc = 1;
 	static constexpr int dir_loc = 2;

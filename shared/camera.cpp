@@ -1,5 +1,12 @@
 #include <stdio.h>
 #include "camera.h"
+#include "util.h"
+
+static constexpr util::str_kv_pair<int> uniform_locs[] = {
+	{ "view", 21 },
+	{ "inv_view", 29 },
+	{ "projection", 22 }
+};
 
 camera::camera(event_buses &_buses) : 
 	event_listener<pre_render_pass_event>(&_buses.render),
@@ -27,8 +34,13 @@ int camera::handle(pre_render_pass_event &event) {
 }
 
 int camera::handle(shader_use_event &event) {
-	event.shader.set_uniform("view", view);
-	event.shader.set_uniform("projection", projection);
+	constexpr int view_loc = util::find_in_map(uniform_locs, "view");
+	constexpr int inv_view_loc = util::find_in_map(uniform_locs, "inv_view");
+	constexpr int projection_loc = util::find_in_map(uniform_locs, "projection");
+
+	event.shader.set_uniform(view_loc, view);
+	event.shader.set_uniform(inv_view_loc, inv_view);
+	event.shader.set_uniform(projection_loc, projection);
 
 	return 0;
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "events.h"
+#include "instanced_mesh.h"
 #include "light.h"
 #include "mesh.h"
 
@@ -22,11 +23,18 @@ public:
 
 	void remove_light(const light * l);
 
+	instanced_mesh& add_instanced_mesh(instanced_mesh _mesh);
+
+	void remove_instanced_mesh(const instanced_mesh &_mesh);
+
 private:
 	event_buses &buses;
 	std::vector<mesh> meshes;
 	std::vector<light *> lights;
 	bool meshes_need_sorting;
+	std::vector<instanced_mesh> instanced_meshes;
 
 	void prepare_draw_lights(const shader_program &shader) const;
+
+	void draw_instanced_meshes(draw_event &event) const;
 };
