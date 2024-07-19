@@ -17,6 +17,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)camera.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)color_material.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)directional_light.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)flashlight.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)gdi_plus_context.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)geometry.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)glad.c" />
@@ -41,6 +42,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)camera.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)color_material.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)directional_light.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)flashlight.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)instanced_mesh.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)phong_map_material.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)shapes.h" />

@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include "../shared/shapes.h"
 #include "../shared/events.h"
+#include "../shared/flashlight.h"
 #include "../shared/gdi_plus_context.h"
 #include "../shared/instanced_mesh.h"
 #include "../shared/key_controller.h"
@@ -79,56 +80,6 @@ struct debug_instrument : public event_listener<pre_render_pass_event>, public e
 				printf("\tMax: %f ms\n", max_ms);
 				printf("\tNo. of Frames: %d\n", num_frames);
 				printf("\tAvg. FPS: %f\n", avg_fps);
-			}
-		}
-
-		return 0;
-	}
-};
-
-struct light_controller : public event_listener<pre_render_pass_event>, public event_listener<keydown_event> {
-	const player &pl;
-	world &w;
-	std::unique_ptr<spotlight> flashlight;
-	bool enabled;
-	bool added_to_world;
-
-	light_controller(event_buses &_buses, const player &_pl, world &_w, std::unique_ptr<spotlight> _flashlight) :
-		event_listener<pre_render_pass_event>(&_buses.render, -25),
-		event_listener<keydown_event>(&_buses.input),
-		pl(_pl),
-		w(_w),
-		flashlight(std::move(_flashlight)),
-		enabled(false),
-		added_to_world(false)
-	{
-		event_listener<pre_render_pass_event>::subscribe();
-		event_listener<keydown_event>::subscribe();
-	}
-
-	int handle(pre_render_pass_event &event) override {
-		if (enabled) {
-			const camera &cam = pl.get_camera();
-			flashlight->pos = cam.pos;
-			flashlight->dir = cam.dir;
-
-			if (!added_to_world) {
-				w.add_light(flashlight.get());
-				added_to_world = true;
-			}
-		}
-
-		return 0;
-	}
-
-	int handle(keydown_event &event) override {
-		if (event.key == GLFW_KEY_F) {
-			enabled = !enabled;
-
-			if (enabled) {
-				added_to_world = false;
-			} else {
-				w.remove_light(flashlight.get());
 			}
 		}
 
@@ -265,22 +216,7 @@ int main(int argc, const char * const * const argv) {
 	w.add_instanced_mesh(std::move(gold_cubes));
 	w.add_instanced_mesh(std::move(obsidian_cubes));
 
-	light_controller lc(buses, pl, w, std::make_unique<spotlight>(
-		glm::vec3(0.0f),
-		glm::vec3(0.0f),
-		glm::radians(12.5f),
-		glm::radians(17.5f),
-		light_properties(
-			glm::vec3(1.0f),
-			glm::vec3(1.0f),
-			glm::vec3(1.0f)
-		),
-		attenuation_factors(
-			1.0f,
-			0.027f,
-			0.0028f
-		)
-	));
+	flashlight lc(buses, pl, w, GLFW_KEY_F);
 
 	debug_instrument instr(buses);
 	printf("Press 'r' to start measuring and 'r' again to stop\n");

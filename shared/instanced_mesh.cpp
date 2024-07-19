@@ -69,7 +69,7 @@ void instanced_mesh::draw(draw_event &event, const shader_program &shader) const
 		models_need_updating = false;
 	}
 
-	glDrawArraysInstanced(GL_TRIANGLES, 0, (GLsizei)geom->num_vertices, models.size());
+	glDrawArraysInstanced(GL_TRIANGLES, 0, (GLsizei)geom->num_vertices, (GLsizei)models.size());
 }
 
 void instanced_mesh::set_model(size_t i, const glm::mat4 &_model) {
