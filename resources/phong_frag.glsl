@@ -74,7 +74,7 @@ layout(location = 100) uniform light lights[MAX_LIGHTS];
 layout(location = 31) uniform int num_shadow_casters;
 layout(location = 32) uniform shadow_caster shadow_casters[MAX_LIGHTS];
 
-float compute_shadow(int i, vec3 light_dir) {
+float compute_shadow(int i, vec3 light_dir, vec3 norm) {
 	if (! shadow_casters[i].enabled) {
 		return 0.0;
 	}
@@ -90,7 +90,7 @@ float compute_shadow(int i, vec3 light_dir) {
 	float current_depth = pov_light_pos.z;
 
 	// I don't like this; it's a hacky way to avoid shadow acne and it's easily broken
-	float bias = max(0.0005 * (1.0 - dot(frag_normal, light_dir)), 0.00005);
+	float bias = max(0.0005 * (1.0 - dot(norm, light_dir)), 0.00005);
 
 	return (current_depth - bias) > closest_depth ? 1.0 : 0.0;
 }
@@ -127,10 +127,23 @@ void main() {
 		}
 
 		vec3 view_dir = normalize(view_pos - frag_pos_view);
+		vec3 halfway_dir = normalize(light_dir + view_dir);
 		vec3 reflect_dir = reflect(-light_dir, norm);
 
 		float diff = max(dot(norm, light_dir), 0.0);
-		float spec = pow(max(dot(view_dir, reflect_dir), 0.0), mat.shininess);
+		float spec = 0.0;
+
+		float light_side_test = dot(light_dir, norm);
+		float view_side_test = dot(view_dir, norm);
+
+		// This check is not part of the Blinn-Phong lighting model. I added this to prevent
+		// drawing specular highlights when the light and the viewer are on opposite sides
+		// of the fragment; otherwise, the viewer may see specular highlights on a surface that
+		// obscures the light. This is especially noticeable with the sharper Blinn-Phong 
+		// highlights (as opposed to Phong highlights).
+		if ((light_side_test > 0) == (view_side_test > 0)) {
+			spec = pow(max(dot(norm, halfway_dir), 0.0), mat.shininess);
+		}
 
 		vec3 ambient = l.ambient * ambient_color;
 		vec3 diffuse = l.diffuse * diff * diffuse_color;
@@ -155,7 +168,7 @@ void main() {
 			specular *= attenuation;
 		}
 
-		float shadow = compute_shadow(i, light_dir);
+		float shadow = compute_shadow(i, light_dir, norm);
 
 		color_out += ambient + (1.0 - shadow) * (diffuse + specular);
 	}
