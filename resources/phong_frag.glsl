@@ -131,19 +131,17 @@ void main() {
 		vec3 reflect_dir = reflect(-light_dir, norm);
 
 		float diff = max(dot(norm, light_dir), 0.0);
-		float spec = 0.0;
-
-		float light_side_test = dot(light_dir, norm);
-		float view_side_test = dot(view_dir, norm);
 
 		// This check is not part of the Blinn-Phong lighting model. I added this to prevent
 		// drawing specular highlights when the light and the viewer are on opposite sides
 		// of the fragment; otherwise, the viewer may see specular highlights on a surface that
 		// obscures the light. This is especially noticeable with the sharper Blinn-Phong 
 		// highlights (as opposed to Phong highlights).
-		if ((light_side_test > 0) == (view_side_test > 0)) {
-			spec = pow(max(dot(norm, halfway_dir), 0.0), mat.shininess);
-		}
+		float light_side_test = dot(light_dir, norm);
+		float view_side_test = dot(view_dir, norm);
+		// This is a branchless way of implementing the check described above. This was a plain `if` statement,
+		// but that ruined the stress test's performance on my machine. This proved to be much faster.
+		float spec = int((light_side_test > 0) == (view_side_test > 0)) * pow(max(dot(norm, halfway_dir), 0.0), mat.shininess);
 
 		vec3 ambient = l.ambient * ambient_color;
 		vec3 diffuse = l.diffuse * diff * diffuse_color;
