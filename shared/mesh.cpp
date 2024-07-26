@@ -1,11 +1,7 @@
 #include "mesh.h"
+#include "shader_constants.h"
 #include "shader_store.h"
 #include "util.h"
-
-static constexpr util::str_kv_pair<int> uniform_locs[] = {
-	{ "model", 20 },
-	{ "normal_mat", 23 }
-};
 
 mesh::mesh(geometry * _geom, material * _mat) :
 	model(glm::identity<glm::mat4>()),
@@ -16,14 +12,16 @@ mesh::mesh(geometry * _geom, material * _mat) :
 
 }
 
-void mesh::draw(draw_event &event, const shader_program &shader) const {
-	static constexpr int model_loc = util::find_in_map(uniform_locs, "model");
-	static constexpr int normal_mat_loc = util::find_in_map(uniform_locs, "normal_mat");
+void mesh::prepare_draw(draw_event &event, const shader_program &shader, bool include_normal) const {
+	static constexpr int model_loc = util::find_in_map(constants::shader_locs, "model");
+	static constexpr int normal_mat_loc = util::find_in_map(constants::shader_locs, "normal_mat");
 
 	shader.set_uniform(model_loc, model);
 
-	glm::mat3 normal_mat = glm::mat3(glm::transpose(inv_model * *event.inv_view));
-	shader.set_uniform(normal_mat_loc, normal_mat);
+	if (include_normal) {
+		glm::mat3 normal_mat = glm::mat3(glm::transpose(inv_model * *event.inv_view));
+		shader.set_uniform(normal_mat_loc, normal_mat);
+	}
 }
 
 void mesh::set_model(const glm::mat4 &_model) {

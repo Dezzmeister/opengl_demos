@@ -11,7 +11,7 @@ point_light::point_light(
 	att_factors(_att_factors)
 {}
 
-void point_light::prepare_draw(int index, const shader_program &shader) const {
+void point_light::prepare_draw(int index, const shader_program &shader, render_pass_state &render_pass) const {
 	const int i = (index * light_struct_size);
 
 	shader.set_uniform(lights_loc + i + type_loc, static_cast<int>(type));
@@ -22,6 +22,11 @@ void point_light::prepare_draw(int index, const shader_program &shader) const {
 	shader.set_uniform(lights_loc + i + att_c_loc, att_factors.constant);
 	shader.set_uniform(lights_loc + i + att_l_loc, att_factors.linear);
 	shader.set_uniform(lights_loc + i + att_q_loc, att_factors.quadratic);
+}
+
+// TODO: Implement this
+void point_light::prepare_draw_shadow_map(const shader_program &shader) const {
+
 }
 
 bool point_light::is_eq(const light &other) const {

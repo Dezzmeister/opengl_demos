@@ -6,7 +6,7 @@
 #include "../shared/flashlight.h"
 #include "../shared/gdi_plus_context.h"
 #include "../shared/instanced_mesh.h"
-#include "../shared/key_controller.h"
+#include "../shared/controllers.h"
 #include "../shared/mesh.h"
 #include "../shared/phong_color_material.h"
 #include "../shared/player.h"
@@ -44,7 +44,7 @@ struct debug_instrument : public event_listener<pre_render_pass_event>, public e
 	}
 
 	int handle(pre_render_pass_event &event) override {
-		if (!is_measuring) {
+		if (! is_measuring) {
 			return 0;
 		}
 
@@ -113,15 +113,9 @@ int main(int argc, const char * const * const argv) {
 	glfwSetFramebufferSizeCallback(window, on_window_resize);
 	glClearColor(0.1f, 0.01f, 0.1f, 0.0f);
 
-	glEnable(GL_DEPTH_TEST);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
-
 	player pl(buses);
 
-	program_start_event program_start;
+	program_start_event program_start{ window };
 	pre_render_pass_event pre_render_event(window);
 	shader_store shaders(buses);
 	texture_store textures(buses);
@@ -138,10 +132,7 @@ int main(int argc, const char * const * const argv) {
 		GLFW_KEY_R,
 		GLFW_KEY_ESCAPE
 	});
-
-	buses.lifecycle.fire(program_start);
-
-	shapes::init();
+	screen_controller screen(buses);
 
 	constexpr float cube_size = 0.5f;
 	constexpr float cube_spacing = 0.5f;
@@ -165,6 +156,10 @@ int main(int argc, const char * const * const argv) {
 	);
 
 	world w(buses, {}, { &static_light });
+
+	buses.lifecycle.fire(program_start);
+
+	shapes::init();
 
 	// Gold
 	phong_color_material_properties gold_mtl_props(
@@ -213,8 +208,8 @@ int main(int argc, const char * const * const argv) {
 		}
 	}
 
-	w.add_instanced_mesh(std::move(gold_cubes));
-	w.add_instanced_mesh(std::move(obsidian_cubes));
+	w.add_instanced_mesh(&gold_cubes);
+	w.add_instanced_mesh(&obsidian_cubes);
 
 	flashlight lc(buses, pl, w, GLFW_KEY_F);
 
@@ -223,8 +218,6 @@ int main(int argc, const char * const * const argv) {
 
 	while (!glfwWindowShouldClose(window)) {
 		buses.render.fire(pre_render_event);
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		buses.render.fire(draw_event_inst);
 
 		glfwSwapBuffers(window);

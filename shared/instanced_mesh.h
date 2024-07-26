@@ -14,6 +14,9 @@ struct model_pair {
 	model_pair(const glm::mat4 &_model, const glm::mat4 &_inv_model);
 };
 #pragma pack(pop)
+// The vertex shaders expect two matrices, each divided up into 4
+// quadruples of floats. `instanced_mesh` will send an array of these structs to
+// the GPU, so we need to make sure that they have the correct size.
 static_assert(sizeof(model_pair) == 16 * sizeof(float) * 2);
 
 class instanced_mesh {

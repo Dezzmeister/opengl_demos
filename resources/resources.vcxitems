@@ -18,8 +18,10 @@
     <None Include="$(MSBuildThisFileDirectory)basic_color_vert.glsl" />
     <None Include="$(MSBuildThisFileDirectory)basic_texture_frag.glsl" />
     <None Include="$(MSBuildThisFileDirectory)basic_texture_vert.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)identity_frag.glsl" />
     <None Include="$(MSBuildThisFileDirectory)phong_frag.glsl" />
     <None Include="$(MSBuildThisFileDirectory)phong_vert.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)shadow_vert.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="$(MSBuildThisFileDirectory)container2.png" />

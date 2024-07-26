@@ -1,4 +1,12 @@
+// TODO: Profile and optimize the Phong shaders
 #extension GL_ARB_explicit_uniform_location : enable
+
+// TODO: Share code
+struct shadow_caster {
+	mat4 light_space;
+	sampler2D depth_map;
+	bool enabled;
+};
 
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 normal;
@@ -23,10 +31,14 @@ layout(location = 22) uniform mat4 projection;
 
 layout(location = 29) uniform mat4 inv_view;
 
+layout(location = 31) uniform int num_shadow_casters;
+layout(location = 32) uniform shadow_caster shadow_casters[MAX_LIGHTS];
+
 out vec3 frag_pos_world;
 // In view space
 out vec3 frag_pos_view;
 out vec3 frag_normal;
+out vec4 frag_pos_light_space[MAX_LIGHTS];
 
 #ifdef USE_MAPS
 out vec2 tex_coords;
@@ -45,6 +57,12 @@ void main() {
 	frag_pos_world = vec3(world_pos);
 	frag_pos_view = vec3(view_pos);
 	frag_normal = normal_mat * normal;
+
+	for (int i = 0; i < MAX_LIGHTS; i++) {
+		if (shadow_casters[i].enabled) {
+			frag_pos_light_space[i] = shadow_casters[i].light_space * world_pos;
+		}
+	}
 
 #ifdef USE_MAPS
 	tex_coords = tex_coords_in;

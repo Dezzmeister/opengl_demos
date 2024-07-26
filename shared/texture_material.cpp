@@ -7,13 +7,14 @@ texture_material::texture_material(std::string _texture_name) :
 	texture_name(_texture_name)
 {}
 
-void texture_material::prepare_draw(draw_event &event, const shader_program &shader) const {
+void texture_material::prepare_draw(draw_event &event, const shader_program &shader, render_pass_state &render_pass) const {
 	const texture &tex = event.textures.textures.at(texture_name);
+	const int tex_unit = render_pass.used_texture_units++;
 
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0 + tex_unit);
 	glBindTexture(GL_TEXTURE_2D, tex.get_id());
 
-	shader.set_uniform("tex", 0);
+	shader.set_uniform("tex", tex_unit);
 }
 
 const std::string& texture_material::shader_name() const {

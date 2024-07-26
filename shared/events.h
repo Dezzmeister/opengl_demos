@@ -16,8 +16,11 @@ class light;
 // Fires before the game loop starts, but after the GL and GDI contexts are
 // created.
 struct program_start_event {
+	GLFWwindow * window;
 	shader_store * shaders{ nullptr };
 	texture_store * textures{ nullptr };
+	int screen_width;
+	int screen_height;
 };
 
 // Fires after the game loop ends, but before the GL context is destroyed.
@@ -73,6 +76,24 @@ struct draw_event {
 struct post_render_pass_event {
 };
 
+struct screen_resize_event {
+	const int old_width;
+	const int old_height;
+	const int new_width;
+	const int new_height;
+
+	screen_resize_event(
+		int _old_width,
+		int _old_height,
+		int _new_width,
+		int _new_height
+	) : old_width(_old_width),
+		old_height(_old_height),
+		new_width(_new_width),
+		new_height(_new_height)
+	{}
+};
+
 struct shader_use_event {
 	const shader_program &shader;
 
@@ -124,7 +145,13 @@ struct player_move_event {
 };
 
 using lifecycle_event_bus = event_bus<program_start_event, program_stop_event>;
-using render_event_bus = event_bus<pre_render_pass_event, draw_event, post_render_pass_event, shader_use_event>;
+using render_event_bus = event_bus<
+	pre_render_pass_event,
+	draw_event,
+	post_render_pass_event,
+	shader_use_event,
+	screen_resize_event
+>;
 using input_event_bus = event_bus<keydown_event, keyup_event>;
 using player_event_bus = event_bus<player_look_event, player_move_event>;
 

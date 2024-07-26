@@ -14,7 +14,8 @@ namespace util {
 	};
 
 	// This can be used to implement a rudimentary compile-time map. Create a constexpr array
-	// of `str_kv_pair` and call this function in a constexpr context 
+	// of `str_kv_pair` and call this function in a constexpr context. See shader_constants.h
+	// for an example.
 	template <typename Val, const size_t N, const size_t M>
 	constexpr Val find_in_map(const str_kv_pair<Val>(&pairs)[N], const char(&key)[M]) {
 		for (size_t i = 0; i < N; i++) {

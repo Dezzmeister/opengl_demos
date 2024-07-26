@@ -14,7 +14,7 @@ public:
 		float _shininess
 	);
 
-	void prepare_draw(draw_event &event, const shader_program &shader) const override;
+	void prepare_draw(draw_event &event, const shader_program &shader, render_pass_state &render_pass) const override;
 
 	const std::string& shader_name() const override;
 

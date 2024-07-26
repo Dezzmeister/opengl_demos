@@ -1,7 +1,5 @@
 #extension GL_ARB_explicit_uniform_location : enable
 
-#define MAX_LIGHTS 20
-
 struct material {
 #ifdef USE_MAPS
 	sampler2D diffuse;
@@ -49,9 +47,17 @@ struct light {
 	float outer_cutoff;
 };
 
+// TODO: Share code
+struct shadow_caster {
+	mat4 light_space;
+	sampler2D depth_map;
+	bool enabled;
+};
+
 in vec3 frag_pos_world;
 in vec3 frag_pos_view;
 in vec3 frag_normal;
+in vec4 frag_pos_light_space[MAX_LIGHTS];
 
 #ifdef USE_MAPS
 in vec2 tex_coords;
@@ -62,9 +68,32 @@ out vec4 frag_color;
 layout(location = 21) uniform mat4 view;
 layout(location = 24) uniform material mat;
 
-layout(location = 30) uniform int num_lights;
-layout(location = 31) uniform light lights[MAX_LIGHTS];
+layout(location = 99) uniform int num_lights;
+layout(location = 100) uniform light lights[MAX_LIGHTS];
 
+layout(location = 31) uniform int num_shadow_casters;
+layout(location = 32) uniform shadow_caster shadow_casters[MAX_LIGHTS];
+
+float compute_shadow(int i, vec3 light_dir) {
+	if (! shadow_casters[i].enabled) {
+		return 0.0;
+	}
+
+	if (frag_pos_light_space[i].z > 1.0) {
+		return 0.0;
+	}
+
+	vec3 pov_light_pos = frag_pos_light_space[i].xyz / frag_pos_light_space[i].w;
+	pov_light_pos = pov_light_pos * 0.5 + 0.5;
+
+	float closest_depth = texture(shadow_casters[i].depth_map, pov_light_pos.xy).r;
+	float current_depth = pov_light_pos.z;
+
+	// I don't like this; it's a hacky way to avoid shadow acne and it's easily broken
+	float bias = max(0.0005 * (1.0 - dot(frag_normal, light_dir)), 0.00005);
+
+	return (current_depth - bias) > closest_depth ? 1.0 : 0.0;
+}
 
 // Lighting computations are done in view space so that we don't need to know
 // the camera pos
@@ -126,8 +155,9 @@ void main() {
 			specular *= attenuation;
 		}
 
-		vec3 result = ambient + diffuse + specular;
-		color_out += result;
+		float shadow = compute_shadow(i, light_dir);
+
+		color_out += ambient + (1.0 - shadow) * (diffuse + specular);
 	}
 
 	frag_color = vec4(color_out, 1.0);

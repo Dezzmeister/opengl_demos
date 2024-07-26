@@ -15,3 +15,16 @@ private:
 	std::vector<short> watched_keys;
 };
 
+class screen_controller : public event_listener<pre_render_pass_event>, public event_listener<program_start_event> {
+public:
+	screen_controller(event_buses &_buses);
+
+	int handle(pre_render_pass_event &event) override;
+
+	int handle(program_start_event &event) override;
+
+private:
+	event_buses &buses;
+	int screen_width;
+	int screen_height;
+};

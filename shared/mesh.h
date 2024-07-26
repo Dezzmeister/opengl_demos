@@ -11,7 +11,7 @@ public:
 
 	mesh(geometry * _geom, material * _mat);
 
-	void draw(draw_event &event, const shader_program &shader) const;
+	void prepare_draw(draw_event &event, const shader_program &shader, bool include_normal = true) const;
 
 	void set_model(const glm::mat4 &_model);
 
@@ -25,6 +25,7 @@ public:
 private: 
 	glm::mat4 model;
 	glm::mat4 inv_model;
+	// TODO: Make these fields const?
 	geometry * geom;
 	material * mat;
 };
