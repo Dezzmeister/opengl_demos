@@ -228,3 +228,7 @@ void world::prepare_draw_lights(const shader_program &shader, render_pass_state 
 
 	shader.set_uniform(light::num_lights_loc, static_cast<int>(lights.size()));
 }
+
+const std::vector<light *>& world::get_lights() const {
+	return lights;
+}

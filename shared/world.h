@@ -36,12 +36,15 @@ public:
 
 	void remove_instanced_mesh(const instanced_mesh * _mesh);
 
+	const std::vector<light *>& get_lights() const;
+
 private:
 	event_buses &buses;
 	std::vector<mesh *> meshes;
 	std::vector<light *> lights;
 	bool meshes_need_sorting;
 	std::vector<instanced_mesh *> instanced_meshes;
+	// TODO: Remove these dimensions
 	int screen_width;
 	int screen_height;
 

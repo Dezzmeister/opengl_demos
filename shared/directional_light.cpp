@@ -34,7 +34,7 @@ directional_light::directional_light(
 		_pov_frustum_size,
 		-_pov_frustum_size,
 		_pov_frustum_size,
-		0.0f, 
+		0.1f,
 		_pov_frustum_far
 	)),
 	pov_view(glm::lookAt(

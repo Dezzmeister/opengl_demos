@@ -45,6 +45,8 @@ namespace constants {
 		{ "shadow_caster.light_space", 0 },
 		{ "shadow_caster.depth_map", 1 },
 		{ "shadow_caster.enabled", 2 },
-		{ "sizeof(shadow_caster)", 3 }
+		{ "sizeof(shadow_caster)", 3 },
+
+		{ "tex_sampler_tex", 8 }
 	};
 };

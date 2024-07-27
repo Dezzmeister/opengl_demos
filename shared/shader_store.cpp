@@ -45,6 +45,10 @@ int shader_store::handle(program_start_event &event) {
 		shader<shader_type::Vertex>("../resources/shadow_vert.glsl", "#define INSTANCED\n"),
 		shader<shader_type::Fragment>("../resources/identity_frag.glsl")
 	)));
+	shaders.insert(std::make_pair(std::string("tex_sampler"), shader_program(
+		shader<shader_type::Vertex>("../resources/tex_sampler_vert.glsl"),
+		shader<shader_type::Fragment>("../resources/tex_sampler_frag.glsl")
+	)));
 
 	event.shaders = this;
 

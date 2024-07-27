@@ -82,6 +82,14 @@ bool light::casts_shadow() const {
 	return shadow_fbo != 0;
 }
 
+unsigned int light::get_shadow_fbo() const {
+	return shadow_fbo;
+}
+
+unsigned int light::get_depth_map_id() const {
+	return depth_map;
+}
+
 bool operator==(const light_properties &a, const light_properties &b) {
 	return (a.ambient == b.ambient) && (a.diffuse == b.diffuse) && (a.specular == b.specular);
 }

@@ -28,6 +28,9 @@ int screen_controller::handle(pre_render_pass_event &event) {
 		screen_height = curr_height;
 	}
 
+	event.screen_width = screen_width;
+	event.screen_height = screen_height;
+
 	return 0;
 }
 

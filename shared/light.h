@@ -57,6 +57,9 @@ public:
 
 	virtual void prepare_draw_shadow_map(const shader_program &shader) const = 0;
 
+	unsigned int get_shadow_fbo() const;
+	unsigned int get_depth_map_id() const;
+
 	friend bool operator==(const light &a, const light &b);
 
 	friend class world;

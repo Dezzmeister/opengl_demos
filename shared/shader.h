@@ -66,8 +66,9 @@ public:
 		if (!status) {
 			char info_log[512];
 
-			glGetShaderInfoLog(id, 512, NULL, info_log);
-			std::cout << "Failed to compile shader" << info_log << std::endl;
+			glGetShaderInfoLog(id, (GLsizei)util::c_arr_size(info_log), NULL, info_log);
+			std::string type = (ShaderType == shader_type::Vertex) ? "vertex" : "fragment";
+			std::cout << "Failed to compile " << type << " shader (" << path << "): " << info_log << std::endl;
 			// TODO: Proper error classes
 			throw "Shader compilation error";
 		}

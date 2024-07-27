@@ -9,6 +9,7 @@
 #include "../shared/controllers.h"
 #include "../shared/phong_color_material.h"
 #include "../shared/player.h"
+#include "../shared/shader_constants.h"
 #include "../shared/shader_store.h"
 #include "../shared/shapes.h"
 #include "../shared/texture_store.h"
@@ -212,6 +213,91 @@ public:
 	}
 };
 
+struct debug_instrument :
+	public event_listener<keydown_event>,
+	public event_listener<post_processing_event>,
+	public event_listener<pre_render_pass_event>
+{
+private:
+	event_buses &buses;
+	const std::vector<light *> &lights;
+	int screen_width;
+	int screen_height;
+	int curr_light;
+	short debug_key;
+
+public:
+
+	debug_instrument(event_buses &_buses, world &_w, short _debug_key) :
+		event_listener<keydown_event>(&_buses.input),
+		event_listener<post_processing_event>(&_buses.render),
+		event_listener<pre_render_pass_event>(&_buses.render),
+		buses(_buses),
+		lights(_w.get_lights()),
+		screen_width(0),
+		screen_height(0),
+		curr_light(-1),
+		debug_key(_debug_key)
+	{
+		event_listener<keydown_event>::subscribe();
+		event_listener<post_processing_event>::subscribe();
+		event_listener<pre_render_pass_event>::subscribe();
+	}
+
+	int handle(keydown_event &event) override {
+		if (event.key == debug_key) {
+			if (curr_light + 1 >= lights.size()) {
+				curr_light = -1;
+			} else {
+				curr_light++;
+			}
+		}
+
+		return 0;
+	}
+
+	int handle(post_processing_event &event) override {
+		if (curr_light >= lights.size()) {
+			curr_light = -1;
+		}
+
+		if (curr_light == -1) {
+			return 0;
+		}
+
+		const shader_program &tex_sampler = event.shaders.shaders.at("tex_sampler");
+
+		tex_sampler.use();
+
+		shader_use_event shader_event(tex_sampler);
+		buses.render.fire(shader_event);
+
+		const light * l = lights.at(curr_light);
+		unsigned int tex_id = l->get_depth_map_id();
+
+		constexpr static int tex_loc = util::find_in_map(constants::shader_locs, "tex_sampler_tex");
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex_id);
+		tex_sampler.set_uniform(tex_loc, 0);
+
+		glViewport(0, 0, 256, 256);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		shapes::plane->prepare_draw();
+		shapes::plane->draw();
+
+		return 0;
+	}
+
+	int handle(pre_render_pass_event &event) override {
+		screen_width = event.screen_width;
+		screen_height = event.screen_height;
+
+		return 0;
+	}
+};
+
 int main(int argc, const char * const * const argv) {
 	event_buses buses;
 	gdi_plus_context gdi_plus;
@@ -246,6 +332,7 @@ int main(int argc, const char * const * const argv) {
 	shader_store shaders(buses);
 	texture_store textures(buses);
 	draw_event draw_event_inst(window, shaders, textures);
+	post_processing_event post_processing_event_inst(window, shaders, textures);
 	post_render_pass_event post_render_event;
 
 	key_controller keys(buses, {
@@ -261,7 +348,8 @@ int main(int argc, const char * const * const argv) {
 		GLFW_KEY_LEFT,
 		GLFW_KEY_RIGHT,
 		GLFW_KEY_UP,
-		GLFW_KEY_DOWN
+		GLFW_KEY_DOWN,
+		GLFW_KEY_P
 	});
 	screen_controller screen(buses);
 
@@ -306,7 +394,9 @@ int main(int argc, const char * const * const argv) {
 			glm::vec3(1.0f)
 		),
 		5.0f,
-		100.0f,
+		10.0f,
+		// TODO: Const getter for the projection matrix
+		// 100.0f,
 		1.0f
 	);
 
@@ -317,10 +407,12 @@ int main(int argc, const char * const * const argv) {
 	flashlight lc(buses, pl, w, GLFW_KEY_F);
 	sun_mover sun_controller(buses, sun, 0.0f);
 	box_mover box_controller(buses, box, 0.0f);
+	debug_instrument debug_controller(buses, w, GLFW_KEY_P);
 
 	while (! glfwWindowShouldClose(window)) {
 		buses.render.fire(pre_render_event);
 		buses.render.fire(draw_event_inst);
+		buses.render.fire(post_processing_event_inst);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

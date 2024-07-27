@@ -22,6 +22,8 @@
     <None Include="$(MSBuildThisFileDirectory)phong_frag.glsl" />
     <None Include="$(MSBuildThisFileDirectory)phong_vert.glsl" />
     <None Include="$(MSBuildThisFileDirectory)shadow_vert.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)tex_sampler_frag.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)tex_sampler_vert.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="$(MSBuildThisFileDirectory)container2.png" />

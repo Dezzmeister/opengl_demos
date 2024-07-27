@@ -356,6 +356,7 @@ int main(int argc, const char * const * const argv) {
 	shader_store shaders(buses);
 	texture_store textures(buses);
 	draw_event draw_event_inst(window, shaders, textures);
+	post_processing_event post_processing_event_inst(window, shaders, textures);
 	post_render_pass_event post_render_event;
 
 	key_controller keys(buses, {
@@ -383,6 +384,7 @@ int main(int argc, const char * const * const argv) {
 	while (! glfwWindowShouldClose(window)) {
 		buses.render.fire(pre_render_event);
 		buses.render.fire(draw_event_inst);
+		buses.render.fire(post_processing_event_inst);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
