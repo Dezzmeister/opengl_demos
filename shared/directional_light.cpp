@@ -16,34 +16,60 @@ static const glm::vec3& get_world_up(const glm::vec3 &dir) {
 	return y_up;
 }
 
+shadow_caster_properties::shadow_caster_properties(
+	const glm::vec3 &_dir,
+	float _frustum_size,
+	float _frustum_far
+) :
+	eye_pos(glm::vec3(0.0f)),
+	dir(_dir),
+	view(make_view_mat()),
+	proj(glm::ortho(
+		-_frustum_size,
+		_frustum_size,
+		-_frustum_size,
+		_frustum_size,
+		0.1f,
+		_frustum_far
+	)),
+	view_proj(proj * view)
+{}
+
+glm::mat4 shadow_caster_properties::make_view_mat() const {
+	const glm::vec3 world_up = get_world_up(-dir);
+	const glm::vec3 target = eye_pos + dir;
+
+	return glm::lookAt(eye_pos, target, world_up);
+}
+
+void shadow_caster_properties::set_dir(const glm::vec3 &_dir) {
+	dir = _dir;
+	view = make_view_mat();
+	view_proj = proj * view;
+}
+
+void shadow_caster_properties::set_eye_pos(const glm::vec3 &_eye_pos) {
+	eye_pos = _eye_pos;
+	view = make_view_mat();
+	view_proj = proj * view;
+}
+
+const glm::mat4& shadow_caster_properties::get_mat() const {
+	return view_proj;
+}
+
 directional_light::directional_light(
 	const glm::vec3 _dir,
 	const light_properties _props,
-	const float _pov_frustum_size,
-	const float _pov_frustum_far,
-	const float _pov_eye_zoom,
-	const glm::vec3 _pov_eye_displacement
+	shadow_caster_properties _shadow_props
 ) :
 	light::light(light_type::directional),
+	shadow_props(_shadow_props),
 	dir(_dir),
-	props(_props),
-	pov_eye_zoom(_pov_eye_zoom),
-	pov_eye_displacement(_pov_eye_displacement),
-	pov_proj(glm::ortho(
-		-_pov_frustum_size,
-		_pov_frustum_size,
-		-_pov_frustum_size,
-		_pov_frustum_size,
-		0.1f,
-		_pov_frustum_far
-	)),
-	pov_view(glm::lookAt(
-		(-dir) * pov_eye_zoom + pov_eye_displacement,
-		glm::vec3(0.0f),
-		get_world_up((-dir) * pov_eye_zoom + pov_eye_displacement)
-	)),
-	pov_view_proj(pov_proj * pov_view)
-{}
+	props(_props)
+{
+	shadow_props.set_dir(dir);
+}
 
 void directional_light::prepare_draw(int index, const shader_program &shader, render_pass_state &render_pass) const {
 	const int i = (index * light_struct_size);
@@ -57,7 +83,7 @@ void directional_light::prepare_draw(int index, const shader_program &shader, re
 	const int shadow_i = index * shadow_caster_struct_size;
 
 	if (casts_shadow()) {
-		shader.set_uniform(shadow_casters_loc + shadow_i + light_space_loc, pov_view_proj);
+		shader.set_uniform(shadow_casters_loc + shadow_i + light_space_loc, shadow_props.get_mat());
 
 		const int depth_map_tex_unit = render_pass.used_texture_units++;
 
@@ -74,20 +100,16 @@ void directional_light::prepare_draw(int index, const shader_program &shader, re
 void directional_light::prepare_draw_shadow_map(const shader_program &shader) const {
 	static constexpr int view_proj_loc = util::find_in_map(constants::shader_locs, "view_proj");
 
-	shader.set_uniform(view_proj_loc, pov_view_proj);
+	shader.set_uniform(view_proj_loc, shadow_props.get_mat());
 }
 
 void directional_light::set_dir(const glm::vec3 &_dir) {
 	dir = _dir;
+	shadow_props.set_dir(dir);
+}
 
-	const glm::vec3 scaled_dir = (-dir) * pov_eye_zoom + pov_eye_displacement;
-
-	pov_view = glm::lookAt(
-		scaled_dir,
-		glm::vec3(0.0f),
-		get_world_up(scaled_dir)
-	);
-	pov_view_proj = pov_proj * pov_view;
+const glm::vec3& directional_light::get_dir() const {
+	return dir;
 }
 
 bool directional_light::is_eq(const light &other) const {

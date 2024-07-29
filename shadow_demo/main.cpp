@@ -52,16 +52,18 @@ struct sun_mover :
 {
 private:
 	directional_light &sun;
+	const mesh &box;
 	float angle;
 	float d_angle;
 
 public:
 
-	sun_mover(event_buses &_buses, directional_light &_sun, float _angle) :
+	sun_mover(event_buses &_buses, directional_light &_sun, const mesh &_box, float _angle) :
 		event_listener<keydown_event>(&_buses.input),
 		event_listener<keyup_event>(&_buses.input),
 		event_listener<pre_render_pass_event>(&_buses.render),
 		sun(_sun),
+		box(_box),
 		angle(_angle),
 		d_angle(0.0f)
 	{
@@ -99,15 +101,15 @@ public:
 	}
 
 	int handle(pre_render_pass_event &event) override {
-		if (d_angle == 0.0f) {
-			return 0;
-		}
-
 		angle += d_angle;
 
 		glm::quat rot(cosf(angle / 2.0f), sun_axis * sinf(angle / 2.0f));
+		glm::vec3 new_dir = glm::normalize(rot * sun_dir);
+		glm::vec3 box_pos(box.get_model()[3]);
+		glm::vec3 new_eye_pos = box_pos - (new_dir * 1.5f);
 
-		sun.set_dir(glm::normalize(rot * sun_dir));
+		sun.set_dir(new_dir);
+		sun.shadow_props.set_eye_pos(new_eye_pos);
 
 		return 0;
 	}
@@ -175,13 +177,13 @@ public:
 
 		const float abs_dy = fabs(dy);
 
-		if (abs_dy < EPSILON || abs_dy > (0.01f + EPSILON)) {
+		if (abs_dy < EPSILON || abs_dy > (0.02f + EPSILON)) {
 			dy = 0.0f;
 		}
 
 		const float abs_d_angle = fabs(d_angle);
 
-		if (abs_d_angle < EPSILON || abs_d_angle >(0.01f + EPSILON)) {
+		if (abs_d_angle < EPSILON || abs_d_angle >(0.02f + EPSILON)) {
 			d_angle = 0.0f;
 		}
 
@@ -213,6 +215,9 @@ public:
 	}
 };
 
+// This utility allows the user to press a key to cycle through each light in the
+// scene. The selected light's shadow depth map will be rendered in the lower left
+// corner of the screen. If no light is selected, no depth map will be rendered.
 struct debug_instrument :
 	public event_listener<keydown_event>,
 	public event_listener<post_processing_event>,
@@ -393,11 +398,11 @@ int main(int argc, const char * const * const argv) {
 			glm::vec3(0.9f),
 			glm::vec3(1.0f)
 		),
-		5.0f,
-		10.0f,
-		// TODO: Const getter for the projection matrix
-		// 100.0f,
-		1.0f
+		shadow_caster_properties(
+			glm::vec3(0.0f, 1.0f, 4.0f),
+			0.5f,
+			50.0f
+		)
 	);
 
 	sun.set_casts_shadow(true);
@@ -405,7 +410,7 @@ int main(int argc, const char * const * const argv) {
 	w.add_light(&sun);
 
 	flashlight lc(buses, pl, w, GLFW_KEY_F);
-	sun_mover sun_controller(buses, sun, 0.0f);
+	sun_mover sun_controller(buses, sun, box, 0.0f);
 	box_mover box_controller(buses, box, 0.0f);
 	debug_instrument debug_controller(buses, w, GLFW_KEY_P);
 

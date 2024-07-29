@@ -24,7 +24,8 @@ class texture_store;
 class light;
 
 // Fired before the game loop starts, but after the GL and GDI contexts are
-// created.
+// created. If the user has shaders and textures that they need to load, they
+// can do that on this event.
 struct program_start_event {
 	GLFWwindow * window;
 	shader_store * shaders{ nullptr };

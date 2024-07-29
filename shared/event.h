@@ -38,6 +38,10 @@
 #include <concepts>
 #include <functional>
 #include <list>
+#ifdef DEBUG_LOGS
+#include <string>
+#include <iostream>
+#endif
 
 // An "effectful" event is one that does something before and/or after it's fired
 template <typename EventType>
@@ -68,9 +72,16 @@ private:
 	};
 
 	std::list<listener_key> listeners;
+#ifdef DEBUG_LOGS
+	inline static const std::string event_type_name = typeid(EventType).name();
+#endif
 
 public:
 	event_listener<EventType> * _subscribe(event_listener<EventType> * listener, int pos) {
+#ifdef DEBUG_LOGS
+		std::cout << "[DEBUG] Event listener subscribed to " << event_type_name << " channel with priority " << pos << std::endl;
+#endif
+
 		listener_key key(listener, pos);
 
 		auto it = std::upper_bound(listeners.begin(), listeners.end(), key);
@@ -80,6 +91,10 @@ public:
 	}
 
 	void _unsubscribe(event_listener<EventType> * listener) {
+#ifdef DEBUG_LOGS
+		std::cout << "[DEBUG] Event listener unsubscribed from " << event_type_name << " channel" << std::endl;
+#endif
+
 		listener_key key(listener, 0);
 
 		auto it = std::find(listeners.begin(), listeners.end(), key);
@@ -93,6 +108,9 @@ public:
 	}
 
 	void _fire(EventType &event) {
+#ifdef DEBUG_LOGS
+		std::cout << "[DEBUG] Event fired on " + event_type_name << " channel with " << listeners.size() << " handler(s)" << std::endl;
+#endif
 		for (auto listener : listeners) {
 			listener.listener->handle(event);
 		}
@@ -135,8 +153,16 @@ public:
 template <typename EventType>
 class event_listener {
 private:
+	// The event channel that this listener can subscribe to. An event listener is constructed with a
+	// pointer to an event channel of the listener's event type. After construction, an event listener's
+	// channel can never change, unless it is moved or copied into.
 	event_channel<EventType> * channel;
+	// This is the event listener's handle. It's returned by the event channel on subscription, and if it's
+	// not null, then the event listener is subscribed. At the moment, this is just the `this` pointer.
 	event_listener<EventType> * id;
+	// The event listener's priority. Zero is the default priority. An event channel will call event listeners
+	// in increasing order of `priority`. TODO: Reverse the order here so that this is actually "priority" and
+	// not its opposite
 	int priority;
 
 public:

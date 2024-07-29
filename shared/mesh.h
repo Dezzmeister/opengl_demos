@@ -6,10 +6,13 @@
 
 class world;
 
+// A mesh is a non-owning "view" of a geometry. A mesh's material provides the method
+// of rendering the geometry, and the model matrix indicates where the geometry
+// should be placed in the world.
 class mesh {
 public:
 
-	mesh(geometry * _geom, material * _mat);
+	mesh(const geometry * _geom, const material * _mat);
 
 	void prepare_draw(draw_event &event, const shader_program &shader, bool include_normal = true) const;
 
@@ -25,8 +28,7 @@ public:
 private: 
 	glm::mat4 model;
 	glm::mat4 inv_model;
-	// TODO: Make these fields const?
-	geometry * geom;
-	material * mat;
+	const geometry * const geom;
+	const material * const mat;
 };
 

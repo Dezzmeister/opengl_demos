@@ -3,7 +3,7 @@
 #include "shader_store.h"
 #include "util.h"
 
-mesh::mesh(geometry * _geom, material * _mat) :
+mesh::mesh(const geometry * _geom, const material * _mat) :
 	model(glm::identity<glm::mat4>()),
 	inv_model(glm::inverse(model)),
 	geom(_geom),

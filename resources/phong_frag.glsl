@@ -86,13 +86,22 @@ float compute_shadow(int i, vec3 light_dir, vec3 norm) {
 	vec3 pov_light_pos = frag_pos_light_space[i].xyz / frag_pos_light_space[i].w;
 	pov_light_pos = pov_light_pos * 0.5 + 0.5;
 
-	float closest_depth = texture(shadow_casters[i].depth_map, pov_light_pos.xy).r;
 	float current_depth = pov_light_pos.z;
 
 	// I don't like this; it's a hacky way to avoid shadow acne and it's easily broken
 	float bias = max(0.0005 * (1.0 - dot(norm, light_dir)), 0.00005);
 
-	return (current_depth - bias) > closest_depth ? 1.0 : 0.0;
+	float shadow = 0.0;
+	vec2 texel_size = 1.0 / textureSize(shadow_casters[i].depth_map, 0);
+
+	for (float x = -1.5; x <= 1.5; x += 1.0) {
+		for (float y = -1.5; y <= 1.5; y += 1.0) {
+			float pcf_depth = texture(shadow_casters[i].depth_map, pov_light_pos.xy + vec2(x, y) * texel_size).r;
+			shadow += current_depth - bias > pcf_depth ? 1.0 : 0.0;
+		}
+	}
+
+	return shadow / 16.0;
 }
 
 // Lighting computations are done in view space so that we don't need to know
