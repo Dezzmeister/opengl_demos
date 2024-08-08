@@ -2,13 +2,15 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/quaternion.hpp>
+#include "../shared/controllers.h"
 #include "../shared/directional_light.h"
 #include "../shared/events.h"
 #include "../shared/flashlight.h"
 #include "../shared/gdi_plus_context.h"
-#include "../shared/controllers.h"
+#include "../shared/hardware_constants.h"
 #include "../shared/phong_color_material.h"
 #include "../shared/player.h"
+#include "../shared/point_light.h"
 #include "../shared/shader_constants.h"
 #include "../shared/shader_store.h"
 #include "../shared/shapes.h"
@@ -224,11 +226,29 @@ struct debug_instrument :
 	public event_listener<pre_render_pass_event>
 {
 private:
+	static const inline glm::vec3 u_filters[6] = {
+		glm::vec3(1, 0, 0),
+		glm::vec3(0, 1, 0),
+		glm::vec3(0, 0, 1),
+		glm::vec3(-1, 0, 0),
+		glm::vec3(0, -1, 0),
+		glm::vec3(0, 0, -1)
+	};
+	static const inline glm::vec3 v_filters[6] = {
+		glm::vec3(0, 1, 0),
+		glm::vec3(0, 0, 1),
+		glm::vec3(1, 0, 0),
+		glm::vec3(0, -1, 0),
+		glm::vec3(0, 0, -1),
+		glm::vec3(-1, 0, 0)
+	};
+
 	event_buses &buses;
 	const std::vector<light *> &lights;
 	int screen_width;
 	int screen_height;
 	int curr_light;
+	int curr_face;
 	short debug_key;
 
 public:
@@ -242,6 +262,7 @@ public:
 		screen_width(0),
 		screen_height(0),
 		curr_light(-1),
+		curr_face(-1),
 		debug_key(_debug_key)
 	{
 		event_listener<keydown_event>::subscribe();
@@ -251,10 +272,25 @@ public:
 
 	int handle(keydown_event &event) override {
 		if (event.key == debug_key) {
+			if (curr_light != -1) {
+				if (curr_face >= 5) {
+					curr_face = -1;
+				} else {
+					curr_face++;
+					return 0;
+				}
+			}
+
 			if (curr_light + 1 >= lights.size()) {
 				curr_light = -1;
 			} else {
 				curr_light++;
+
+				const light * l = lights.at(curr_light);
+
+				if (l->type == light_type::point) {
+					curr_face++;
+				}
 			}
 		}
 
@@ -270,21 +306,48 @@ public:
 			return 0;
 		}
 
-		const shader_program &tex_sampler = event.shaders.shaders.at("tex_sampler");
-
-		tex_sampler.use();
-
-		shader_use_event shader_event(tex_sampler);
-		buses.render.fire(shader_event);
-
 		const light * l = lights.at(curr_light);
-		unsigned int tex_id = l->get_depth_map_id();
 
-		constexpr static int tex_loc = util::find_in_map(constants::shader_locs, "tex_sampler_tex");
+		if (curr_face == -1) {
+			const shader_program &tex_sampler = event.shaders.shaders.at("tex_sampler");
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, tex_id);
-		tex_sampler.set_uniform(tex_loc, 0);
+			tex_sampler.use();
+
+			shader_use_event shader_event(tex_sampler);
+			buses.render.fire(shader_event);
+
+			constexpr static int tex_loc = util::find_in_map(constants::shader_locs, "tex_sampler_tex");
+
+			if (l->type == light_type::directional) {
+				const directional_light * dl = static_cast<const directional_light *>(l);
+				unsigned int tex_id = dl->get_depth_map_id();
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, tex_id);
+				tex_sampler.set_uniform(tex_loc, 0);
+			}
+		} else if (l->type == light_type::point) {
+			const point_light * pl = static_cast<const point_light *>(l);
+			unsigned int tex_id = pl->get_depth_cubemap_id();
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP_POSITIVE_X + curr_face, tex_id);
+
+			const shader_program &cube_sampler = event.shaders.shaders.at("cube_sampler");
+
+			cube_sampler.use();
+
+			shader_use_event shader_event(cube_sampler);
+			buses.render.fire(shader_event);
+
+			constexpr static int tex_loc = util::find_in_map(constants::shader_locs, "cube_sampler_cubemap");
+			constexpr static int u_filter_loc = util::find_in_map(constants::shader_locs, "cube_sampler_u_filter");
+			constexpr static int v_filter_loc = util::find_in_map(constants::shader_locs, "cube_sampler_v_filter");
+
+			cube_sampler.set_uniform(tex_loc, 0);
+			cube_sampler.set_uniform(u_filter_loc, u_filters[curr_face]);
+			cube_sampler.set_uniform(v_filter_loc, v_filters[curr_face]);
+		}
 
 		glViewport(0, 0, 256, 256);
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -328,12 +391,14 @@ int main(int argc, const char * const * const argv) {
 	glViewport(0, 0, 800, 600);
 	glClearColor(0.1f, 0.01f, 0.1f, 0.0f);
 
+	hardware_constants hardware_consts(buses);
+
 	player pl(buses);
 
 	program_start_event program_start{
 		window
 	};
-	pre_render_pass_event pre_render_event(window);
+	pre_render_pass_event pre_render_event(window, &hardware_consts);
 	shader_store shaders(buses);
 	texture_store textures(buses);
 	draw_event draw_event_inst(window, shaders, textures);
@@ -398,16 +463,39 @@ int main(int argc, const char * const * const argv) {
 			glm::vec3(0.9f),
 			glm::vec3(1.0f)
 		),
-		shadow_caster_properties(
+		directional_shadow_caster_properties(
 			glm::vec3(0.0f, 1.0f, 4.0f),
 			0.5f,
-			50.0f
+			50.0f,
+			1024
 		)
 	);
 
 	sun.set_casts_shadow(true);
-
 	w.add_light(&sun);
+
+	point_light static_light(
+		glm::vec3(1.0f, 1.0f, 4.0f),
+		light_properties(
+			glm::vec3(0.1f),
+			glm::vec3(0.7f),
+			glm::vec3(0.8f)
+		),
+		attenuation_factors(
+			1.0f,
+			0.027f,
+			0.0028f
+		),
+		point_shadow_caster_properties(
+			1024,
+			0.1f,
+			16.0f
+		)
+	);
+
+	static_light.set_casts_shadow(true);
+
+	w.add_light(&static_light);
 
 	flashlight lc(buses, pl, w, GLFW_KEY_F);
 	sun_mover sun_controller(buses, sun, box, 0.0f);

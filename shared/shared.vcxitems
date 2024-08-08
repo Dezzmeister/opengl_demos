@@ -16,6 +16,7 @@
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)camera.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)color_material.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)hardware_constants.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)directional_light.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)flashlight.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)gdi_plus_context.cpp" />
@@ -29,6 +30,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)phong_map_material.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)player.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)point_light.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)rendering.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)screen_controller.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)shader_program.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)shader_store.cpp" />
@@ -45,6 +47,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)controllers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)directional_light.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)flashlight.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)hardware_constants.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)instanced_mesh.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)phong_map_material.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)rendering.h" />

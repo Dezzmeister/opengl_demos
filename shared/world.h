@@ -11,29 +11,21 @@ class world :
 	public event_listener<program_start_event>
 {
 public:
-	const static size_t MAX_LIGHTS;
-
 	world(event_buses &_buses, std::vector<mesh *> _meshes = {}, std::vector<light *> _lights = {});
 
 	int handle(draw_event &event) override;
-
 	int handle(screen_resize_event &event) override;
-
 	int handle(program_start_event &event) override;
 
 	// Meshes are sorted in ascending order
 	void add_mesh(mesh * m);
-
 	void add_mesh_unsorted(mesh * m);
-
 	void remove_mesh(const mesh * m);
 
 	void add_light(light * l);
-
 	void remove_light(const light * l);
 
 	void add_instanced_mesh(instanced_mesh * _mesh);
-
 	void remove_instanced_mesh(const instanced_mesh * _mesh);
 
 	const std::vector<light *>& get_lights() const;
@@ -47,9 +39,11 @@ private:
 	// TODO: Remove these dimensions
 	int screen_width;
 	int screen_height;
+	int max_tex_units;
+	int default_sampler2d_tex_unit;
+	int default_cubesampler_tex_unit;
 
 	void prepare_draw_lights(const shader_program &shader, render_pass_state &render_pass) const;
-
 	void prepare_shadow_maps(draw_event &event) const;
 
 	void draw_instanced_meshes(draw_event &event) const;

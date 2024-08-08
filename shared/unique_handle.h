@@ -1,6 +1,26 @@
 #pragma once
 #include <functional>
 
+// This is like `unique_ptr`, but for handles. A unique handle is constructed with a null value
+// and a deleter function that specifies how to delete the object referenced by the handle. On
+// construction, the `unique_handle` has no object, so its handle is the null handle. If a
+// construction function expects a pointer which will receive the value of a newly created handle,
+// the address of the `unique_handle` can be used, and it will be converted to the expected handle
+// type. A `unique_handle` has value semantics:
+//		1. It will automatically cast to the handle type when treated as such
+//		2. Assigning the null handle value to a `unique_handle` will free the held object, if any
+//		3. When appropriate, the address of the handle can be taken by taking the address of the
+//			`unique_handle`
+//		4. It can be compared for equality with other `unique_handle`s, and the held handles will
+//			be compared
+// For example, to create an OpenGL buffer:
+//
+//		unique_handle<unsigned int> vbo(0, [](unsigned int _vbo) {
+//			glDeleteBuffers(1, &_vbo);
+//		});
+//		glGenBuffers(1, &vbo); // The address of the handle itself is taken, not the `unique_handle`
+//		glBindBuffer(GL_ARRAY_BUFFER, vbo); // The `unique_handle` is implicitly converted to the handle type
+//		...
 template <typename T>
 class unique_handle {
 public:

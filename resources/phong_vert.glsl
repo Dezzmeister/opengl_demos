@@ -6,6 +6,9 @@ struct shadow_caster {
 	mat4 light_space;
 	sampler2D depth_map;
 	bool enabled;
+	// The cubemap and far plane are undefined for anything other than a point light
+	samplerCube cube_depth_map;
+	float far_plane;
 };
 
 layout(location = 0) in vec3 pos;

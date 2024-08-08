@@ -18,9 +18,13 @@
     <None Include="$(MSBuildThisFileDirectory)basic_color_vert.glsl" />
     <None Include="$(MSBuildThisFileDirectory)basic_texture_frag.glsl" />
     <None Include="$(MSBuildThisFileDirectory)basic_texture_vert.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)cube_sampler_frag.glsl" />
     <None Include="$(MSBuildThisFileDirectory)identity_frag.glsl" />
     <None Include="$(MSBuildThisFileDirectory)phong_frag.glsl" />
     <None Include="$(MSBuildThisFileDirectory)phong_vert.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)point_shadow_frag.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)point_shadow_geom.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)point_shadow_vert.glsl" />
     <None Include="$(MSBuildThisFileDirectory)shadow_vert.glsl" />
     <None Include="$(MSBuildThisFileDirectory)tex_sampler_frag.glsl" />
     <None Include="$(MSBuildThisFileDirectory)tex_sampler_vert.glsl" />

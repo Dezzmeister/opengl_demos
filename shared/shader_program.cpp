@@ -1,12 +1,19 @@
 #include "shader_program.h"
 
-shader_program::shader_program(shader<shader_type::Vertex> vertex_shader, shader<shader_type::Fragment> fragment_shader) :
+shader_program::shader_program(
+	shader<shader_type::Vertex> vertex_shader,
+	std::optional<shader<shader_type::Geometry>> geometry_shader,
+	shader<shader_type::Fragment> fragment_shader
+) :
 	id(0, [](unsigned int _handle) {
 		glDeleteProgram(_handle);
 	})
 {
 	id = glCreateProgram();
 	glAttachShader(id, vertex_shader.get_id());
+	if (geometry_shader.has_value()) {
+		glAttachShader(id, geometry_shader->get_id());
+	}
 	glAttachShader(id, fragment_shader.get_id());
 	glLinkProgram(id);
 

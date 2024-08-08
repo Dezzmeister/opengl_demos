@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -8,8 +9,11 @@
 
 class shader_program {
 public:
-
-	shader_program(shader<shader_type::Vertex> vertex_shader, shader<shader_type::Fragment> fragment_shader);
+	shader_program(
+		shader<shader_type::Vertex> vertex_shader,
+		std::optional<shader<shader_type::Geometry>> geometry_shader,
+		shader<shader_type::Fragment> fragment_shader
+	);
 
 	void use() const;
 

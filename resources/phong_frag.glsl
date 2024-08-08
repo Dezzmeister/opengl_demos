@@ -52,6 +52,9 @@ struct shadow_caster {
 	mat4 light_space;
 	sampler2D depth_map;
 	bool enabled;
+	// The cubemap and far plane are undefined for anything other than a point light
+	samplerCube cube_depth_map;
+	float far_plane;
 };
 
 in vec3 frag_pos_world;
@@ -68,15 +71,48 @@ out vec4 frag_color;
 layout(location = 21) uniform mat4 view;
 layout(location = 24) uniform material mat;
 
-layout(location = 99) uniform int num_lights;
-layout(location = 100) uniform light lights[MAX_LIGHTS];
+layout(location = 149) uniform int num_lights;
+layout(location = 150) uniform light lights[MAX_LIGHTS];
 
-layout(location = 31) uniform int num_shadow_casters;
 layout(location = 32) uniform shadow_caster shadow_casters[MAX_LIGHTS];
+
+float compute_point_shadow(int i, vec3 light_dir, vec3 norm) {
+	vec3 frag_to_light = frag_pos_world - lights[i].pos;
+	float current_depth = length(frag_to_light);
+	float norm_depth = texture(shadow_casters[i].cube_depth_map, frag_to_light).r;
+
+	if (norm_depth == 1.0) {
+		return 0.0;
+	}
+
+	float shadow = 0.0;
+	float samples = 4.0;
+	// TODO: Make this customizable
+	float offset = 0.01;
+	float bias = max(0.19 * (1.0 - dot(norm, light_dir)), 0.05);
+
+	for (float x = -offset; x < offset; x += offset / (samples * 0.5)) {
+		for (float y = -offset; y < offset; y += offset / (samples * 0.5)) {
+			for (float z = -offset; z < offset; z += offset / (samples * 0.5)) {
+				float closest_depth = texture(shadow_casters[i].cube_depth_map, frag_to_light + vec3(x, y, z)).r * shadow_casters[i].far_plane;
+
+				if (current_depth - bias > closest_depth) {
+					shadow += 1.0;
+				}
+			}
+		}
+	}
+
+	return shadow / (samples * samples * samples);
+}
 
 float compute_shadow(int i, vec3 light_dir, vec3 norm) {
 	if (! shadow_casters[i].enabled) {
 		return 0.0;
+	}
+
+	if (lights[i].type == point_light_type) {
+		return compute_point_shadow(i, light_dir, norm);
 	}
 
 	if (frag_pos_light_space[i].z > 1.0) {
@@ -94,6 +130,7 @@ float compute_shadow(int i, vec3 light_dir, vec3 norm) {
 	float shadow = 0.0;
 	vec2 texel_size = 1.0 / textureSize(shadow_casters[i].depth_map, 0);
 
+	// TODO: Use shadow samplers
 	for (float x = -1.5; x <= 1.5; x += 1.0) {
 		for (float y = -1.5; y <= 1.5; y += 1.0) {
 			float pcf_depth = texture(shadow_casters[i].depth_map, pov_light_pos.xy + vec2(x, y) * texel_size).r;

@@ -6,6 +6,7 @@
 #include "../shared/flashlight.h"
 #include "../shared/gdi_plus_context.h"
 #include "../shared/controllers.h"
+#include "../shared/hardware_constants.h"
 #include "../shared/mesh.h"
 #include "../shared/phong_color_material.h"
 #include "../shared/phong_map_material.h"
@@ -248,13 +249,28 @@ phong_color_material floor_mtl(floor_mtl_props);
 
 phong_map_material wooden_cube_mtl("container2", "container2_specular", 32.0f);
 
-struct static_object_controller {
-	std::unique_ptr<light> static_light{};
+struct object_controller : 
+	public event_listener<pre_render_pass_event>, 
+	public event_listener<keydown_event>,
+	public event_listener<keyup_event>
+{
+	inline static float light_speed = 0.05f;
+
+	std::unique_ptr<point_light> light{};
 	std::vector<std::unique_ptr<mesh>> cubes{};
 	std::unique_ptr<mesh> floor{};
 	std::unique_ptr<mesh> wooden_cube{};
+	glm::vec3 light_motion{ 0.0f };
 
-	static_object_controller(world &w) {
+	object_controller(event_buses &_buses, world &w) :
+		event_listener<pre_render_pass_event>(&_buses.render),
+		event_listener<keydown_event>(&_buses.input),
+		event_listener<keyup_event>(&_buses.input)
+	{
+		event_listener<pre_render_pass_event>::subscribe();
+		event_listener<keydown_event>::subscribe();
+		event_listener<keyup_event>::subscribe();
+
 		const size_t num_materials = util::c_arr_size(mtls);
 		const float cube_size = 0.5f;
 		const float spacing = 0.5f;
@@ -275,7 +291,7 @@ struct static_object_controller {
 			cubes.push_back(std::move(cube));
 		}
 
-		static_light = std::make_unique<point_light>(
+		light = std::make_unique<point_light>(
 			glm::vec3(0.0f, 0.0f, 4.0f - width),
 			light_properties(
 				glm::vec3(1.0f),
@@ -286,10 +302,17 @@ struct static_object_controller {
 				1.0f,
 				0.027f,
 				0.0028f
+			),
+			point_shadow_caster_properties(
+				1024,
+				0.1f,
+				100.0f
 			)
 		);
 
-		w.add_light(static_light.get());
+		light->set_casts_shadow(true);
+
+		w.add_light(light.get());
 
 		floor = std::make_unique<mesh>(shapes::plane.get(), &floor_mtl);
 		floor->set_model(glm::translate(glm::identity<glm::mat4>(), glm::vec3(
@@ -308,6 +331,46 @@ struct static_object_controller {
 		)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(cube_size)));
 
 		w.add_mesh(wooden_cube.get());
+	}
+
+	int handle(pre_render_pass_event &event) override {
+		if (glm::length(light_motion) < 1e-6) {
+			return 0;
+		}
+
+		glm::vec3 scaled_motion = light_motion * light_speed / glm::length(light_motion);
+
+		light->set_pos(light->get_pos() + scaled_motion);
+
+		return 0;
+	}
+
+	int handle(keydown_event &event) override {
+		if (event.key == GLFW_KEY_LEFT) {
+			light_motion.x += 1.0f;
+		} else if (event.key == GLFW_KEY_RIGHT) {
+			light_motion.x -= 1.0f;
+		} else if (event.key == GLFW_KEY_UP) {
+			light_motion.z += 1.0f;
+		} else if (event.key == GLFW_KEY_DOWN) {
+			light_motion.z -= 1.0f;
+		}
+
+		return 0;
+	}
+
+	int handle(keyup_event &event) override {
+		if (event.key == GLFW_KEY_LEFT) {
+			light_motion.x -= 1.0f;
+		} else if (event.key == GLFW_KEY_RIGHT) {
+			light_motion.x += 1.0f;
+		} else if (event.key == GLFW_KEY_UP) {
+			light_motion.z -= 1.0f;
+		} else if (event.key == GLFW_KEY_DOWN) {
+			light_motion.z += 1.0f;
+		}
+
+		return 0;
 	}
 };
 
@@ -348,11 +411,12 @@ int main(int argc, const char * const * const argv) {
 	glFrontFace(GL_CCW);
 
 	player pl(buses);
+	hardware_constants hw_consts(buses);
 
 	program_start_event program_start{
 		window
 	};
-	pre_render_pass_event pre_render_event(window);
+	pre_render_pass_event pre_render_event(window, &hw_consts);
 	shader_store shaders(buses);
 	texture_store textures(buses);
 	draw_event draw_event_inst(window, shaders, textures);
@@ -366,7 +430,11 @@ int main(int argc, const char * const * const argv) {
 		GLFW_KEY_D,
 		GLFW_KEY_LEFT_SHIFT,
 		GLFW_KEY_F,
-		GLFW_KEY_ESCAPE
+		GLFW_KEY_ESCAPE,
+		GLFW_KEY_LEFT,
+		GLFW_KEY_RIGHT,
+		GLFW_KEY_UP,
+		GLFW_KEY_DOWN
 	});
 
 	screen_controller screen(buses);
@@ -377,7 +445,7 @@ int main(int argc, const char * const * const argv) {
 
 	shapes::init();
 
-	static_object_controller static_objects(w);
+	object_controller static_objects(buses, w);
 
 	flashlight lc(buses, pl, w, GLFW_KEY_F);
 

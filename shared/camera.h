@@ -2,7 +2,12 @@
 #include "events.h"
 #include "shader_program.h"
 
-class camera : public event_listener<pre_render_pass_event>, public event_listener<shader_use_event>, public event_listener<draw_event> {
+class camera :
+	public event_listener<pre_render_pass_event>,
+	public event_listener<shader_use_event>,
+	public event_listener<draw_event>,
+	public event_listener<screen_resize_event>
+{
 public:
 	glm::vec3 pos;
 	glm::vec3 dir;
@@ -14,6 +19,7 @@ public:
 	int handle(pre_render_pass_event &event) override;
 	int handle(shader_use_event &event) override;
 	int handle(draw_event &event) override;
+	int handle(screen_resize_event &event) override;
 
 	void update_right_vec();
 	const glm::mat4& update_view_mat();

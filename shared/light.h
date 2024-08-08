@@ -46,19 +46,17 @@ public:
 	const light_type type;
 
 	light(light_type _type);
+	virtual ~light() = default;
 
 	virtual void prepare_draw(int index, const shader_program &shader, render_pass_state &render_pass) const = 0;
+	virtual void prepare_draw_shadow_map(const shader_program &shader) const = 0;
+	virtual void prepare_shadow_render_pass() const = 0;
 
-	void set_casts_shadow(bool enabled);
+	virtual void set_casts_shadow(bool enabled) = 0;
 
 	bool casts_shadow() const;
-
-	void prepare_shadow_render_pass() const;
-
-	virtual void prepare_draw_shadow_map(const shader_program &shader) const = 0;
-
 	unsigned int get_shadow_fbo() const;
-	unsigned int get_depth_map_id() const;
+	virtual const std::string& shadow_map_shader_name() const = 0;
 
 	friend bool operator==(const light &a, const light &b);
 
@@ -80,15 +78,15 @@ protected:
 	static constexpr int inner_cutoff_loc = util::find_in_map(constants::shader_locs, "light.inner_cutoff");
 	static constexpr int outer_cutoff_loc = util::find_in_map(constants::shader_locs, "light.outer_cutoff");
 	static constexpr int light_struct_size = util::find_in_map(constants::shader_locs, "sizeof(light)");
-	static constexpr int num_shadow_casters_loc = util::find_in_map(constants::shader_locs, "num_shadow_casters");
 	static constexpr int shadow_casters_loc = util::find_in_map(constants::shader_locs, "shadow_casters");
 	static constexpr int light_space_loc = util::find_in_map(constants::shader_locs, "shadow_caster.light_space");
 	static constexpr int depth_map_loc = util::find_in_map(constants::shader_locs, "shadow_caster.depth_map");
 	static constexpr int shadow_caster_enabled_loc = util::find_in_map(constants::shader_locs, "shadow_caster.enabled");
+	static constexpr int cube_depth_map_loc = util::find_in_map(constants::shader_locs, "shadow_caster.cube_depth_map");
+	static constexpr int far_plane_loc = util::find_in_map(constants::shader_locs, "shadow_caster.far_plane");
 	static constexpr int shadow_caster_struct_size = util::find_in_map(constants::shader_locs, "sizeof(shadow_caster)");
 
 	unique_handle<unsigned int> shadow_fbo;
-	unique_handle<unsigned int> depth_map;
 
 	virtual bool is_eq(const light &other) const = 0;
 };

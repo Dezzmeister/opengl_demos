@@ -10,8 +10,22 @@
 
 enum class shader_type {
 	Vertex,
+	Geometry,
 	Fragment
 };
+
+constexpr unsigned int get_gl_shader_type(shader_type type) {
+	if (type == shader_type::Vertex) {
+		return GL_VERTEX_SHADER;
+	} else if (type == shader_type::Geometry) {
+		return GL_GEOMETRY_SHADER;
+	} else if (type == shader_type::Fragment) {
+		return GL_FRAGMENT_SHADER;
+	} else {
+		// This shouldn't be possible
+		throw std::invalid_argument("Unsupported shader type");
+	}
+}
 
 template <shader_type ShaderType>
 class shader {
@@ -21,16 +35,7 @@ public:
 			glDeleteShader(_handle);
 		})
 	{
-		unsigned int gl_shader_type;
-
-		if (ShaderType == shader_type::Vertex) {
-			gl_shader_type = GL_VERTEX_SHADER;
-		} else if (ShaderType == shader_type::Fragment) {
-			gl_shader_type = GL_FRAGMENT_SHADER;
-		} else {
-			// This shouldn't be possible
-			throw std::invalid_argument("Unsupported shader type");
-		}
+		constexpr unsigned int gl_shader_type = get_gl_shader_type(ShaderType);
 
 		std::string shader_code;
 		std::ifstream shader_file;
@@ -67,8 +72,17 @@ public:
 			char info_log[512];
 
 			glGetShaderInfoLog(id, (GLsizei)util::c_arr_size(info_log), NULL, info_log);
-			std::string type = (ShaderType == shader_type::Vertex) ? "vertex" : "fragment";
-			std::cout << "Failed to compile " << type << " shader (" << path << "): " << info_log << std::endl;
+			std::string type_str("!!!");
+
+			if (ShaderType == shader_type::Vertex) {
+				type_str = "vertex";
+			} else if (ShaderType == shader_type::Geometry) {
+				type_str = "geometry";
+			} else if (ShaderType == shader_type::Fragment) {
+				type_str = "fragment";
+			}
+
+			std::cout << "Failed to compile " << type_str << " shader (" << path << "): " << info_log << std::endl;
 			// TODO: Proper error classes
 			throw "Shader compilation error";
 		}

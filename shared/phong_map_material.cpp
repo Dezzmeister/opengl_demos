@@ -24,8 +24,8 @@ void phong_map_material::prepare_draw(draw_event &event, const shader_program &s
 	const texture &diffuse_map = event.textures.textures.at(diffuse_map_name);
 	const texture &specular_map = event.textures.textures.at(specular_map_name);
 
-	const int diffuse_tex_unit = render_pass.used_texture_units++;
-	const int specular_tex_unit = render_pass.used_texture_units++;
+	const int diffuse_tex_unit = render_pass.next_texture_unit();
+	const int specular_tex_unit = render_pass.next_texture_unit();
 
 	glActiveTexture(GL_TEXTURE0 + diffuse_tex_unit);
 	glBindTexture(GL_TEXTURE_2D, diffuse_map.get_id());

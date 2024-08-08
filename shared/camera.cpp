@@ -7,6 +7,7 @@ camera::camera(event_buses &_buses) :
 	event_listener<pre_render_pass_event>(&_buses.render),
 	event_listener<shader_use_event>(&_buses.render),
 	event_listener<draw_event>(&_buses.render, -100),
+	event_listener<screen_resize_event>(&_buses.render),
 	pos(glm::vec3(0.0f, 0.0f, 0.0f)),
 	dir(glm::vec3(0.0f, 0.0f, -1.0f)),
 	world_up(glm::vec3(0.0f, 1.0f, 0.0f)),
@@ -15,11 +16,12 @@ camera::camera(event_buses &_buses) :
 	target(glm::vec3(0.0f, 0.0f, 1.0f)),
 	view(glm::mat4(1.0f)),
 	inv_view(glm::inverse(view)),
-	projection(glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f))
+	projection(glm::perspective(glm::radians(60.0f), 800.0f / 600.0f, 0.1f, 100.0f))
 {
 	event_listener<pre_render_pass_event>::subscribe();
 	event_listener<shader_use_event>::subscribe();
 	event_listener<draw_event>::subscribe();
+	event_listener<screen_resize_event>::subscribe();
 }
 
 int camera::handle(pre_render_pass_event &event) {
@@ -28,6 +30,7 @@ int camera::handle(pre_render_pass_event &event) {
 	return 0;
 }
 
+// TODO: Don't set uniforms that don't exist
 int camera::handle(shader_use_event &event) {
 	constexpr int view_loc = util::find_in_map(constants::shader_locs, "view");
 	constexpr int inv_view_loc = util::find_in_map(constants::shader_locs, "inv_view");
@@ -43,6 +46,17 @@ int camera::handle(shader_use_event &event) {
 int camera::handle(draw_event &event) {
 	event.view = &view;
 	event.inv_view = &inv_view;
+
+	return 0;
+}
+
+int camera::handle(screen_resize_event &event) {
+	projection = glm::perspective(
+		glm::radians(60.0f),
+		event.new_width / ((float)event.new_height),
+		0.1f,
+		100.0f
+	);
 
 	return 0;
 }

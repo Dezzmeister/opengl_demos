@@ -11,8 +11,8 @@ namespace constants {
 		{ "projection", 22 },
 		{ "normal_mat", 23 },
 		{ "inv_view", 29 },
-		{ "num_lights", 99 },
-		{ "lights", 100 },
+		{ "num_lights", 149 },
+		{ "lights", 150 },
 
 		{ "_color_mat.ambient", 24 },
 		{ "_color_mat.diffuse", 25 },
@@ -38,15 +38,21 @@ namespace constants {
 		// occupies, not its physical size in memory
 		{ "sizeof(light)", 11 },
 
-		{ "view_proj", 21 },
+		{ "view_proj", 24 },
+		{ "light_pos", 8 },
+		{ "far_plane", 9 },
 
-		{ "num_shadow_casters", 33 },
 		{ "shadow_casters", 32 },
 		{ "shadow_caster.light_space", 0 },
 		{ "shadow_caster.depth_map", 1 },
 		{ "shadow_caster.enabled", 2 },
-		{ "sizeof(shadow_caster)", 3 },
+		{ "shadow_caster.cube_depth_map", 3 },
+		{ "shadow_caster.far_plane", 4 },
+		{ "sizeof(shadow_caster)", 5 },
 
-		{ "tex_sampler_tex", 8 }
+		{ "tex_sampler_tex", 8 },
+		{ "cube_sampler_cubemap", 8 },
+		{ "cube_sampler_u_filter", 9 },
+		{ "cube_sampler_v_filter", 10 }
 	};
 };

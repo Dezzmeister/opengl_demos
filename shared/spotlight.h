@@ -20,10 +20,13 @@ public:
 	);
 
 	void prepare_draw(int index, const shader_program &shader, render_pass_state &render_pass) const override;
-
+	void prepare_shadow_render_pass() const override;
 	void prepare_draw_shadow_map(const shader_program &shader) const override;
 
-protected:
+	void set_casts_shadow(bool enabled) override;
 
+	const std::string& shadow_map_shader_name() const override;
+
+protected:
 	bool is_eq(const light &other) const override;
 };

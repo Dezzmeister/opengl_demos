@@ -23,6 +23,8 @@ class texture_store;
 
 class light;
 
+class hardware_constants;
+
 // Fired before the game loop starts, but after the GL and GDI contexts are
 // created. If the user has shaders and textures that they need to load, they
 // can do that on this event.
@@ -30,6 +32,7 @@ struct program_start_event {
 	GLFWwindow * window;
 	shader_store * shaders{ nullptr };
 	texture_store * textures{ nullptr };
+	hardware_constants * hardware_consts{ nullptr };
 	int screen_width;
 	int screen_height;
 };
@@ -45,14 +48,16 @@ struct program_stop_event {
 // render pass (see `delta`).
 struct pre_render_pass_event {
 	GLFWwindow * window;
+	hardware_constants * hardware_consts;
 	// The time in ms since the beginning of the previous render pass (i.e., since
 	// the last moment this event was fired).
 	std::chrono::milliseconds delta;
 	int screen_width;
 	int screen_height;
 
-	pre_render_pass_event(GLFWwindow * _window) : 
+	pre_render_pass_event(GLFWwindow * _window, hardware_constants * _hardware_consts) : 
 		window(_window),
+		hardware_consts(_hardware_consts),
 		delta(),
 		screen_width(0),
 		screen_height(0),

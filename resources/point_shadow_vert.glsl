@@ -11,12 +11,10 @@ layout(location = 6) in vec4 model_3;
 layout(location = 20) uniform mat4 model;
 #endif
 
-layout(location = 24) uniform mat4 view_proj;
-
 void main() {
 #ifdef INSTANCED
 	mat4 model = mat4(model_0, model_1, model_2, model_3);
 #endif
 
-	gl_Position = view_proj * model * vec4(pos, 1.0);
+	gl_Position = model * vec4(pos, 1.0);
 }

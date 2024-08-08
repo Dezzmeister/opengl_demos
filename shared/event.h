@@ -71,7 +71,7 @@ private:
 		}
 	};
 
-	std::list<listener_key> listeners;
+	std::list<listener_key> listeners{};
 #ifdef DEBUG_LOGS
 	inline static const std::string event_type_name = typeid(EventType).name();
 #endif
@@ -218,7 +218,7 @@ public:
 		return *this;
 	}
 
-	~event_listener() {
+	virtual ~event_listener() {
 		if (id != nullptr) {
 			channel->_unsubscribe(id);
 			id = nullptr;

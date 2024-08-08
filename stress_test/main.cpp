@@ -5,6 +5,7 @@
 #include "../shared/events.h"
 #include "../shared/flashlight.h"
 #include "../shared/gdi_plus_context.h"
+#include "../shared/hardware_constants.h"
 #include "../shared/instanced_mesh.h"
 #include "../shared/controllers.h"
 #include "../shared/mesh.h"
@@ -114,9 +115,10 @@ int main(int argc, const char * const * const argv) {
 	glClearColor(0.1f, 0.01f, 0.1f, 0.0f);
 
 	player pl(buses);
+	hardware_constants hw_consts(buses);
 
 	program_start_event program_start{ window };
-	pre_render_pass_event pre_render_event(window);
+	pre_render_pass_event pre_render_event(window, &hw_consts);
 	shader_store shaders(buses);
 	texture_store textures(buses);
 	draw_event draw_event_inst(window, shaders, textures);

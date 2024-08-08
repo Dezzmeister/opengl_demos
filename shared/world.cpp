@@ -1,3 +1,4 @@
+#include "hardware_constants.h"
 #include "shader_store.h"
 #include "world.h"
 
@@ -16,7 +17,10 @@ world::world(event_buses &_buses, std::vector<mesh *> _meshes, std::vector<light
 	meshes_need_sorting(false),
 	instanced_meshes{},
 	screen_width(0),
-	screen_height(0)
+	screen_height(0),
+	max_tex_units(-1),
+	default_sampler2d_tex_unit(-1),
+	default_cubesampler_tex_unit(-1)
 {
 	// The meshes are sorted by material first, then by geometry. This allows us to minimize
 	// the number of set_uniform and shader use calls per render pass; these are quite costly.
@@ -36,6 +40,9 @@ world::world(event_buses &_buses, std::vector<mesh *> _meshes, std::vector<light
 int world::handle(program_start_event &event) {
 	screen_width = event.screen_width;
 	screen_height = event.screen_height;
+	default_sampler2d_tex_unit = event.hardware_consts->get_max_texture_units() - 1;
+	default_cubesampler_tex_unit = event.hardware_consts->get_max_texture_units() - 2;
+	max_tex_units = default_cubesampler_tex_unit;
 
 	return 0;
 }
@@ -64,11 +71,15 @@ int world::handle(draw_event &event) {
 	const material * last_mtl = nullptr;
 	const geometry * last_geom = nullptr;
 	shader_program * curr_shader = nullptr;
-	render_pass_state render_pass{};
+	render_pass_state render_pass(
+		default_sampler2d_tex_unit,
+		default_cubesampler_tex_unit,
+		max_tex_units
+	);
 
 	for (const mesh * m : meshes) {
 		if (m->mat != last_mtl) {
-			render_pass = {};
+			render_pass.reset();
 			last_mtl = m->mat;
 			curr_shader = &event.shaders.shaders.at(last_mtl->shader_name());
 			curr_shader->use();
@@ -101,10 +112,14 @@ void world::draw_instanced_meshes(draw_event &event) const {
 		return;
 	}
 
-	render_pass_state render_pass{};
+	render_pass_state render_pass(
+		default_sampler2d_tex_unit,
+		default_cubesampler_tex_unit,
+		max_tex_units
+	);
 
 	for (const instanced_mesh * im : instanced_meshes) {
-		render_pass = {};
+		render_pass.reset();
 
 		shader_program &shader = event.shaders.shaders.at(im->mtl->shader_name() + "_instanced");
 		shader.use();
@@ -131,14 +146,10 @@ void world::prepare_shadow_maps(draw_event &event) const {
 		return;
 	}
 
-	const shader_program &shadow_shader = event.shaders.shaders.at("shadow_map");
-	const shader_program &shadow_shader_instanced = event.shaders.shaders.at("shadow_map_instanced");
-
 	glCullFace(GL_FRONT);
 
 	for (; i < lights.size(); i++) {
 		const light * l = lights.at(i);
-		const geometry * last_geom = nullptr;
 
 		if (!l->casts_shadow()) {
 			continue;
@@ -146,35 +157,43 @@ void world::prepare_shadow_maps(draw_event &event) const {
 
 		l->prepare_shadow_render_pass();
 
-		shadow_shader_instanced.use();
+		if (instanced_meshes.size()) {
+			const shader_program &shadow_shader_instanced = event.shaders.shaders.at(l->shadow_map_shader_name() + "_instanced");
 
-		shader_use_event instanced_shader_event(shadow_shader_instanced);
-		buses.render.fire(instanced_shader_event);
+			shadow_shader_instanced.use();
 
-		l->prepare_draw_shadow_map(shadow_shader_instanced);
+			shader_use_event instanced_shader_event(shadow_shader_instanced);
+			buses.render.fire(instanced_shader_event);
 
-		for (const instanced_mesh * im : instanced_meshes) {
-			im->draw(event, shadow_shader_instanced);
+			l->prepare_draw_shadow_map(shadow_shader_instanced);
+
+			for (const instanced_mesh * im : instanced_meshes) {
+				im->draw(event, shadow_shader_instanced);
+			}
 		}
 
-		shadow_shader.use();
+		if (meshes.size()) {
+			const geometry * last_geom = nullptr;
+			const shader_program &shadow_shader = event.shaders.shaders.at(l->shadow_map_shader_name());
+			shadow_shader.use();
 
-		shader_use_event shader_event(shadow_shader);
-		buses.render.fire(shader_event);
+			shader_use_event shader_event(shadow_shader);
+			buses.render.fire(shader_event);
 
-		l->prepare_draw_shadow_map(shadow_shader);
+			l->prepare_draw_shadow_map(shadow_shader);
 
-		for (const mesh * m : meshes) {
-			if (m->geom != last_geom) {
-				last_geom = m->geom;
-				last_geom->prepare_draw();
+			for (const mesh * m : meshes) {
+				if (m->geom != last_geom) {
+					last_geom = m->geom;
+					last_geom->prepare_draw();
+				}
+
+				m->prepare_draw(event, shadow_shader, false);
+
+				assert(("Current geometry is not null (shadow map loop)", last_geom != nullptr));
+
+				last_geom->draw();
 			}
-
-			m->prepare_draw(event, shadow_shader, false);
-
-			assert(("Current geometry is not null (shadow map loop)", last_geom != nullptr));
-
-			last_geom->draw();
 		}
 	}
 
@@ -220,13 +239,26 @@ void world::remove_instanced_mesh(const instanced_mesh * _mesh) {
 }
 
 void world::prepare_draw_lights(const shader_program &shader, render_pass_state &render_pass) const {
-	for (int i = 0; i < lights.size(); i++) {
+	int i = 0;
+	for (; i < lights.size(); i++) {
 		const light &l = *lights.at(i);
 
 		l.prepare_draw(i, shader, render_pass);
 	}
 
 	shader.set_uniform(light::num_lights_loc, static_cast<int>(lights.size()));
+
+	for (; i < light::max_lights; i++) {
+		static constexpr int depth_map_loc = util::find_in_map(constants::shader_locs, "shadow_caster.depth_map");
+		static constexpr int cubemap_loc = util::find_in_map(constants::shader_locs, "shadow_caster.cube_depth_map");
+		static constexpr int shadow_caster_size = util::find_in_map(constants::shader_locs, "sizeof(shadow_caster)");
+		static constexpr int shadow_casters_loc = util::find_in_map(constants::shader_locs, "shadow_casters");
+
+		const int shadow_i = i * shadow_caster_size;
+
+		shader.set_uniform(shadow_casters_loc + shadow_i + depth_map_loc, 31);
+		shader.set_uniform(shadow_casters_loc + shadow_i + cubemap_loc, 30);
+	}
 }
 
 const std::vector<light *>& world::get_lights() const {

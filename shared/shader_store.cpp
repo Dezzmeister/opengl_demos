@@ -15,39 +15,63 @@ shader_store::shader_store(event_buses &_buses) :
 int shader_store::handle(program_start_event &event) {
 	shaders.insert(std::make_pair(std::string("basic_color"), shader_program(
 		shader<shader_type::Vertex>("../resources/basic_color_vert.glsl"),
+		std::nullopt,
 		shader<shader_type::Fragment>("../resources/basic_color_frag.glsl")
 	)));
 	shaders.insert(std::make_pair(std::string("basic_texture"), shader_program(
 		shader<shader_type::Vertex>("../resources/basic_texture_vert.glsl"),
+		std::nullopt,
 		shader<shader_type::Fragment>("../resources/basic_texture_frag.glsl")
 	)));
 	shaders.insert(std::make_pair(std::string("phong_color"), shader_program(
 		shader<shader_type::Vertex>("../resources/phong_vert.glsl", max_lights_define),
+		std::nullopt,
 		shader<shader_type::Fragment>("../resources/phong_frag.glsl", max_lights_define)
 	)));
 	shaders.insert(std::make_pair(std::string("phong_map"), shader_program(
 		shader<shader_type::Vertex>("../resources/phong_vert.glsl", "#define USE_MAPS\n" + max_lights_define),
+		std::nullopt,
 		shader<shader_type::Fragment>("../resources/phong_frag.glsl", "#define USE_MAPS\n" + max_lights_define)
 	)));
 	shaders.insert(std::make_pair(std::string("phong_color_instanced"), shader_program(
 		shader<shader_type::Vertex>("../resources/phong_vert.glsl", "#define INSTANCED\n" + max_lights_define),
+		std::nullopt,
 		shader<shader_type::Fragment>("../resources/phong_frag.glsl", max_lights_define)
 	)));
 	shaders.insert(std::make_pair(std::string("phong_map_instanced"), shader_program(
 		shader<shader_type::Vertex>("../resources/phong_vert.glsl", "#define USE_MAPS\n#define INSTANCED\n" + max_lights_define),
+		std::nullopt,
 		shader<shader_type::Fragment>("../resources/phong_frag.glsl", "#define USE_MAPS\n" + max_lights_define)
 	)));
 	shaders.insert(std::make_pair(std::string("shadow_map"), shader_program(
 		shader<shader_type::Vertex>("../resources/shadow_vert.glsl"),
+		std::nullopt,
 		shader<shader_type::Fragment>("../resources/identity_frag.glsl")
 	)));
 	shaders.insert(std::make_pair(std::string("shadow_map_instanced"), shader_program(
 		shader<shader_type::Vertex>("../resources/shadow_vert.glsl", "#define INSTANCED\n"),
+		std::nullopt,
 		shader<shader_type::Fragment>("../resources/identity_frag.glsl")
 	)));
 	shaders.insert(std::make_pair(std::string("tex_sampler"), shader_program(
 		shader<shader_type::Vertex>("../resources/tex_sampler_vert.glsl"),
+		std::nullopt,
 		shader<shader_type::Fragment>("../resources/tex_sampler_frag.glsl")
+	)));
+	shaders.insert(std::make_pair(std::string("cube_sampler"), shader_program(
+		shader<shader_type::Vertex>("../resources/tex_sampler_vert.glsl"),
+		std::nullopt,
+		shader<shader_type::Fragment>("../resources/cube_sampler_frag.glsl")
+	)));
+	shaders.insert(std::make_pair(std::string("point_shadow_map"), shader_program(
+		shader<shader_type::Vertex>("../resources/point_shadow_vert.glsl"),
+		shader<shader_type::Geometry>("../resources/point_shadow_geom.glsl"),
+		shader<shader_type::Fragment>("../resources/point_shadow_frag.glsl")
+	)));
+	shaders.insert(std::make_pair(std::string("point_shadow_map_instanced"), shader_program(
+		shader<shader_type::Vertex>("../resources/point_shadow_vert.glsl", "#define INSTANCED\n"),
+		shader<shader_type::Geometry>("../resources/point_shadow_geom.glsl", "#define INSTANCED\n"),
+		shader<shader_type::Fragment>("../resources/point_shadow_frag.glsl", "#define INSTANCED\n")
 	)));
 
 	event.shaders = this;

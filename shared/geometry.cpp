@@ -29,6 +29,7 @@ geometry::geometry(std::vector<float> _vbo_data) :
 	// UVs are always (location = 2)
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void geometry::prepare_draw() const {
