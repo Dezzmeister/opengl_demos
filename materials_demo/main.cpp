@@ -18,6 +18,14 @@
 #include "../shared/util.h"
 #include "../shared/world.h"
 
+static const char help_text[] =
+"Controls:\n"
+"\tMouse to look around\n"
+"\tWASD to move\n"
+"\tHold LEFT SHIFT to sprint\n"
+"\tF to toggle flashlight\n"
+"\tArrow keys to move the point light\n";
+
 // Materials taken from http://devernay.free.fr/cours/opengl/materials.html
 static phong_color_material mtls[] = {
 	// Emerald
@@ -244,9 +252,7 @@ phong_color_material_properties floor_mtl_props(
 	glm::vec3(0.7, 0.7, 0.7),
 	128 * 0.078125f
 );
-
 phong_color_material floor_mtl(floor_mtl_props);
-
 phong_map_material wooden_cube_mtl("container2", "container2_specular", 32.0f);
 
 struct object_controller : 
@@ -448,6 +454,8 @@ int main(int argc, const char * const * const argv) {
 	object_controller static_objects(buses, w);
 
 	flashlight lc(buses, pl, w, GLFW_KEY_F);
+
+	printf(help_text);
 
 	while (! glfwWindowShouldClose(window)) {
 		buses.render.fire(pre_render_event);

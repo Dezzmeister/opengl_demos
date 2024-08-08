@@ -18,6 +18,14 @@
 #include "../shared/util.h"
 #include "../shared/world.h"
 
+static const char help_text[] =
+"Controls:\n"
+"\tMouse to look around\n"
+"\tWASD to move\n"
+"\tHold LEFT SHIFT to sprint\n"
+"\tF to toggle flashlight\n"
+"\R to start measuring performance, R again to stop\n";
+
 static void on_window_resize(GLFWwindow * window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
@@ -217,7 +225,8 @@ int main(int argc, const char * const * const argv) {
 	flashlight lc(buses, pl, w, GLFW_KEY_F);
 
 	debug_instrument instr(buses);
-	printf("Press 'r' to start measuring and 'r' again to stop\n");
+
+	printf(help_text);
 
 	while (!glfwWindowShouldClose(window)) {
 		buses.render.fire(pre_render_event);

@@ -16,6 +16,16 @@
 #include "../shared/shapes.h"
 #include "../shared/texture_store.h"
 
+static const char help_text[] =
+"Controls:\n"
+"\tMouse to look around\n"
+"\tWASD to move\n"
+"\tHold LEFT SHIFT to sprint\n"
+"\tF to toggle flashlight\n"
+"\tI and O to move the sun\n"
+"\tUp and Down arrow keys to move the cube\n"
+"\tLeft and Right arrow keys to rotate the cube\n";
+
 phong_color_material obsidian{
 	phong_color_material_properties{
 		glm::vec3(0.05375, 0.05, 0.06625),
@@ -59,7 +69,6 @@ private:
 	float d_angle;
 
 public:
-
 	sun_mover(event_buses &_buses, directional_light &_sun, const mesh &_box, float _angle) :
 		event_listener<keydown_event>(&_buses.input),
 		event_listener<keyup_event>(&_buses.input),
@@ -133,7 +142,6 @@ private:
 	float d_angle;
 
 public:
-
 	box_mover(event_buses &_buses, mesh &_box, float _y) :
 		event_listener<keydown_event>(&_buses.input),
 		event_listener<keyup_event>(&_buses.input),
@@ -217,155 +225,6 @@ public:
 	}
 };
 
-// This utility allows the user to press a key to cycle through each light in the
-// scene. The selected light's shadow depth map will be rendered in the lower left
-// corner of the screen. If no light is selected, no depth map will be rendered.
-struct debug_instrument :
-	public event_listener<keydown_event>,
-	public event_listener<post_processing_event>,
-	public event_listener<pre_render_pass_event>
-{
-private:
-	static const inline glm::vec3 u_filters[6] = {
-		glm::vec3(1, 0, 0),
-		glm::vec3(0, 1, 0),
-		glm::vec3(0, 0, 1),
-		glm::vec3(-1, 0, 0),
-		glm::vec3(0, -1, 0),
-		glm::vec3(0, 0, -1)
-	};
-	static const inline glm::vec3 v_filters[6] = {
-		glm::vec3(0, 1, 0),
-		glm::vec3(0, 0, 1),
-		glm::vec3(1, 0, 0),
-		glm::vec3(0, -1, 0),
-		glm::vec3(0, 0, -1),
-		glm::vec3(-1, 0, 0)
-	};
-
-	event_buses &buses;
-	const std::vector<light *> &lights;
-	int screen_width;
-	int screen_height;
-	int curr_light;
-	int curr_face;
-	short debug_key;
-
-public:
-
-	debug_instrument(event_buses &_buses, world &_w, short _debug_key) :
-		event_listener<keydown_event>(&_buses.input),
-		event_listener<post_processing_event>(&_buses.render),
-		event_listener<pre_render_pass_event>(&_buses.render),
-		buses(_buses),
-		lights(_w.get_lights()),
-		screen_width(0),
-		screen_height(0),
-		curr_light(-1),
-		curr_face(-1),
-		debug_key(_debug_key)
-	{
-		event_listener<keydown_event>::subscribe();
-		event_listener<post_processing_event>::subscribe();
-		event_listener<pre_render_pass_event>::subscribe();
-	}
-
-	int handle(keydown_event &event) override {
-		if (event.key == debug_key) {
-			if (curr_light != -1) {
-				if (curr_face >= 5) {
-					curr_face = -1;
-				} else {
-					curr_face++;
-					return 0;
-				}
-			}
-
-			if (curr_light + 1 >= lights.size()) {
-				curr_light = -1;
-			} else {
-				curr_light++;
-
-				const light * l = lights.at(curr_light);
-
-				if (l->type == light_type::point) {
-					curr_face++;
-				}
-			}
-		}
-
-		return 0;
-	}
-
-	int handle(post_processing_event &event) override {
-		if (curr_light >= lights.size()) {
-			curr_light = -1;
-		}
-
-		if (curr_light == -1) {
-			return 0;
-		}
-
-		const light * l = lights.at(curr_light);
-
-		if (curr_face == -1) {
-			const shader_program &tex_sampler = event.shaders.shaders.at("tex_sampler");
-
-			tex_sampler.use();
-
-			shader_use_event shader_event(tex_sampler);
-			buses.render.fire(shader_event);
-
-			constexpr static int tex_loc = util::find_in_map(constants::shader_locs, "tex_sampler_tex");
-
-			if (l->type == light_type::directional) {
-				const directional_light * dl = static_cast<const directional_light *>(l);
-				unsigned int tex_id = dl->get_depth_map_id();
-
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, tex_id);
-				tex_sampler.set_uniform(tex_loc, 0);
-			}
-		} else if (l->type == light_type::point) {
-			const point_light * pl = static_cast<const point_light *>(l);
-			unsigned int tex_id = pl->get_depth_cubemap_id();
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP_POSITIVE_X + curr_face, tex_id);
-
-			const shader_program &cube_sampler = event.shaders.shaders.at("cube_sampler");
-
-			cube_sampler.use();
-
-			shader_use_event shader_event(cube_sampler);
-			buses.render.fire(shader_event);
-
-			constexpr static int tex_loc = util::find_in_map(constants::shader_locs, "cube_sampler_cubemap");
-			constexpr static int u_filter_loc = util::find_in_map(constants::shader_locs, "cube_sampler_u_filter");
-			constexpr static int v_filter_loc = util::find_in_map(constants::shader_locs, "cube_sampler_v_filter");
-
-			cube_sampler.set_uniform(tex_loc, 0);
-			cube_sampler.set_uniform(u_filter_loc, u_filters[curr_face]);
-			cube_sampler.set_uniform(v_filter_loc, v_filters[curr_face]);
-		}
-
-		glViewport(0, 0, 256, 256);
-		glClear(GL_DEPTH_BUFFER_BIT);
-
-		shapes::plane->prepare_draw();
-		shapes::plane->draw();
-
-		return 0;
-	}
-
-	int handle(pre_render_pass_event &event) override {
-		screen_width = event.screen_width;
-		screen_height = event.screen_height;
-
-		return 0;
-	}
-};
-
 int main(int argc, const char * const * const argv) {
 	event_buses buses;
 	gdi_plus_context gdi_plus;
@@ -418,8 +277,7 @@ int main(int argc, const char * const * const argv) {
 		GLFW_KEY_LEFT,
 		GLFW_KEY_RIGHT,
 		GLFW_KEY_UP,
-		GLFW_KEY_DOWN,
-		GLFW_KEY_P
+		GLFW_KEY_DOWN
 	});
 	screen_controller screen(buses);
 
@@ -500,7 +358,8 @@ int main(int argc, const char * const * const argv) {
 	flashlight lc(buses, pl, w, GLFW_KEY_F);
 	sun_mover sun_controller(buses, sun, box, 0.0f);
 	box_mover box_controller(buses, box, 0.0f);
-	debug_instrument debug_controller(buses, w, GLFW_KEY_P);
+
+	printf(help_text);
 
 	while (! glfwWindowShouldClose(window)) {
 		buses.render.fire(pre_render_event);
