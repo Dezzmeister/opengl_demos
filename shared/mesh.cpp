@@ -3,14 +3,14 @@
 #include "shader_store.h"
 #include "util.h"
 
-mesh::mesh(const geometry * _geom, const material * _mat) :
+mesh::mesh(const geometry * _geom, const material * _mat, int _first, unsigned int _count) :
 	model(glm::identity<glm::mat4>()),
 	inv_model(glm::inverse(model)),
 	geom(_geom),
-	mat(_mat)
-{
-
-}
+	mat(_mat),
+	first(_first),
+	count(_count)
+{}
 
 void mesh::prepare_draw(draw_event &event, const shader_program &shader, bool include_normal) const {
 	static constexpr int model_loc = util::find_in_map(constants::shader_locs, "model");
@@ -22,6 +22,10 @@ void mesh::prepare_draw(draw_event &event, const shader_program &shader, bool in
 		glm::mat3 normal_mat = glm::mat3(glm::transpose(inv_model * *event.inv_view));
 		shader.set_uniform(normal_mat_loc, normal_mat);
 	}
+}
+
+void mesh::draw() const {
+	geom->draw(first, count);
 }
 
 void mesh::set_model(const glm::mat4 &_model) {

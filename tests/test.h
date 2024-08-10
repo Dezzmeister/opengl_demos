@@ -6,7 +6,8 @@
 #include <string>
 #include <unordered_map>
 
-#define test(name, body) test::test_cases[(name)] = []() body
+#define suite(name, body) { test::test_suite &_curr_suite = test::test_suites[name]; body } test::noop()
+#define test(name, body) _curr_suite[(name)] = []() body
 
 // TODO: Fix these line numbers. None of these are multiline macros; this seems like an MSVC problem
 #define expect(cond) if (! (cond)) { throw test::assertion_failure(std::nullopt, __FILE__, __LINE__); } test::noop()
@@ -15,7 +16,8 @@
 #define fail_msg(msg) throw test::forced_failure((msg), __FILE__, __LINE__)
 
 namespace test {
-	inline std::unordered_map<std::string, std::function<void(void)>> test_cases{};
+	using test_suite = std::unordered_map<std::string, std::function<void(void)>>;
+	inline std::unordered_map<std::string, test_suite> test_suites{};
 
 	struct assertion_failure : public std::runtime_error {
 		assertion_failure(std::optional<std::string> message, const char * const file, int line) :
@@ -32,5 +34,6 @@ namespace test {
 	inline void noop() {}
 
 	extern void setup_json_parser_tests();
+	extern void setup_base64_tests();
 }
 

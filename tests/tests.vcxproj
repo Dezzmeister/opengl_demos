@@ -133,6 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="base64_test.cpp" />
     <ClCompile Include="json_parser_test.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>

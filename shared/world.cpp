@@ -100,8 +100,7 @@ int world::handle(draw_event &event) {
 		assert(("Current geometry is not null", last_geom != nullptr));
 
 		m->prepare_draw(event, *curr_shader, true);
-
-		last_geom->draw();
+		m->draw();
 	}
 
 	return 0;
@@ -192,7 +191,7 @@ void world::prepare_shadow_maps(draw_event &event) const {
 
 				assert(("Current geometry is not null (shadow map loop)", last_geom != nullptr));
 
-				last_geom->draw();
+				m->draw();
 			}
 		}
 	}

@@ -12,7 +12,7 @@ public:
 
 	void prepare_draw() const;
 
-	void draw() const;
+	void draw(int first, unsigned int count) const;
 
 private:
 	std::vector<float> vbo_data;

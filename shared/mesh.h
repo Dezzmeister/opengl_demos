@@ -11,10 +11,10 @@ class world;
 // should be placed in the world.
 class mesh {
 public:
-
-	mesh(const geometry * _geom, const material * _mat);
+	mesh(const geometry * _geom, const material * _mat, int _first = 0, unsigned int _count = -1);
 
 	void prepare_draw(draw_event &event, const shader_program &shader, bool include_normal = true) const;
+	void draw() const;
 
 	void set_model(const glm::mat4 &_model);
 
@@ -30,5 +30,7 @@ private:
 	glm::mat4 inv_model;
 	const geometry * const geom;
 	const material * const mat;
+	const int first;
+	const unsigned int count;
 };
 

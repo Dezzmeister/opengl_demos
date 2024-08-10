@@ -6,6 +6,9 @@
 #include <variant>
 #include <vector>
 
+class json;
+json parse_json(std::wistream &_in);
+
 struct json_object_descriptor {
 	size_t obj_pos{ 0 };
 
@@ -65,5 +68,3 @@ public:
 
 	json_parse_error(const std::string &message, unsigned long _line_num, unsigned long _col_num);
 };
-
-json parse_json(std::wistream &_in);

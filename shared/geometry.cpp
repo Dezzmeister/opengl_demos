@@ -36,6 +36,6 @@ void geometry::prepare_draw() const {
 	glBindVertexArray(vao);
 }
 
-void geometry::draw() const {
-	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)num_vertices);
+void geometry::draw(int first, unsigned int count) const {
+	glDrawArrays(GL_TRIANGLES, 0, count == -1 ? (GLsizei)num_vertices : count);
 }
