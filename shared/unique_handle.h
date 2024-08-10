@@ -27,10 +27,10 @@ public:
 	using deleter = std::function<void(T)>;
 
 	// TODO: Error handling
-	unique_handle(T _null_handle, deleter _delete_handle);
+	unique_handle(T _null_handle, deleter _delete_handle) noexcept;
 
 	unique_handle(const unique_handle<T> &other) = delete;
-	unique_handle(unique_handle<T> &&other);
+	unique_handle(unique_handle<T> &&other) noexcept;
 
 	unique_handle<T>& operator=(const unique_handle<T> &other) = delete;
 	// TODO: Error handling. What if a GL call fails here
@@ -58,14 +58,14 @@ private:
 };
 
 template <typename T>
-unique_handle<T>::unique_handle(T _null_handle, deleter _delete_handle) :
+unique_handle<T>::unique_handle(T _null_handle, deleter _delete_handle) noexcept :
 	handle(_null_handle),
 	null_handle(_null_handle),
 	delete_handle(_delete_handle)
 {}
 
 template <typename T>
-unique_handle<T>::unique_handle(unique_handle<T> &&other) {
+unique_handle<T>::unique_handle(unique_handle<T> &&other) noexcept {
 	handle = other.handle;
 	null_handle = other.null_handle;
 	delete_handle = other.delete_handle;

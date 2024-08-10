@@ -24,7 +24,7 @@ static const char help_text[] =
 "\tWASD to move\n"
 "\tHold LEFT SHIFT to sprint\n"
 "\tF to toggle flashlight\n"
-"\R to start measuring performance, R again to stop\n";
+"\tR to start measuring performance, R again to stop\n";
 
 static void on_window_resize(GLFWwindow * window, int width, int height) {
 	glViewport(0, 0, width, height);
