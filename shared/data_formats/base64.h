@@ -6,6 +6,7 @@
 #include <vector>
 
 std::vector<uint8_t> decode_base64(std::wstring &_in);
+std::vector<uint8_t> decode_base64(std::wistream &_in);
 
 class base64_error : public std::runtime_error {
 public:

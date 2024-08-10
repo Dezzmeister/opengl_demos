@@ -87,3 +87,87 @@ std::vector<uint8_t> decode_base64(std::wstring &_in) {
 
 	return out;
 }
+
+std::vector<uint8_t> decode_base64(std::wistream &_in) {
+	std::vector<uint8_t> out{};
+
+	size_t i = 0;
+	wchar_t char_buf[4];
+
+	while (! _in.eof()) {
+		char_buf[0] = _in.get();
+		if (_in.eof() || char_buf[0] == L'=') {
+			break;
+		}
+		if (! is_base64_char(char_buf[0])) {
+			throw base64_error("Invalid base64 at char " + std::to_string(i), i);
+		}
+		i++;
+
+		char_buf[1] = _in.get();
+		if (_in.eof() || char_buf[1] == L'=') {
+			break;
+		}
+		if (! is_base64_char(char_buf[0])) {
+			throw base64_error("Invalid base64 at char " + std::to_string(i), i);
+		}
+		i++;
+
+		char_buf[2] = _in.get();
+		if (_in.eof() || char_buf[2] == L'=') {
+			break;
+		}
+		if (! is_base64_char(char_buf[0])) {
+			throw base64_error("Invalid base64 at char " + std::to_string(i), i);
+		}
+		i++;
+
+		char_buf[3] = _in.get();
+		if (_in.eof() || char_buf[3] == L'=') {
+			break;
+		}
+		if (! is_base64_char(char_buf[0])) {
+			throw base64_error("Invalid base64 at char " + std::to_string(i), i);
+		}
+		i++;
+
+		uint8_t b0 = decode_char(char_buf[0]);
+		uint8_t b1 = decode_char(char_buf[1]);
+		uint8_t b2 = decode_char(char_buf[2]);
+		uint8_t b3 = decode_char(char_buf[3]);
+
+		uint8_t c0 = (b0 << 2) | (b1 >> 4);
+		uint8_t c1 = ((b1 & 0xF) << 4) | (b2 >> 2);
+		uint8_t c2 = ((b2 & 0x3) << 6) | b3;
+
+		out.push_back(c0);
+		out.push_back(c1);
+		out.push_back(c2);
+	}
+
+	while (! _in.eof() && _in.peek() == L'=') {
+		_in.get();
+	}
+
+	if ((i & 0x3) == 0) {
+		return out;
+	} else if ((i & 0x3) == 1) {
+		uint8_t b0 = decode_char(char_buf[0]);
+
+		out.push_back(b0 << 2);
+	} else if ((i & 0x3) == 2) {
+		uint8_t b0 = decode_char(char_buf[0]);
+		uint8_t b1 = decode_char(char_buf[1]);
+
+		out.push_back((b0 << 2) | (b1 >> 4));
+	} else if ((i & 0x3) == 3) {
+		uint8_t b0 = decode_char(char_buf[0]);
+		uint8_t b1 = decode_char(char_buf[1]);
+		uint8_t b2 = decode_char(char_buf[2]);
+
+		out.push_back((b0 << 2) | (b1 >> 4));
+		out.push_back((b1 & 0xF) << 4 | (b2 >> 2));
+	}
+
+	return out;
+}
