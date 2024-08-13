@@ -1,73 +1,10 @@
 #include <sstream>
 #include "json_parser.h"
+#include "parsing.h"
 
 namespace {
-	class parser_state {
-	public:
-		parser_state(std::wistream &_in) : in(_in) {}
-
-		wchar_t get() {
-			wchar_t next = (curr_char = in.get());
-
-			if (next == L'\n') {
-				line_num++;
-				col_num = 0L;
-			} else {
-				col_num++;
-			}
-
-			curr_char = next;
-
-			return next;
-		}
-
-		wchar_t peek() const {
-			return in.peek();
-		}
-
-		bool eof() const {
-			return in.eof();
-		}
-
-		wchar_t get_curr_char() const {
-			return curr_char;
-		}
-
-		unsigned long get_line_num() const {
-			return line_num;
-		}
-
-		unsigned long get_col_num() const {
-			return col_num;
-		}
-	private:
-		std::wistream &in;
-		wchar_t curr_char{ 0 };
-		unsigned long line_num{ 1L };
-		unsigned long col_num{ 0L };
-	};
-
-	json_value_or_descriptor parse_value(parser_state &state, json &json_out);
-
-	void parse_whitespace(parser_state &state) {
-		while (! state.eof()) {
-			wchar_t next_char = state.peek();
-
-			switch (next_char) {
-				case ' ':
-				case '\r':
-				case '\t':
-				case '\n': {
-					state.get();
-					continue;
-				}
-				default:
-					return;
-			}
-		}
-	}
-
-	bool parse_true(parser_state &state) {
+	json_value_or_descriptor parse_value(parsing::parser_state &state, json &json_out);
+	bool parse_true(parsing::parser_state &state) {
 		if (
 			state.get() != 'r' ||
 			state.get() != 'u' ||
@@ -79,7 +16,7 @@ namespace {
 		return true;
 	}
 
-	bool parse_false(parser_state &state) {
+	bool parse_false(parsing::parser_state &state) {
 		if (
 			state.get() != 'a' ||
 			state.get() != 'l' ||
@@ -92,7 +29,7 @@ namespace {
 		return false;
 	}
 
-	std::nullptr_t parse_null(parser_state &state) {
+	std::nullptr_t parse_null(parsing::parser_state &state) {
 		if (
 			state.get() != 'u' ||
 			state.get() != 'l' ||
@@ -104,33 +41,11 @@ namespace {
 		return nullptr;
 	}
 
-	void parse_digits(parser_state &state, std::wstringstream &out) {
-		while (! state.eof()) {
-			switch (state.peek()) {
-				case L'0':
-				case L'1':
-				case L'2':
-				case L'3':
-				case L'4':
-				case L'5':
-				case L'6':
-				case L'7':
-				case L'8':
-				case L'9': {
-					out << state.get();
-					continue;
-				}
-				default:
-					return;
-			}
-		}
-	}
-
-	bool parse_fraction(parser_state &state, std::wstringstream &out) {
+	bool parse_fraction(parsing::parser_state &state, std::wstringstream &out) {
 		switch (state.peek()) {
 			case L'.': {
 				out << state.get();
-				parse_digits(state, out);
+				parsing::parse_dec_digits(state, out);
 				return true;
 			}
 			default:
@@ -138,7 +53,7 @@ namespace {
 		}
 	}
 
-	void parse_sign(parser_state &state, std::wstringstream &out) {
+	void parse_sign(parsing::parser_state &state, std::wstringstream &out) {
 		switch (state.peek()) {
 			case L'+':
 			case L'-': {
@@ -148,13 +63,13 @@ namespace {
 		}
 	}
 
-	bool parse_exponent(parser_state &state, std::wstringstream &out) {
+	bool parse_exponent(parsing::parser_state &state, std::wstringstream &out) {
 		switch (state.peek()) {
 			case L'E':
 			case L'e': {
 				out << state.get();
 				parse_sign(state, out);
-				parse_digits(state, out);
+				parsing::parse_dec_digits(state, out);
 				return true;
 			}
 			default:
@@ -162,7 +77,7 @@ namespace {
 		}
 	}
 
-	void parse_integer(parser_state &state, std::wstringstream &out) {
+	void parse_integer(parsing::parser_state &state, std::wstringstream &out) {
 		bool is_first_digit = true;
 
 		if (state.peek() == L'-') {
@@ -200,7 +115,7 @@ namespace {
 		}
 	}
 
-	json_value_or_descriptor parse_number(parser_state &state) {
+	json_value_or_descriptor parse_number(parsing::parser_state &state) {
 		std::wstringstream out_str{};
 
 		parse_integer(state, out_str);
@@ -220,7 +135,7 @@ namespace {
 		}
 	}
 
-	wchar_t parse_unicode_escape(parser_state &state) {
+	wchar_t parse_unicode_escape(parsing::parser_state &state) {
 		wchar_t out = 0;
 
 		for (int i = 3; i >= 0; i--) {
@@ -267,12 +182,12 @@ namespace {
 		return out;
 	}
 
-	std::wstring parse_string(parser_state &state) {
+	std::wstring parse_string(parsing::parser_state &state) {
 		std::wstringstream out_str{};
 
 		bool is_escape_seq = false;
-		unsigned long start_line_num = state.get_line_num();
-		unsigned long start_col_num = state.get_col_num();
+		size_t start_line_num = state.get_line_num();
+		size_t start_col_num = state.get_col_num();
 
 		while (! state.eof()) {
 			if (is_escape_seq) {
@@ -353,11 +268,11 @@ namespace {
 		throw json_parse_error("Unterminated string\n", start_line_num, start_col_num);
 	}
 
-	json_array_descriptor parse_array(parser_state &state, json &json_out) {
+	json_array_descriptor parse_array(parsing::parser_state &state, json &json_out) {
 		json_array out{};
 
-		unsigned long start_line_num = state.get_line_num();
-		unsigned long start_col_num = state.get_col_num();
+		size_t start_line_num = state.get_line_num();
+		size_t start_col_num = state.get_col_num();
 
 		while (! state.eof()) {
 			parse_whitespace(state);
@@ -385,7 +300,7 @@ namespace {
 		throw json_parse_error("Unterminated array\n", start_line_num, start_col_num);
 	}
 
-	std::wstring parse_object_key(parser_state &state) {
+	std::wstring parse_object_key(parsing::parser_state &state) {
 		parse_whitespace(state);
 
 		if (state.get() != L'"') {
@@ -399,11 +314,11 @@ namespace {
 		return key;
 	}
 
-	json_object_descriptor parse_object(parser_state &state, json &json_out) {
+	json_object_descriptor parse_object(parsing::parser_state &state, json &json_out) {
 		json_object out{};
 
-		unsigned long start_line_num = state.get_line_num();
-		unsigned long start_col_num = state.get_col_num();
+		size_t start_line_num = state.get_line_num();
+		size_t start_col_num = state.get_col_num();
 		bool reading_key = true;
 		bool reading_delim = false;
 		std::wstring key{};
@@ -440,7 +355,7 @@ namespace {
 		throw json_parse_error("Unexpected end of object\n", start_line_num, start_col_num);
 	}
 
-	json_value_or_descriptor parse_value(parser_state &state, json &json_out) {
+	json_value_or_descriptor parse_value(parsing::parser_state &state, json &json_out) {
 		parse_whitespace(state);
 
 		json_value_or_descriptor out{ nullptr };
@@ -559,14 +474,14 @@ size_t json::num_arrays() const noexcept {
 	return arrays.size();
 }
 
-json_parse_error::json_parse_error(const std::string &message, unsigned long _line_num, unsigned long _col_num) :
+json_parse_error::json_parse_error(const std::string &message, size_t _line_num, size_t _col_num) :
 	std::runtime_error("Error parsing JSON (line " + std::to_string(_line_num) + ", col " + std::to_string(_col_num) + "): " + message),
 	line_num(_line_num),
 	col_num(_col_num)
 {}
 
 json parse_json(std::wistream &_in) {
-	parser_state state(_in);
+	parsing::parser_state state(_in);
 	json out{};
 
 	out.root = parse_value(state, out);

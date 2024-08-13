@@ -17,7 +17,10 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)camera.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)color_material.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)data_formats\base64.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)data_formats\ipaddr.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)data_formats\json_parser.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)data_formats\parsing.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)data_formats\uri.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)hardware_constants.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)directional_light.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)flashlight.cpp" />
@@ -48,6 +51,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)color_material.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)controllers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)data_formats\base64.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)data_formats\ipaddr.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)data_formats\parsing.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)data_formats\uri.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)directional_light.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)flashlight.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)hardware_constants.h" />

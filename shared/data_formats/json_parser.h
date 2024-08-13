@@ -63,8 +63,8 @@ private:
 
 class json_parse_error : public std::runtime_error {
 public:
-	const unsigned long line_num;
-	const unsigned long col_num;
+	const size_t line_num;
+	const size_t col_num;
 
-	json_parse_error(const std::string &message, unsigned long _line_num, unsigned long _col_num);
+	json_parse_error(const std::string &message, size_t _line_num, size_t _col_num);
 };
