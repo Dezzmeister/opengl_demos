@@ -24,6 +24,8 @@ namespace parsing {
 		size_t get_col_num() const;
 		size_t get_total_chars() const;
 
+		std::wstringstream drain();
+
 	private:
 		std::wistream &in;
 		wchar_t curr_char{ 0 };

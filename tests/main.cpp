@@ -1,10 +1,10 @@
 #include "test.h"
 
-
 int main(int argc, const char * const * const argv) {
 	test::setup_json_parser_tests();
 	test::setup_base64_tests();
 	test::setup_ipaddr_tests();
+	test::setup_uri_tests();
 
 	int passed = 0;
 	int total = 0;

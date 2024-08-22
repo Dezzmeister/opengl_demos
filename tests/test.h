@@ -36,5 +36,6 @@ namespace test {
 	extern void setup_json_parser_tests();
 	extern void setup_base64_tests();
 	extern void setup_ipaddr_tests();
+	extern void setup_uri_tests();
 }
 

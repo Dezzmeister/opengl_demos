@@ -46,6 +46,16 @@ namespace parsing {
 		return total_chars;
 	}
 
+	std::wstringstream parser_state::drain() {
+		std::wstringstream out{};
+
+		while (peek() != WEOF) {
+			out << get();
+		}
+
+		return out;
+	}
+
 	size_t parse_whitespace(parser_state &state) {
 		size_t start = state.get_total_chars();
 
@@ -149,9 +159,9 @@ namespace parsing {
 
 		if (
 			(curr_char >= L'A' && curr_char <= L'Z') ||
-			(curr_char >= L'z' && curr_char <= L'z')
+			(curr_char >= L'a' && curr_char <= L'z')
 		) {
-			out << curr_char;
+			out << state.get();
 			return true;
 		}
 

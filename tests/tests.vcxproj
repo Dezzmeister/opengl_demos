@@ -137,6 +137,7 @@
     <ClCompile Include="ipaddr_test.cpp" />
     <ClCompile Include="json_parser_test.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="uri_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test.h" />
