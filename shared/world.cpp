@@ -8,6 +8,7 @@ static bool deref_cmp(const T * a, const T * b) {
 }
 
 world::world(event_buses &_buses, std::vector<mesh *> _meshes, std::vector<light *> _lights) :
+	event_listener<pre_render_pass_event>(&_buses.render),
 	event_listener<draw_event>(&_buses.render),
 	event_listener<screen_resize_event>(&_buses.render),
 	event_listener<program_start_event>(&_buses.lifecycle),
@@ -16,6 +17,7 @@ world::world(event_buses &_buses, std::vector<mesh *> _meshes, std::vector<light
 	lights(_lights),
 	meshes_need_sorting(false),
 	instanced_meshes{},
+	particle_emitters{},
 	screen_width(0),
 	screen_height(0),
 	max_tex_units(-1),
@@ -26,6 +28,7 @@ world::world(event_buses &_buses, std::vector<mesh *> _meshes, std::vector<light
 	// the number of set_uniform and shader use calls per render pass; these are quite costly.
 	std::sort(std::begin(meshes), std::end(meshes));
 
+	event_listener<pre_render_pass_event>::subscribe();
 	event_listener<draw_event>::subscribe();
 	event_listener<screen_resize_event>::subscribe();
 	event_listener<program_start_event>::subscribe();
@@ -35,6 +38,8 @@ world::world(event_buses &_buses, std::vector<mesh *> _meshes, std::vector<light
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
+
+	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 }
 
 int world::handle(program_start_event &event) {
@@ -50,6 +55,20 @@ int world::handle(program_start_event &event) {
 int world::handle(screen_resize_event &event) {
 	screen_width = event.new_width;
 	screen_height = event.new_height;
+
+	return 0;
+}
+
+int world::handle(pre_render_pass_event &event) {
+	long long millis = event.delta.count();
+
+	for (int64_t i = particle_emitters.size() - 1; i >= 0; i--) {
+		particle_emitters.at(i)->update((float)millis);
+
+		if (particle_emitters.at(i)->is_done()) {
+			particle_emitters.erase(std::begin(particle_emitters) + i);
+		}
+	}
 
 	return 0;
 }
@@ -101,6 +120,23 @@ int world::handle(draw_event &event) {
 
 		m->prepare_draw(event, *curr_shader, true);
 		m->draw();
+	}
+
+	curr_shader = nullptr;
+
+	for (const particle_emitter * pe : particle_emitters) {
+		shader_program * next_shader = &event.shaders.shaders.at(pe->shader_name());
+
+		if (next_shader != curr_shader) {
+			curr_shader = next_shader;
+			curr_shader->use();
+
+			shader_use_event shader_event(*curr_shader);
+			buses.render.fire(shader_event);
+		}
+
+		pe->prepare_draw(event, *curr_shader);
+		pe->draw();
 	}
 
 	return 0;
@@ -235,6 +271,14 @@ void world::remove_instanced_mesh(const instanced_mesh * _mesh) {
 	std::erase_if(instanced_meshes, [_mesh](const instanced_mesh * a) {
 		return *a == *_mesh;
 	});
+}
+
+void world::add_particle_emitter(particle_emitter * emitter) {
+	particle_emitters.push_back(emitter);
+}
+
+void world::remove_particle_emitter(particle_emitter * emitter) {
+	std::erase(particle_emitters, emitter);
 }
 
 void world::prepare_draw_lights(const shader_program &shader, render_pass_state &render_pass) const {

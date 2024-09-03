@@ -1,5 +1,5 @@
-#include "geometry.h"
 #include <glad/glad.h>
+#include "geometry.h"
 
 geometry::geometry(std::vector<float> _vbo_data) :
 	num_vertices(_vbo_data.size() / 8),

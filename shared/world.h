@@ -3,9 +3,11 @@
 #include "instanced_mesh.h"
 #include "light.h"
 #include "mesh.h"
+#include "particle_emitter.h"
 #include "rendering.h"
 
 class world : 
+	public event_listener<pre_render_pass_event>,
 	public event_listener<draw_event>,
 	public event_listener<screen_resize_event>,
 	public event_listener<program_start_event>
@@ -13,6 +15,7 @@ class world :
 public:
 	world(event_buses &_buses, std::vector<mesh *> _meshes = {}, std::vector<light *> _lights = {});
 
+	int handle(pre_render_pass_event &event) override;
 	int handle(draw_event &event) override;
 	int handle(screen_resize_event &event) override;
 	int handle(program_start_event &event) override;
@@ -28,6 +31,9 @@ public:
 	void add_instanced_mesh(instanced_mesh * _mesh);
 	void remove_instanced_mesh(const instanced_mesh * _mesh);
 
+	void add_particle_emitter(particle_emitter * emitter);
+	void remove_particle_emitter(particle_emitter * emitter);
+
 	const std::vector<light *>& get_lights() const;
 
 private:
@@ -36,6 +42,7 @@ private:
 	std::vector<light *> lights;
 	bool meshes_need_sorting;
 	std::vector<instanced_mesh *> instanced_meshes;
+	std::vector<particle_emitter *> particle_emitters;
 	// TODO: Remove these dimensions
 	int screen_width;
 	int screen_height;

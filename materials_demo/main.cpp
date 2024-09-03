@@ -1,15 +1,18 @@
 #include <Windows.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <chrono>
 #include "../shared/shapes.h"
 #include "../shared/events.h"
 #include "../shared/flashlight.h"
 #include "../shared/gdi_plus_context.h"
 #include "../shared/controllers.h"
 #include "../shared/hardware_constants.h"
+#include "../shared/physics/math.h"
 #include "../shared/mesh.h"
 #include "../shared/phong_color_material.h"
 #include "../shared/phong_map_material.h"
+#include "../shared/physical_particle_emitter.h"
 #include "../shared/player.h"
 #include "../shared/point_light.h"
 #include "../shared/shader_store.h"
@@ -17,6 +20,9 @@
 #include "../shared/texture_store.h"
 #include "../shared/util.h"
 #include "../shared/world.h"
+
+using namespace phys::literals;
+using namespace std::literals::chrono_literals;
 
 static const char help_text[] =
 "Controls:\n"
@@ -255,6 +261,16 @@ phong_color_material_properties floor_mtl_props(
 phong_color_material floor_mtl(floor_mtl_props);
 phong_map_material wooden_cube_mtl("container2", "container2_specular", 32.0f);
 
+// Red plastic
+phong_color_material candle_mtl{
+	phong_color_material_properties{
+		glm::vec3(0.0, 0.0, 0.0),
+		glm::vec3(0.5, 0.0, 0.0),
+		glm::vec3(0.7, 0.6, 0.6),
+		128 * 0.25f
+	}
+};
+
 struct object_controller : 
 	public event_listener<pre_render_pass_event>, 
 	public event_listener<keydown_event>,
@@ -266,6 +282,8 @@ struct object_controller :
 	std::vector<std::unique_ptr<mesh>> cubes{};
 	std::unique_ptr<mesh> floor{};
 	std::unique_ptr<mesh> wooden_cube{};
+	std::unique_ptr<mesh> candle{};
+	std::unique_ptr<particle_emitter> fire{};
 	glm::vec3 light_motion{ 0.0f };
 
 	object_controller(event_buses &_buses, world &w) :
@@ -337,6 +355,41 @@ struct object_controller :
 		)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(cube_size)));
 
 		w.add_mesh(wooden_cube.get());
+
+		static const float candle_height = 0.5f;
+
+		candle = std::make_unique<mesh>(shapes::cube.get(), &candle_mtl);
+		candle->set_model(glm::translate(glm::identity<glm::mat4>(), glm::vec3(
+			1.0f,
+			-0.85f + candle_height,
+			2.0f
+		)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(
+			0.02f,
+			0.3f,
+			0.02f
+		)));
+
+		w.add_mesh(candle.get());
+
+		fire = std::make_unique<physical_particle_emitter>(
+			phys::vec3(1.0_r, -0.7_r + candle_height, 2.0_r),
+			phys::vec3(0.0_r, 0.03_r, 0.0_r),
+			0.002_r,
+			0.05_r,
+			1000,
+			5,
+			200,
+			0.7_r,
+			0.4_r,
+			phys::vec3(0.0_r, 0.01_r, 0.0_r),
+			1400ms,
+			glm::vec4(1.0f, 0.73f, 0.0f, 1.0f),
+			glm::vec4(0.75f, 0.27f, 0.0f, 0.0f),
+			8.0f
+		);
+
+		w.add_particle_emitter(fire.get());
+		fire->start();
 	}
 
 	int handle(pre_render_pass_event &event) override {

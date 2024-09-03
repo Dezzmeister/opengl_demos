@@ -65,6 +65,7 @@ void instanced_mesh::draw(draw_event &event, const shader_program &shader) const
 	glVertexAttribPointer(10, 4, GL_FLOAT, GL_FALSE, 32 * sizeof(float), (void*)(28 * sizeof(float)));
 
 	if (models_need_updating) {
+		// GL_DYNAMIC_DRAW instead?
 		glBufferData(GL_ARRAY_BUFFER, sizeof(decltype(models)::value_type) * models.size(), models.data(), GL_STATIC_DRAW);
 		models_need_updating = false;
 	}

@@ -73,6 +73,11 @@ int shader_store::handle(program_start_event &event) {
 		shader<shader_type::Geometry>("../resources/point_shadow_geom.glsl", "#define INSTANCED\n"),
 		shader<shader_type::Fragment>("../resources/point_shadow_frag.glsl", "#define INSTANCED\n")
 	)));
+	shaders.insert(std::make_pair(std::string("particle_color"), shader_program(
+		shader<shader_type::Vertex>("../resources/particle_color_vert.glsl"),
+		std::nullopt,
+		shader<shader_type::Fragment>("../resources/particle_color_frag.glsl")
+	)));
 
 	event.shaders = this;
 

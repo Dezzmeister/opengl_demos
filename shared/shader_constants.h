@@ -53,6 +53,8 @@ namespace constants {
 		{ "tex_sampler_tex", 8 },
 		{ "cube_sampler_cubemap", 8 },
 		{ "cube_sampler_u_filter", 9 },
-		{ "cube_sampler_v_filter", 10 }
+		{ "cube_sampler_v_filter", 10 },
+
+		{ "max_particle_size", 1 }
 	};
 };

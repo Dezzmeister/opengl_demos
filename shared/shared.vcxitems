@@ -21,6 +21,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)data_formats\json_parser.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)data_formats\parsing.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)data_formats\uri.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)physical_particle_emitter.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)hardware_constants.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)directional_light.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)flashlight.cpp" />
@@ -33,6 +34,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)mesh.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)phong_color_material.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)phong_map_material.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)physics\math.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)physics\particle.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)player.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)point_light.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)rendering.cpp" />
@@ -55,11 +58,15 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)data_formats\parsing.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)data_formats\uri.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)directional_light.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)physical_particle_emitter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)flashlight.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)hardware_constants.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)instanced_mesh.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)data_formats\json_parser.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)phong_map_material.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)physics\math.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)physics\particle.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)particle_emitter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)rendering.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)shader_constants.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)shapes.h" />
