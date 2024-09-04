@@ -16,16 +16,16 @@ namespace phys {
 	using vec3 = glm::vec<3, real, qual>;
 	using mat4 = glm::mat<4, 4, real, qual>;
 
-	constexpr real infinity = std::numeric_limits<real>::infinity();
+	inline constexpr real infinity = std::numeric_limits<real>::infinity();
+
+	real dot(const vec3 &a, const vec3 &b);
+	vec3 normalize(const vec3 &v);
 
 	template <typename T>
-	const auto &dot = glm::dot<T>;
+	inline const auto &to_glm = ident<T>;
 
 	template <typename T>
-	const auto &to_glm = ident<T>;
-
-	template <typename T>
-	const auto &to_phys = ident<T>;
+	inline const auto &to_phys = ident<T>;
 
 	namespace literals {
 		real operator""_r(long double val);

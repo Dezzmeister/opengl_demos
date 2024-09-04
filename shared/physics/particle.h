@@ -15,6 +15,8 @@ namespace phys {
 
 		void integrate(real dt);
 		void set_mass(real mass);
+		real get_mass() const;
+		bool has_finite_mass() const;
 
 	private:
 		real inv_mass;

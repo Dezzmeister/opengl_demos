@@ -34,8 +34,11 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)mesh.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)phong_color_material.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)phong_map_material.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)physics\force_generators\particle_drag.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)physics\force_generators\particle_gravity.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\math.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\particle.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)physics\particle_force_registry.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)player.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)point_light.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)rendering.cpp" />
@@ -67,6 +70,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)physics\math.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)physics\particle.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)particle_emitter.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)physics\particle_force_generator.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)physics\particle_force_generators.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)physics\particle_force_registry.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)rendering.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)shader_constants.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)shapes.h" />
