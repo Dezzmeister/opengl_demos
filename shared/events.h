@@ -7,6 +7,11 @@
 // after they are fired. For example, the event that fires before every render pass has
 // an effect that it uses to time the previous render pass. These "effectful" events are
 // most useful if they're created once, outside of the scope from which they are fired.
+//
+// A note about input events: although an input can be made at any time, input events are
+// only fired by "controllers" (see controllers.h) at the beginning of a frame. Events are
+// synchronous, so input event handlers will only be called at the beginning of a frame,
+// when the input event(s) is/are fired.
 #pragma once
 #include <chrono>
 #include <GLFW/glfw3.h>
@@ -166,6 +171,27 @@ struct keyup_event {
 	keyup_event(const short _key) : key(_key) {}
 };
 
+// Fired whenever a mouse button is pressed.
+struct mousedown_event {
+	const uint8_t button;
+
+	mousedown_event(const uint8_t _button) : button(_button) {}
+};
+
+// Fired whenever a mouse button is released.
+struct mouseup_event {
+	const uint8_t button;
+
+	mouseup_event(const uint8_t _button) : button(_button) {}
+};
+
+// Fired whenever the mouse is scrolled.
+struct mouse_scroll_event {
+	const glm::vec2 offset;
+
+	mouse_scroll_event(const glm::vec2 &_offset) : offset(_offset) {}
+};
+
 class player;
 
 // Fired whenever a player looks in a different direction.
@@ -209,7 +235,13 @@ using render_event_bus = event_bus<
 	shader_use_event,
 	screen_resize_event
 >;
-using input_event_bus = event_bus<keydown_event, keyup_event>;
+using input_event_bus = event_bus<
+	keydown_event,
+	keyup_event,
+	mousedown_event,
+	mouseup_event,
+	mouse_scroll_event
+>;
 using player_event_bus = event_bus<player_look_event, player_move_event>;
 
 struct event_buses {

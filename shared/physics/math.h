@@ -14,7 +14,9 @@ namespace {
 namespace phys {
 	using real = float;
 	using vec3 = glm::vec<3, real, qual>;
+	using vec2 = glm::vec<2, real, qual>;
 	using mat4 = glm::mat<4, 4, real, qual>;
+	using mat2 = glm::mat<2, 2, real, qual>;
 
 	inline constexpr real infinity = std::numeric_limits<real>::infinity();
 

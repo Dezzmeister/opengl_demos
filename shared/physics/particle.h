@@ -10,12 +10,16 @@ namespace phys {
 		vec3 force;
 
 		real damping;
+		// TODO: Move this out into the spherical particle contact generator.
+		// Particles in general won't have a radius
+		real radius;
 
 		particle();
 
 		void integrate(real dt);
 		void set_mass(real mass);
 		real get_mass() const;
+		real get_inv_mass() const;
 		bool has_finite_mass() const;
 
 	private:

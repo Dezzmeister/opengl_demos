@@ -20,4 +20,26 @@ namespace phys {
 
 		void update_force(particle &p, real duration) override;
 	};
+
+	class particle_spring : public particle_force_generator {
+	public:
+		const particle &other;
+		real k;
+		real rest_length;
+
+		particle_spring(const particle &_other, real _k, real _rest_length);
+
+		void update_force(particle &p, real duration) override;
+	};
+
+	class particle_anchored_spring : public particle_force_generator {
+	public:
+		vec3 anchor;
+		real k;
+		real rest_length;
+
+		particle_anchored_spring(const vec3 &_anchor, real _k, real _rest_length);
+
+		void update_force(particle &p, real duration) override;
+	};
 }

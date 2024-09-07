@@ -15,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shadow_demo", "shadow_demo\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tests", "tests\tests.vcxproj", "{9600C5A8-BFC6-4A51-A250-9A235363748A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "physics_demo", "physics_demo\physics_demo.vcxproj", "{4F163F61-31A4-409B-846B-82C9078AD616}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -55,6 +57,14 @@ Global
 		{9600C5A8-BFC6-4A51-A250-9A235363748A}.Release|x64.Build.0 = Release|x64
 		{9600C5A8-BFC6-4A51-A250-9A235363748A}.Release|x86.ActiveCfg = Release|Win32
 		{9600C5A8-BFC6-4A51-A250-9A235363748A}.Release|x86.Build.0 = Release|Win32
+		{4F163F61-31A4-409B-846B-82C9078AD616}.Debug|x64.ActiveCfg = Debug|x64
+		{4F163F61-31A4-409B-846B-82C9078AD616}.Debug|x64.Build.0 = Debug|x64
+		{4F163F61-31A4-409B-846B-82C9078AD616}.Debug|x86.ActiveCfg = Debug|Win32
+		{4F163F61-31A4-409B-846B-82C9078AD616}.Debug|x86.Build.0 = Debug|Win32
+		{4F163F61-31A4-409B-846B-82C9078AD616}.Release|x64.ActiveCfg = Release|x64
+		{4F163F61-31A4-409B-846B-82C9078AD616}.Release|x64.Build.0 = Release|x64
+		{4F163F61-31A4-409B-846B-82C9078AD616}.Release|x86.ActiveCfg = Release|Win32
+		{4F163F61-31A4-409B-846B-82C9078AD616}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,6 +74,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		resources\resources.vcxitems*{348497e2-eae3-4e26-a321-b8bf3b67a6d2}*SharedItemsImports = 9
+		resources\resources.vcxitems*{4f163f61-31a4-409b-846b-82c9078ad616}*SharedItemsImports = 4
+		shared\shared.vcxitems*{4f163f61-31a4-409b-846b-82c9078ad616}*SharedItemsImports = 4
 		resources\resources.vcxitems*{8547d319-18bb-42d0-8d63-c5c723f84939}*SharedItemsImports = 4
 		shared\shared.vcxitems*{8547d319-18bb-42d0-8d63-c5c723f84939}*SharedItemsImports = 4
 		resources\resources.vcxitems*{9600c5a8-bfc6-4a51-a250-9a235363748a}*SharedItemsImports = 4

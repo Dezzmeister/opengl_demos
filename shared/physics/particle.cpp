@@ -10,6 +10,7 @@ phys::particle::particle() :
 	acc(0.0_r),
 	force(0.0_r),
 	damping(0.995_r),
+	radius(0.0_r),
 	inv_mass(1.0_r)
 {}
 
@@ -39,6 +40,10 @@ phys::real phys::particle::get_mass() const {
 	}
 
 	return 1.0_r / inv_mass;
+}
+
+phys::real phys::particle::get_inv_mass() const {
+	return inv_mass;
 }
 
 bool phys::particle::has_finite_mass() const {

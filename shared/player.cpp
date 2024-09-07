@@ -83,6 +83,7 @@ int player::handle(pre_render_pass_event &event) {
 	}
 
 	if (captured_mouse != nullptr) {
+		glm::vec3 old_dir = cam.dir;
 		last_mouse = curr_mouse;
 		glfwGetCursorPos(event.window, &curr_mouse.x, &curr_mouse.y);
 
@@ -118,12 +119,13 @@ int player::handle(pre_render_pass_event &event) {
 		float bot_coincidence = glm::dot(bot_dir_right, bot_pot_dir_right);
 		
 		if (((1 - top_coincidence) <= 1e-6f) && ((1 - bot_coincidence) <= 1e-6f)) {
-			glm::vec3 old_dir = cam.dir;
 			cam.dir = pot_dir;
 			const glm::mat4& view = cam.update_view_mat();
 
-			player_look_event ple(*this, cam.pos, cam.dir, old_dir, view);
-			buses.player.fire(ple);
+			if (cam.dir != old_dir) {
+				player_look_event ple(*this, cam.pos, cam.dir, old_dir, view);
+				buses.player.fire(ple);
+			}
 		}
 	}
 

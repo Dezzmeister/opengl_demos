@@ -284,12 +284,15 @@ struct object_controller :
 	std::unique_ptr<mesh> wooden_cube{};
 	std::unique_ptr<mesh> candle{};
 	std::unique_ptr<particle_emitter> fire{};
+	std::unique_ptr<geometry> sphere_geom;
+	std::unique_ptr<mesh> sphere{};
 	glm::vec3 light_motion{ 0.0f };
 
 	object_controller(event_buses &_buses, world &w) :
 		event_listener<pre_render_pass_event>(&_buses.render),
 		event_listener<keydown_event>(&_buses.input),
-		event_listener<keyup_event>(&_buses.input)
+		event_listener<keyup_event>(&_buses.input),
+		sphere_geom(std::make_unique<geometry>(shapes::make_sphere(20, 10, true)))
 	{
 		event_listener<pre_render_pass_event>::subscribe();
 		event_listener<keydown_event>::subscribe();
@@ -390,6 +393,15 @@ struct object_controller :
 
 		w.add_particle_emitter(fire.get());
 		fire->start();
+
+		sphere = std::make_unique<mesh>(sphere_geom.get(), &floor_mtl);
+		sphere->set_model(glm::translate(glm::identity<glm::mat4>(), glm::vec3(
+			-2.0f,
+			0.5f,
+			-1.0f
+		)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(0.5f, 0.5f, 0.5f)));
+
+		w.add_mesh(sphere.get());
 	}
 
 	int handle(pre_render_pass_event &event) override {

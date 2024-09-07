@@ -22,10 +22,10 @@ int key_controller::handle(pre_render_pass_event &event) {
 
 		if (is_pressed) {
 			keydown_event event(key);
-			buses.input.fire<keydown_event>(event);
+			buses.input.fire(event);
 		} else {
 			keyup_event event(key);
-			buses.input.fire<keyup_event>(event);
+			buses.input.fire(event);
 		}
 	}
 
