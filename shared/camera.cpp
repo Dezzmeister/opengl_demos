@@ -65,12 +65,14 @@ void camera::update_right_vec() {
 	right = glm::normalize(glm::cross(world_up, dir));
 }
 
-const glm::mat4& camera::update_view_mat() {
+void camera::update_view_mat() {
 	right = glm::normalize(glm::cross(world_up, dir));
 	camera_up = glm::cross(dir, right);
 	target = pos + dir;
 	view = glm::lookAt(pos, target, world_up);
 	inv_view = glm::inverse(view);
+}
 
+const glm::mat4& camera::get_view() const {
 	return view;
 }

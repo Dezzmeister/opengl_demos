@@ -20,13 +20,18 @@ void phys::particle_contact_resolver::resolve_contacts(std::vector<particle_cont
 
 			// By "max" we mean the contact with the "most negative" separating velocity,
 			// or the max closing velocity
-			if (vs < max) {
+			if (vs < max && (vs < 0 || contacts[i].penetration > 0)) {
 				max = vs;
 				max_idx = i;
 			}
 		}
 
 		contacts[max_idx].resolve(duration);
+
+		if (iterations == contacts.size()) {
+			break;
+		}
+
 		iterations++;
 	}
 }

@@ -26,7 +26,7 @@ void phys::particle_contact::resolve_vel(real duration) {
 		return;
 	}
 
-	real vsp = -restitution * vs;
+	real vsp = -vs * restitution;
 	real buildup = single_frame_buildup(duration);
 
 	// Prevent resting objects from jittering by removing velocity caused by acceleration
@@ -56,18 +56,6 @@ void phys::particle_contact::resolve_vel(real duration) {
 
 	a->vel += (mb / (ma + mb)) * dvs * contact_norm;
 	b->vel -= (ma / (ma + mb)) * dvs * contact_norm;
-	/*
-	if (! b) {
-		a->vel += dvs * contact_norm;
-		return;
-	}
-
-	real impulse_mag = dvs / (a->get_inv_mass() + b->get_inv_mass());
-	vec3 impulse_v = impulse_mag * contact_norm;
-
-	a->vel += impulse_v * a->get_inv_mass();
-	b->vel -= impulse_v * b->get_inv_mass();
-	*/
 }
 
 void phys::particle_contact::resolve_interpenetration() {

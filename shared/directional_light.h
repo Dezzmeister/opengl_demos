@@ -19,7 +19,6 @@ private:
 	friend class directional_light;
 
 public:
-
 	directional_shadow_caster_properties(
 		const glm::vec3 &_dir,
 		float _frustum_size,

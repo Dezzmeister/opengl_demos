@@ -120,13 +120,14 @@ int player::handle(pre_render_pass_event &event) {
 		
 		if (((1 - top_coincidence) <= 1e-6f) && ((1 - bot_coincidence) <= 1e-6f)) {
 			cam.dir = pot_dir;
-			const glm::mat4& view = cam.update_view_mat();
-
-			if (cam.dir != old_dir) {
-				player_look_event ple(*this, cam.pos, cam.dir, old_dir, view);
-				buses.player.fire(ple);
-			}
 		}
+
+		if (cam.dir != old_dir) {
+			player_look_event ple(*this, cam.pos, cam.dir, old_dir, cam.get_view());
+			buses.player.fire(ple);
+		}
+
+		cam.update_view_mat();
 	}
 
 	glm::vec3 proj_dir = glm::vec3(cam.dir);
@@ -146,6 +147,7 @@ int player::handle(pre_render_pass_event &event) {
 	player_move_event pme(*this, cam.pos + pos_diff, cam.pos, cam.dir);
 	buses.player.fire(pme);
 	cam.pos = pme.pos;
+	cam.update_view_mat();
 
 	return 0;
 }

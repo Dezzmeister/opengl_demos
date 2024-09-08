@@ -18,7 +18,7 @@ namespace phys {
 			real _restitution
 		);
 
-		void add_contacts(contact_container &contacts) const override;
+		void add_contacts(contact_container &contacts, real duration) const override;
 	};
 }
 
@@ -37,11 +37,11 @@ phys::particle_plane_contact_generator<particle_container>::particle_plane_conta
 {}
 
 template <typename particle_container>
-void phys::particle_plane_contact_generator<particle_container>::add_contacts(contact_container &contacts) const {
+void phys::particle_plane_contact_generator<particle_container>::add_contacts(contact_container &contacts, real duration) const {
 	for (particle &p : particles) {
 		real dist = phys::dot(p.pos - origin, normal);
 
-		if (dist < 0) {
+		if (dist < 0.0_r) {
 			particle_contact contact{
 				.a = &p,
 				.b = nullptr,

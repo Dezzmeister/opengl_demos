@@ -16,9 +16,8 @@ phys::particle::particle() :
 
 void phys::particle::integrate(real dt) {
 	pos += (vel * dt);
-	vec3 new_acc = acc + (force * inv_mass);
-
-	vel += (new_acc * dt);
+	acc += force * inv_mass;
+	vel += (acc * dt);
 	vel *= pow(damping, dt);
 }
 

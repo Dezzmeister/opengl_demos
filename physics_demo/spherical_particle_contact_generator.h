@@ -16,7 +16,7 @@ public:
 		std::bitset<N> &_active
 	);
 
-	void add_contacts(contact_container &contacts) const override;
+	void add_contacts(contact_container &contacts, phys::real duration) const override;
 };
 
 template <const size_t N>
@@ -31,7 +31,8 @@ spherical_particle_contact_generator<N>::spherical_particle_contact_generator(
 
 template <const size_t N>
 void spherical_particle_contact_generator<N>::add_contacts(
-	contact_container &contacts
+	contact_container &contacts,
+	phys::real duration
 ) const {
 	std::vector<size_t> active_particles{};
 

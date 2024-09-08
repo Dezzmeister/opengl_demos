@@ -17,8 +17,6 @@
 using namespace phys::literals;
 
 namespace {
-	constexpr size_t MAX_PHYS_ITERATIONS = 8;
-
 	// Ruby
 	phong_color_material sphere_mtl{
 		phong_color_material_properties{
@@ -175,7 +173,10 @@ object_world<N>::object_world(
 		glm::vec3(0.0f, -10000.0f, 0.0f)
 	)),
 	mesh_world(_mesh_world),
-	phys_world(MAX_PHYS_ITERATIONS),
+	// Setting max_iterations = N here helps prevent particles in resting contact
+	// from jittering. Resting contact jittering can happen when the number of
+	// contacts is greater than max_iterations
+	phys_world(N),
 	floor_contact_generator(std::make_unique<phys::particle_plane_contact_generator<std::array<phys::particle, N>>>(
 		state->particles,
 		phys::vec3(0.0_r, 1.0_r, 0.0_r),
@@ -229,9 +230,12 @@ object_world<N>::object_world(
 template <const size_t N>
 int object_world<N>::handle(pre_render_pass_event &event) {
 	long long millis = event.delta.count();
+	phys::real seconds = ((phys::real)millis) / 1000.0_r;
 
 	phys_world.prepare_frame();
-	phys_world.run_physics(((phys::real)millis) / 1000.0_r);
+	// Clamp the timestep so that physics don't go crazy when the window is moved
+	// or resized, or when a frame takes too long
+	phys_world.run_physics(std::min(seconds, 0.01_r));
 	state->update_meshes();
 
 	return 0;

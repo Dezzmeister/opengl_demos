@@ -15,6 +15,7 @@ void phys::particle_world::integrate(real duration) {
 void phys::particle_world::prepare_frame() {
 	for (particle * p : particles) {
 		p->force = phys::vec3(0.0_r);
+		p->acc = phys::vec3(0.0_r);
 	}
 }
 
@@ -26,7 +27,7 @@ void phys::particle_world::run_physics(real duration) {
 	contacts.clear();
 
 	for (particle_contact_generator * cg : contact_generators) {
-		cg->add_contacts(contacts);
+		cg->add_contacts(contacts, duration);
 	}
 
 	contact_resolver.resolve_contacts(contacts, duration);

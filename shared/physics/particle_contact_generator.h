@@ -9,6 +9,6 @@ namespace phys {
 
 		virtual ~particle_contact_generator() = default;
 
-		virtual void add_contacts(contact_container &contacts) const = 0;
+		virtual void add_contacts(contact_container &contacts, real duration) const = 0;
 	};
 }

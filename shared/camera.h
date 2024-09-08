@@ -22,7 +22,8 @@ public:
 	int handle(screen_resize_event &event) override;
 
 	void update_right_vec();
-	const glm::mat4& update_view_mat();
+	void update_view_mat();
+	const glm::mat4& get_view() const;
 
 private:
 	glm::vec3 camera_up;
