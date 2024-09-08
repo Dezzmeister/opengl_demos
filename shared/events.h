@@ -202,7 +202,7 @@ struct player_look_event {
 	glm::vec3 old_dir;
 	const glm::mat4 &view;
 
-	player_look_event(player &_p, glm::vec3 _pos, glm::vec3 _dir, glm::vec3 _old_dir, const glm::mat4 &_view) : 
+	player_look_event(player &_p, const glm::vec3 &_pos, const glm::vec3 &_dir, const glm::vec3 &_old_dir, const glm::mat4 &_view) : 
 		p(_p),
 		pos(_pos),
 		dir(_dir),
@@ -218,10 +218,23 @@ struct player_move_event {
 	glm::vec3 old_pos;
 	glm::vec3 dir;
 
-	player_move_event(player &_p, glm::vec3 _pos, glm::vec3 _old_pos, glm::vec3 _dir) :
+	player_move_event(player &_p, const glm::vec3 &_pos, const glm::vec3 &_old_pos, const glm::vec3 &_dir) :
 		p(_p),
 		pos(_pos),
 		old_pos(_old_pos),
+		dir(_dir)
+	{}
+};
+
+// Fired when the player spawns.
+struct player_spawn_event {
+	player &p;
+	glm::vec3 pos;
+	glm::vec3 dir;
+
+	player_spawn_event(player &_p, const glm::vec3 &_pos, const glm::vec3 &_dir) :
+		p(_p),
+		pos(_pos),
 		dir(_dir)
 	{}
 };
@@ -242,7 +255,11 @@ using input_event_bus = event_bus<
 	mouseup_event,
 	mouse_scroll_event
 >;
-using player_event_bus = event_bus<player_look_event, player_move_event>;
+using player_event_bus = event_bus<
+	player_look_event,
+	player_move_event,
+	player_spawn_event
+>;
 
 struct event_buses {
 	lifecycle_event_bus lifecycle;

@@ -3,7 +3,11 @@
 #include "camera.h"
 #include "events.h"
 
-class player : public event_listener<keydown_event>, public event_listener<keyup_event>, public event_listener<pre_render_pass_event> {
+class player :
+	public event_listener<keydown_event>,
+	public event_listener<keyup_event>,
+	public event_listener<pre_render_pass_event>
+{
 public:
 	float speed;
 	float look_sensitivity;
@@ -28,5 +32,6 @@ private:
 	GLFWwindow * captured_mouse;
 	glm::dvec2 last_mouse;
 	glm::dvec2 curr_mouse;
+	bool sent_spawn_event;
 };
 

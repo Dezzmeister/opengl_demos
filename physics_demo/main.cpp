@@ -33,17 +33,20 @@ const phys::particle_plane_contact_generator<std::vector<phys::particle>> abcdef
 using namespace phys::literals;
 using namespace std::literals::chrono_literals;
 
-static const char help_text[] =
-"Controls:\n"
-"\tMouse to look around\n"
-"\tWASD to move\n"
-"\tHold LEFT SHIFT to sprint\n"
-"\tF to toggle flashlight\n"
-"\tP to toggle the particle spawn tool\n"
-"\t\tWhile the tool is active:\n"
-"\t\tLeft Click to spawn a particle\n"
-"\t\tScroll in and out to move the cursor\n"
-"\tArrow keys to move the point light\n";
+static const char help_text[] = R"(
+Controls:
+	Mouse to look around
+	WASD to move
+	Hold LEFT SHIFT to spring
+	F to toggle flashlight
+	T to toggle the particle spawn tool
+		While the tool is active:
+		LEFT_MOUSE to spawn a particle
+		SCROLL to move the cursor
+	P to pause the physics simulation
+		While the simulation is paused:
+		PERIOD to step forward one frame
+)";
 
 static void on_window_resize(GLFWwindow * window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -103,7 +106,9 @@ int main(int argc, const char * const * const argv) {
 		GLFW_KEY_LEFT_SHIFT,
 		GLFW_KEY_F,
 		GLFW_KEY_ESCAPE,
-		GLFW_KEY_P
+		GLFW_KEY_T,
+		GLFW_KEY_P,
+		GLFW_KEY_PERIOD
 	});
 
 	mouse_controller mouse(buses, {
@@ -118,7 +123,13 @@ int main(int argc, const char * const * const argv) {
 
 	shapes::init();
 
-	object_world<1000> objects(buses, custom_bus, w);
+	object_world<1000> objects(
+		buses,
+		custom_bus,
+		w,
+		GLFW_KEY_P,
+		GLFW_KEY_PERIOD
+	);
 
 	flashlight lc(buses, pl, w, GLFW_KEY_F);
 
@@ -126,7 +137,7 @@ int main(int argc, const char * const * const argv) {
 	spawn_tool sphere_spawner(
 		buses,
 		custom_bus,
-		GLFW_KEY_P,
+		GLFW_KEY_T,
 		&sphere,
 		glm::scale(glm::identity<glm::mat4>(), glm::vec3(0.2f)),
 		w

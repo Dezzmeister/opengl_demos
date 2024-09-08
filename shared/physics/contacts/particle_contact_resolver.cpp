@@ -12,10 +12,10 @@ void phys::particle_contact_resolver::resolve_contacts(std::vector<particle_cont
 	}
 
 	while (iterations < max_iterations) {
-		real max = contacts[0].calculate_separating_vel();
-		uint64_t max_idx = 0;
+		real max = infinity;
+		uint64_t max_idx = contacts.size();
 
-		for (uint64_t i = 1; i < contacts.size(); i++) {
+		for (uint64_t i = 0; i < contacts.size(); i++) {
 			real vs = contacts[i].calculate_separating_vel();
 
 			// By "max" we mean the contact with the "most negative" separating velocity,
@@ -26,10 +26,32 @@ void phys::particle_contact_resolver::resolve_contacts(std::vector<particle_cont
 			}
 		}
 
+		if (max_idx == contacts.size()) {
+			break;
+		}
+
 		contacts[max_idx].resolve(duration);
 
-		if (iterations == contacts.size()) {
-			break;
+		for (size_t i = 0; i < contacts.size(); i++) {
+			particle_contact &contact = contacts[i];
+
+			if (i == max_idx) {
+				continue;
+			}
+
+			if (contact.a == contacts[max_idx].a) {
+				contact.penetration -= phys::dot(contacts[max_idx].a_penetration_resolution, contact.contact_norm);
+			} else if (contact.a == contacts[max_idx].b) {
+				contact.penetration -= phys::dot(contacts[max_idx].b_penetration_resolution, contact.contact_norm);
+			}
+
+			if (contact.b) {
+				if (contact.b == contacts[max_idx].a) {
+					contact.penetration += phys::dot(contacts[max_idx].a_penetration_resolution, contact.contact_norm);
+				} else if (contact.b == contacts[max_idx].b) {
+					contact.penetration += phys::dot(contacts[max_idx].b_penetration_resolution, contact.contact_norm);
+				}
+			}
 		}
 
 		iterations++;

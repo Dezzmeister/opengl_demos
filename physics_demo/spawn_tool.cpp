@@ -26,6 +26,7 @@ spawn_tool::spawn_tool(
 ) :
 	event_listener<player_look_event>(&_buses.player),
 	event_listener<player_move_event>(&_buses.player),
+	event_listener<player_spawn_event>(&_buses.player),
 	event_listener<mousedown_event>(&_buses.input),
 	event_listener<mouse_scroll_event>(&_buses.input),
 	event_listener<keydown_event>(&_buses.input),
@@ -38,6 +39,7 @@ spawn_tool::spawn_tool(
 {
 	event_listener<player_look_event>::subscribe();
 	event_listener<player_move_event>::subscribe();
+	event_listener<player_spawn_event>::subscribe();
 	event_listener<mousedown_event>::subscribe();
 	event_listener<mouse_scroll_event>::subscribe();
 	event_listener<keydown_event>::subscribe();
@@ -56,12 +58,19 @@ int spawn_tool::handle(player_move_event &event) {
 	return 0;
 }
 
+int spawn_tool::handle(player_spawn_event &event) {
+	player_pos = event.pos;
+	dir = event.dir;
+
+	return 0;
+}
+
 int spawn_tool::handle(mousedown_event &event) {
 	if (! active) {
 		return 0;
 	}
 
-	sphere_spawned_event spawn_event(player_pos + (dir * scroll_f));
+	sphere_spawn_event spawn_event(player_pos + (dir * scroll_f));
 	custom_bus.fire(spawn_event);
 
 	return 0;

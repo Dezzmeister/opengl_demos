@@ -60,20 +60,27 @@ void phys::particle_contact::resolve_vel(real duration) {
 
 void phys::particle_contact::resolve_interpenetration() {
 	if (! b || ! b->has_finite_mass()) {
-		a->vel += penetration * contact_norm;
+		a_penetration_resolution = penetration * contact_norm;
+		a->pos += a_penetration_resolution;
+		penetration = 0;
 		return;
 	}
 
 	if (! a->has_finite_mass()) {
-		b->vel -= penetration * contact_norm;
+		b_penetration_resolution = -penetration * contact_norm;
+		b->pos += b_penetration_resolution;
+		penetration = 0;
 		return;
 	}
 
 	real ma = a->get_mass();
 	real mb = b->get_mass();
+	a_penetration_resolution = (mb / (ma + mb)) * penetration * contact_norm;
+	b_penetration_resolution = -(ma / (ma + mb)) * penetration * contact_norm;
 
-	a->vel += (mb / (ma + mb)) * penetration * contact_norm;
-	b->vel -= (ma / (ma + mb)) * penetration * contact_norm;
+	a->pos += a_penetration_resolution;
+	b->pos += b_penetration_resolution;
+	penetration = 0;
 }
 
 phys::real phys::particle_contact::single_frame_buildup(real duration) {

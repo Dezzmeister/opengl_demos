@@ -20,6 +20,10 @@ namespace phys {
 		real restitution{ 0.0_r };
 		// How far `a` and `b` overlap in the direction of the contact normal
 		real penetration{ 0.0_r };
+		// The displacement applied to `a` during interpenetration resolution
+		vec3 a_penetration_resolution{ 0.0_r };
+		// The displacement applied to `b` during interpenetration resolution, if `b` is not null
+		vec3 b_penetration_resolution{ 0.0_r };
 
 		// Resolves the contact and the interpenetration by applying an impulse
 		// (a change in velocity) to one or both particles in the direction of the contact

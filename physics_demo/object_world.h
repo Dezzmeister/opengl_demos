@@ -86,14 +86,22 @@ template <const size_t N>
 class object_world :
 	public event_listener<pre_render_pass_event>,
 	public event_listener<post_render_pass_event>,
-	public event_listener<sphere_spawned_event>
+	public event_listener<sphere_spawn_event>,
+	public event_listener<keydown_event>
 {
 public:
-	object_world(event_buses &_buses, custom_event_bus &_custom_bus, world &_mesh_world);
+	object_world(
+		event_buses &_buses,
+		custom_event_bus &_custom_bus,
+		world &_mesh_world,
+		short _pause_key,
+		short _step_key
+	);
 
 	int handle(pre_render_pass_event &event) override;
 	int handle(post_render_pass_event &event) override;
-	int handle(sphere_spawned_event &event) override;
+	int handle(sphere_spawn_event &event) override;
+	int handle(keydown_event &event) override;
 
 private:
 	std::unique_ptr<world_state<N>> state;
@@ -105,6 +113,10 @@ private:
 	std::unique_ptr<phys::particle_plane_contact_generator<std::array<phys::particle, N>>> floor_contact_generator;
 	std::unique_ptr<spherical_particle_contact_generator<N>> sphere_contact_generator;
 	std::unique_ptr<phys::particle_gravity> gravity_generator;
+	short pause_key;
+	short step_key;
+	bool paused{ false };
+	bool step{ false };
 
 	int64_t next_inactive_particle() const;
 };
@@ -161,11 +173,14 @@ template <const size_t N>
 object_world<N>::object_world(
 	event_buses &_buses,
 	custom_event_bus &_custom_bus,
-	world &_mesh_world
+	world &_mesh_world,
+	short _pause_key,
+	short _step_key
 ) :
 	event_listener<pre_render_pass_event>(&_buses.render, -10),
 	event_listener<post_render_pass_event>(&_buses.render),
-	event_listener<sphere_spawned_event>(&_custom_bus),
+	event_listener<sphere_spawn_event>(&_custom_bus),
+	event_listener<keydown_event>(&_buses.input),
 	state(std::make_unique<world_state<N>>(
 		_mesh_world,
 		shapes::make_sphere(20, 10, true),
@@ -189,11 +204,14 @@ object_world<N>::object_world(
 	)),
 	gravity_generator(std::make_unique<phys::particle_gravity>(
 		phys::vec3(0.0_r, -9.8_r, 0.0_r)
-	))
+	)),
+	pause_key(_pause_key),
+	step_key(_step_key)
 {
 	event_listener<pre_render_pass_event>::subscribe();
 	event_listener<post_render_pass_event>::subscribe();
-	event_listener<sphere_spawned_event>::subscribe();
+	event_listener<sphere_spawn_event>::subscribe();
+	event_listener<keydown_event>::subscribe();
 
 	light = std::make_unique<directional_light>(
 		glm::normalize(glm::vec3(1, -3, 1)),
@@ -229,13 +247,17 @@ object_world<N>::object_world(
 
 template <const size_t N>
 int object_world<N>::handle(pre_render_pass_event &event) {
-	long long millis = event.delta.count();
-	phys::real seconds = ((phys::real)millis) / 1000.0_r;
+	if (! paused || (paused && step)) {
+		long long millis = event.delta.count();
+		phys::real seconds = ((phys::real)millis) / 1000.0_r;
 
-	phys_world.prepare_frame();
-	// Clamp the timestep so that physics don't go crazy when the window is moved
-	// or resized, or when a frame takes too long
-	phys_world.run_physics(std::min(seconds, 0.01_r));
+		phys_world.prepare_frame();
+		// Clamp the timestep so that physics don't go crazy when the window is moved
+		// or resized, or when a frame takes too long
+		phys_world.run_physics(std::min(seconds, 0.01_r));
+		step = false;
+	}
+
 	state->update_meshes();
 
 	return 0;
@@ -247,7 +269,7 @@ int object_world<N>::handle(post_render_pass_event &event) {
 }
 
 template <const size_t N>
-int object_world<N>::handle(sphere_spawned_event &event) {
+int object_world<N>::handle(sphere_spawn_event &event) {
 	int64_t i = next_inactive_particle();
 
 	if (i == -1) {
@@ -261,6 +283,17 @@ int object_world<N>::handle(sphere_spawned_event &event) {
 	state->active[i] = true;
 	phys_world.add_particle(&state->particles[i]);
 	phys_world.force_registry.add(&state->particles[i], gravity_generator.get());
+
+	return 0;
+}
+
+template <const size_t N>
+int object_world<N>::handle(keydown_event &event) {
+	if (event.key == pause_key) {
+		paused = ! paused;
+	} else if (event.key == step_key) {
+		step = true;
+	}
 
 	return 0;
 }

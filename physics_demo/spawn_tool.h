@@ -8,6 +8,7 @@
 class spawn_tool :
 	public event_listener<player_look_event>,
 	public event_listener<player_move_event>,
+	public event_listener<player_spawn_event>,
 	public event_listener<mousedown_event>,
 	public event_listener<mouse_scroll_event>,
 	public event_listener<keydown_event>,
@@ -25,6 +26,7 @@ public:
 
 	int handle(player_look_event &event) override;
 	int handle(player_move_event &event) override;
+	int handle(player_spawn_event &event) override;
 	int handle(mousedown_event &event) override;
 	int handle(mouse_scroll_event &event) override;
 	int handle(keydown_event &event) override;

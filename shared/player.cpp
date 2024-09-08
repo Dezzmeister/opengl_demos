@@ -16,7 +16,8 @@ player::player(event_buses &_buses) :
 	sprint_mul(1.0f),
 	captured_mouse(nullptr),
 	last_mouse(-1.0f, -1.0f),
-	curr_mouse(-1.0f, -1.0f)
+	curr_mouse(-1.0f, -1.0f),
+	sent_spawn_event(false)
 {
 	cam.dir = glm::vec3(0.0f, 0.0f, 1.0f);
 
@@ -60,6 +61,12 @@ int player::handle(keyup_event &event) {
 }
 
 int player::handle(pre_render_pass_event &event) {
+	if (! sent_spawn_event) {
+		player_spawn_event spawn_event(*this, cam.pos, cam.dir);
+		buses.player.fire(spawn_event);
+		sent_spawn_event = true;
+	}
+
 	if (input_vel.y > 1.0f || input_vel.y < -1.0f) {
 		input_vel.y = 0;
 	}
