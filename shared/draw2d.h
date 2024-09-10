@@ -14,13 +14,23 @@ struct font {
 	font(texture _font_bmp, int _glyph_width, int _glyph_height);
 };
 
-// Responsible for drawing flat text to the screen.
-class text2d_renderer :
+struct text_metrics {
+	const int width;
+	const int height;
+
+	text_metrics(int _width, int _height) :
+		width(_width),
+		height(_height)
+	{}
+};
+
+// Responsible for drawing simple 2D graphics to the screen.
+class renderer2d :
 	public event_listener<program_start_event>,
 	public event_listener<screen_resize_event>
 {
 public:
-	text2d_renderer(event_buses &_buses);
+	renderer2d(event_buses &_buses);
 
 	// Loads the font at the given `font_path`, and assigns it `font_name`.
 	// The font itself must be a monospace bitmap font with white glyphs on
@@ -68,16 +78,31 @@ public:
 		const glm::vec4 &bg_color
 	) const;
 
+	void draw_rect(
+		int x,
+		int y,
+		int width,
+		int height,
+		const glm::vec4 &color
+	) const;
+
 	int handle(program_start_event &event) override;
 	int handle(screen_resize_event &event) override;
 
 private:
-	mutable char tmp_buf[4096]{};
 	std::unordered_map<std::string, font> fonts{};
 	event_buses &buses;
+
 	unique_handle<unsigned int> text_vao;
 	unique_handle<unsigned int> text_vbo;
-	const shader_program * tex_shader{ nullptr };
+	mutable char tmp_buf[4096]{};
+	const shader_program * text_shader{ nullptr };
+
+	unique_handle<unsigned int> rect_vao;
+	unique_handle<unsigned int> rect_vbo;
+	mutable glm::ivec2 rect_vbo_buf[6]{};
+	const shader_program * rect_shader{ nullptr };
+
 	int screen_width{ 0 };
 	int screen_height{ 0 };
 

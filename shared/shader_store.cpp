@@ -79,9 +79,14 @@ int shader_store::handle(program_start_event &event) {
 		shader<shader_type::Fragment>("../resources/particle_color_frag.glsl")
 	)));
 	shaders.insert(std::make_pair("text2d", shader_program(
-		shader<shader_type::Vertex>("../resources/text_vert.glsl"),
-		shader<shader_type::Geometry>("../resources/text_geom.glsl"),
-		shader<shader_type::Fragment>("../resources/text_frag.glsl")
+		shader<shader_type::Vertex>("../resources/text2d_vert.glsl"),
+		shader<shader_type::Geometry>("../resources/text2d_geom.glsl"),
+		shader<shader_type::Fragment>("../resources/text2d_frag.glsl")
+	)));
+	shaders.insert(std::make_pair("rect2d", shader_program(
+		shader<shader_type::Vertex>("../resources/rect2d_vert.glsl"),
+		std::nullopt,
+		shader<shader_type::Fragment>("../resources/rect2d_frag.glsl")
 	)));
 
 	event.shaders = this;

@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <chrono>
-#include "../shared/shapes.h"
+#include "../shared/draw2d.h"
 #include "../shared/events.h"
 #include "../shared/flashlight.h"
 #include "../shared/gdi_plus_context.h"
@@ -16,8 +16,8 @@
 #include "../shared/player.h"
 #include "../shared/point_light.h"
 #include "../shared/shader_store.h"
+#include "../shared/shapes.h"
 #include "../shared/spotlight.h"
-#include "../shared/text2d.h"
 #include "../shared/texture_store.h"
 #include "../shared/util.h"
 #include "../shared/world.h"
@@ -491,13 +491,13 @@ int main(int argc, const char * const * const argv) {
 	pre_render_pass_event pre_render_event(window, &hw_consts);
 	shader_store shaders(buses);
 	texture_store textures(buses);
-	text2d_renderer text2d(buses);
+	renderer2d draw2d(buses);
 	draw_event draw_event_inst(window, shaders, textures);
 	post_processing_event post_processing_event_inst(
 		window,
 		shaders,
 		textures,
-		text2d
+		draw2d
 	);
 	post_render_pass_event post_render_event;
 

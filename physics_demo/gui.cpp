@@ -1,7 +1,7 @@
 #include <iomanip>
 #include "gui.h"
 #include "../shared/shader_store.h"
-#include "../shared/text2d.h"
+#include "../shared/draw2d.h"
 #include "../shared/texture_store.h"
 
 using namespace std::literals::chrono_literals;
@@ -10,6 +10,7 @@ namespace {
 	void write_vec3(std::stringstream &ss, const std::string &name, const phys::vec3 &v) {
 		ss << name << ": (" << v.x << ", " << v.y << ", " << v.z << ")\n";
 	};
+
 	void write_real(std::stringstream &ss, const std::string &name, const phys::real r) {
 		ss << name << ": " << r << "\n";
 	}
@@ -31,7 +32,7 @@ gui::gui(event_buses &_buses, custom_event_bus &_custom_bus) :
 }
 
 int gui::handle(program_start_event &event) {
-	debug_font = &event.text2d->get_font("spleen_6x12");
+	debug_font = &event.draw2d->get_font("spleen_6x12");
 
 	return 0;
 }
@@ -78,7 +79,7 @@ void gui::draw_fps_count(const post_processing_event &event) const {
 	std::stringstream ss{};
 	ss << std::setprecision(4) << " FPS: " << fps;
 
-	event.text2d.draw_text(
+	event.draw2d.draw_text(
 		ss.str(),
 		*debug_font,
 		0, 12,
@@ -89,7 +90,7 @@ void gui::draw_fps_count(const post_processing_event &event) const {
 }
 
 void gui::draw_crosshair(const post_processing_event &event) const {
-	event.text2d.draw_text(
+	event.draw2d.draw_text(
 		"o",
 		*debug_font,
 		(event.screen_width - debug_font->glyph_width) / 2,
@@ -105,6 +106,14 @@ void gui::draw_particle_info(const post_processing_event &event) const {
 		return;
 	}
 
+	event.draw2d.draw_rect(
+		0,
+		event.screen_height - (6 * debug_font->glyph_height),
+		40 * debug_font->glyph_width,
+		6 * debug_font->glyph_height,
+		glm::vec4(0.4f)
+	);
+
 	std::stringstream ss{};
 	ss << std::setprecision(5);
 
@@ -115,11 +124,11 @@ void gui::draw_particle_info(const post_processing_event &event) const {
 	write_real(ss, "mass", selected_particle->get_mass());
 	write_real(ss, "radius", selected_particle->radius);
 
-	event.text2d.draw_text(
+	event.draw2d.draw_text(
 		ss.str(),
 		*debug_font,
-		debug_font->glyph_width,
-		(event.screen_height - (6 * debug_font->glyph_height)),
+		0,
+		(event.screen_height - (5 * debug_font->glyph_height)),
 		0, 0, 0,
 		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
 		glm::vec4(0.0f)

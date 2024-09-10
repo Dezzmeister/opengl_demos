@@ -27,10 +27,12 @@
     <None Include="$(MSBuildThisFileDirectory)point_shadow_frag.glsl" />
     <None Include="$(MSBuildThisFileDirectory)point_shadow_geom.glsl" />
     <None Include="$(MSBuildThisFileDirectory)point_shadow_vert.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)rect2d_frag.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)rect2d_vert.glsl" />
     <None Include="$(MSBuildThisFileDirectory)shadow_vert.glsl" />
-    <None Include="$(MSBuildThisFileDirectory)text_frag.glsl" />
-    <None Include="$(MSBuildThisFileDirectory)text_geom.glsl" />
-    <None Include="$(MSBuildThisFileDirectory)text_vert.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)text2d_frag.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)text2d_geom.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)text2d_vert.glsl" />
     <None Include="$(MSBuildThisFileDirectory)tex_sampler_frag.glsl" />
     <None Include="$(MSBuildThisFileDirectory)tex_sampler_vert.glsl" />
   </ItemGroup>

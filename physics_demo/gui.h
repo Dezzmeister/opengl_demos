@@ -2,7 +2,7 @@
 #include <chrono>
 #include "../shared/events.h"
 #include "../shared/physics/particle.h"
-#include "../shared/text2d.h"
+#include "../shared/draw2d.h"
 #include "custom_events.h"
 
 class gui :

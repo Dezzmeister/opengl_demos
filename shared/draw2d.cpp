@@ -1,5 +1,5 @@
 #include "shader_store.h"
-#include "text2d.h"
+#include "draw2d.h"
 #include "texture_store.h"
 #include "util.h"
 
@@ -13,7 +13,8 @@ namespace {
 		{ "screen_height", 6 },
 		{ "font", 7 },
 		{ "bg_color", 8 },
-		{ "fg_color", 9 }
+		{ "fg_color", 9 },
+		{ "color", 10 }
 	};
 }
 
@@ -23,7 +24,7 @@ font::font(texture _font_bmp, int _glyph_width, int _glyph_height) :
 	glyph_height(_glyph_height)
 {}
 
-text2d_renderer::text2d_renderer(event_buses &_buses) :
+renderer2d::renderer2d(event_buses &_buses) :
 	event_listener<program_start_event>(&_buses.lifecycle, -99),
 	event_listener<screen_resize_event>(&_buses.render),
 	buses(_buses),
@@ -31,6 +32,12 @@ text2d_renderer::text2d_renderer(event_buses &_buses) :
 		glDeleteVertexArrays(1, &vao);
 	}),
 	text_vbo(0, [](unsigned int vbo) {
+		glDeleteBuffers(1, &vbo);
+	}),
+	rect_vao(0, [](unsigned int vao) {
+		glDeleteVertexArrays(1, &vao);
+	}),
+	rect_vbo(0, [](unsigned int vbo) {
 		glDeleteBuffers(1, &vbo);
 	})
 {
@@ -44,9 +51,17 @@ text2d_renderer::text2d_renderer(event_buses &_buses) :
 	glVertexAttribIPointer(0, 1, GL_UNSIGNED_BYTE, sizeof(char), 0);
 	glEnableVertexAttribArray(0);
 	glBufferData(GL_ARRAY_BUFFER, sizeof tmp_buf, NULL, GL_STREAM_DRAW);
+
+	glGenVertexArrays(1, &rect_vao);
+	glBindVertexArray(rect_vao);
+	glGenBuffers(1, &rect_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, rect_vbo);
+	glVertexAttribIPointer(0, 2, GL_INT, sizeof(glm::ivec2), 0);
+	glEnableVertexAttribArray(0);
+	glBufferData(GL_ARRAY_BUFFER, sizeof rect_vbo_buf, NULL, GL_STREAM_DRAW);
 }
 
-const font& text2d_renderer::load_font(const std::string &font_name, const std::string &font_path, int glyph_width, int glyph_height) {
+const font& renderer2d::load_font(const std::string &font_name, const std::string &font_path, int glyph_width, int glyph_height) {
 	fonts.insert(std::make_pair(font_name, font(texture(font_path.c_str(), false), glyph_width, glyph_height)));
 
 	const font &f = fonts.at(font_name);
@@ -59,11 +74,11 @@ const font& text2d_renderer::load_font(const std::string &font_name, const std::
 	return fonts.at(font_name);
 }
 
-const font& text2d_renderer::get_font(const std::string &font_name) const {
+const font& renderer2d::get_font(const std::string &font_name) const {
 	return fonts.at(font_name);
 }
 
-void text2d_renderer::draw_text(
+void renderer2d::draw_text(
 	const std::string &text,
 	const font &f,
 	int x,
@@ -85,22 +100,23 @@ void text2d_renderer::draw_text(
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, f.font_bmp.get_id());
 
-	tex_shader->use();
-	tex_shader->set_uniform(glyph_width_loc, f.glyph_width);
-	tex_shader->set_uniform(glyph_height_loc, f.glyph_height);
-	tex_shader->set_uniform(screen_width_loc, screen_width);
-	tex_shader->set_uniform(screen_height_loc, screen_height);
-	tex_shader->set_uniform(font_loc, 0);
-	tex_shader->set_uniform(fg_color_loc, fg_color);
-	tex_shader->set_uniform(bg_color_loc, bg_color);
+	text_shader->use();
+	text_shader->set_uniform(glyph_width_loc, f.glyph_width);
+	text_shader->set_uniform(glyph_height_loc, f.glyph_height);
+	text_shader->set_uniform(screen_width_loc, screen_width);
+	text_shader->set_uniform(screen_height_loc, screen_height);
+	text_shader->set_uniform(font_loc, 0);
+	text_shader->set_uniform(fg_color_loc, fg_color);
+	text_shader->set_uniform(bg_color_loc, bg_color);
 
-	shader_use_event shader_event(*tex_shader);
+	shader_use_event shader_event(*text_shader);
 	buses.render.fire(shader_event);
 
 	glBindVertexArray(text_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, text_vbo);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST);
 
 	size_t in_char_pos = 0;
 	size_t out_char_pos = 0;
@@ -160,24 +176,66 @@ void text2d_renderer::draw_text(
 		draw_line(out_char_pos, draw_x, curr_y);
 	}
 
+	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 }
 
-void text2d_renderer::draw_line(size_t num_chars, int x, int y) const {
+void renderer2d::draw_rect(
+	int x,
+	int y,
+	int width,
+	int height,
+	const glm::vec4 &color
+) const {
+	static constexpr int screen_width_loc = util::find_in_map(text_shader_locs, "screen_width");
+	static constexpr int screen_height_loc = util::find_in_map(text_shader_locs, "screen_height");
+	static constexpr int color_loc = util::find_in_map(text_shader_locs, "color");
+
+	rect_vbo_buf[0] = glm::ivec2(x, y);
+	rect_vbo_buf[1] = glm::ivec2(x, y + height);
+	rect_vbo_buf[2] = glm::ivec2(x + width, y + height);
+	rect_vbo_buf[3] = glm::ivec2(x + width, y + height);
+	rect_vbo_buf[4] = glm::ivec2(x + width, y);
+	rect_vbo_buf[5] = glm::ivec2(x, y);
+
+	rect_shader->use();
+	rect_shader->set_uniform(screen_width_loc, screen_width);
+	rect_shader->set_uniform(screen_height_loc, screen_height);
+	rect_shader->set_uniform(color_loc, color);
+
+	shader_use_event shader_event(*rect_shader);
+	buses.render.fire(shader_event);
+
+	glBindVertexArray(rect_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, rect_vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof rect_vbo_buf, rect_vbo_buf);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST);
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+}
+
+void renderer2d::draw_line(size_t num_chars, int x, int y) const {
 	static constexpr int x_offset_loc = util::find_in_map(text_shader_locs, "x_offset");
 	static constexpr int y_offset_loc = util::find_in_map(text_shader_locs, "y_offset");
 
 	glBufferSubData(GL_ARRAY_BUFFER, 0, num_chars * sizeof(char), tmp_buf);
-	tex_shader->set_uniform(x_offset_loc, x);
-	tex_shader->set_uniform(y_offset_loc, y);
+	text_shader->set_uniform(x_offset_loc, x);
+	text_shader->set_uniform(y_offset_loc, y);
 
 	glDrawArrays(GL_POINTS, 0, (GLsizei)num_chars);
 }
 
-int text2d_renderer::handle(program_start_event &event) {
-	event.text2d = this;
+int renderer2d::handle(program_start_event &event) {
+	event.draw2d = this;
 
-	tex_shader = &event.shaders->shaders.at("text2d");
+	text_shader = &event.shaders->shaders.at("text2d");
+	rect_shader = &event.shaders->shaders.at("rect2d");
 
 	screen_width = event.screen_width;
 	screen_height = event.screen_height;
@@ -187,7 +245,7 @@ int text2d_renderer::handle(program_start_event &event) {
 	return 0;
 }
 
-int text2d_renderer::handle(screen_resize_event &event) {
+int renderer2d::handle(screen_resize_event &event) {
 	screen_width = event.new_width;
 	screen_height = event.new_height;
 

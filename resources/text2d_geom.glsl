@@ -14,7 +14,7 @@ layout(location = 5) uniform int screen_width;
 layout(location = 6) uniform int screen_height;
 
 void main() {
-	float y0 = (2.0 * (screen_height - y_offset - (screen_height / 2.0))) / screen_height;
+	float y0 = (2.0 * ((screen_height / 2.0) - y_offset)) / screen_height;
 	float x0 = (2.0 * (x_offset + (gl_PrimitiveIDIn * glyph_width) - (screen_width / 2.0))) / screen_width;
 	float xs = (2.0 * glyph_width) / screen_width;
 	float ys = (2.0 * glyph_height) / screen_height;
