@@ -96,6 +96,7 @@ void physical_particle_emitter::update(float millis) {
 
 	for (size_t i = 0; i < particles.size(); i++) {
 		particle &p = particles.at(i);
+		p.physics.acc = phys::vec3(0.0_r);
 
 		if (! is_particle_dead(p, now)) {
 			p.physics.integrate(dt);

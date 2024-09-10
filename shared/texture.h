@@ -3,8 +3,7 @@
 
 class texture {
 public:
-
-	texture(const char * const path);
+	texture(const char * const path, bool generate_mipmap = true);
 
 	unsigned int get_id() const;
 

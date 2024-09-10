@@ -88,6 +88,11 @@ void shader_program::set_uniform(const std::string name, const glm::mat3 &value)
 	glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(value));
 }
 
+void shader_program::set_uniform(const std::string name, const glm::vec4 &value) const {
+	const int loc = get_location(name);
+	glUniform4f(loc, value.x, value.y, value.z, value.w);
+}
+
 void shader_program::set_uniform(int loc, float value) const {
 	glUniform1f(loc, value);
 }
@@ -114,4 +119,8 @@ void shader_program::set_uniform(int loc, const glm::vec3 &value) const {
 
 void shader_program::set_uniform(int loc, const glm::mat3 &value) const {
 	glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+void shader_program::set_uniform(int loc, const glm::vec4 &value) const {
+	glUniform4f(loc, value.x, value.y, value.z, value.w);
 }

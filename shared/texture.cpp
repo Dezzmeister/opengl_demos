@@ -6,7 +6,7 @@
 #include "glad/glad.h"
 #include "texture.h"
 
-texture::texture(const char * const path) :
+texture::texture(const char * const path, bool generate_mipmap) :
 	id(0, [](unsigned int _handle) {
 		glDeleteTextures(1, &_handle);
 	})
@@ -66,7 +66,10 @@ texture::texture(const char * const path) :
 	}
 
 	glTexImage2D(GL_TEXTURE_2D, 0, internal_gl_format, width, height, 0, external_gl_format, GL_UNSIGNED_BYTE, buf);
-	glGenerateMipmap(GL_TEXTURE_2D);
+
+	if (generate_mipmap) {
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
 
 	delete[] buf;
 

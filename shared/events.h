@@ -26,6 +26,8 @@
 class shader_store;
 class texture_store;
 
+class text2d_renderer;
+
 class light;
 
 class hardware_constants;
@@ -38,6 +40,7 @@ struct program_start_event {
 	shader_store * shaders{ nullptr };
 	texture_store * textures{ nullptr };
 	hardware_constants * hardware_consts{ nullptr };
+	text2d_renderer * text2d;
 	int screen_width;
 	int screen_height;
 };
@@ -114,11 +117,18 @@ struct post_processing_event {
 	GLFWwindow * window;
 	shader_store &shaders;
 	texture_store &textures;
+	text2d_renderer &text2d;
 
-	post_processing_event(GLFWwindow * _window, shader_store &_shaders, texture_store &_textures) :
+	post_processing_event(
+		GLFWwindow * _window,
+		shader_store &_shaders,
+		texture_store &_textures,
+		text2d_renderer &_text2d
+	) :
 		window(_window),
 		shaders(_shaders),
-		textures(_textures)
+		textures(_textures),
+		text2d(_text2d)
 	{}
 };
 

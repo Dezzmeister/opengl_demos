@@ -28,6 +28,9 @@
     <None Include="$(MSBuildThisFileDirectory)point_shadow_geom.glsl" />
     <None Include="$(MSBuildThisFileDirectory)point_shadow_vert.glsl" />
     <None Include="$(MSBuildThisFileDirectory)shadow_vert.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)text_frag.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)text_geom.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)text_vert.glsl" />
     <None Include="$(MSBuildThisFileDirectory)tex_sampler_frag.glsl" />
     <None Include="$(MSBuildThisFileDirectory)tex_sampler_vert.glsl" />
   </ItemGroup>
@@ -35,6 +38,7 @@
     <Image Include="$(MSBuildThisFileDirectory)container2.png" />
     <Image Include="$(MSBuildThisFileDirectory)container2_specular.png" />
     <Image Include="$(MSBuildThisFileDirectory)epicface.png" />
+    <Image Include="$(MSBuildThisFileDirectory)spleen_font_6x12.png" />
     <Image Include="$(MSBuildThisFileDirectory)wall.jpg" />
   </ItemGroup>
 </Project>

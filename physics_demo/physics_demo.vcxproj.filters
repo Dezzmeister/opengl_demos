@@ -21,6 +21,9 @@
     <ClCompile Include="spawn_tool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="object_world.h">
@@ -33,6 +36,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="spherical_particle_contact_generator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

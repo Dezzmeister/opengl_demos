@@ -17,11 +17,13 @@
 #include "../shared/directional_light.h"
 #include "../shared/shader_store.h"
 #include "../shared/spotlight.h"
+#include "../shared/text2d.h"
 #include "../shared/texture_store.h"
 #include "../shared/util.h"
 #include "../shared/world.h"
 #include "../shared/physics/particle_contact_generators.h"
 #include "custom_events.h"
+#include "gui.h"
 #include "object_world.h"
 #include "spawn_tool.h"
 
@@ -33,8 +35,8 @@ const phys::particle_plane_contact_generator<std::vector<phys::particle>> abcdef
 using namespace phys::literals;
 using namespace std::literals::chrono_literals;
 
-static const char help_text[] = R"(
-Controls:
+static const char help_text[] =
+R"(Controls:
 	Mouse to look around
 	WASD to move
 	Hold LEFT SHIFT to spring
@@ -94,8 +96,14 @@ int main(int argc, const char * const * const argv) {
 	pre_render_pass_event pre_render_event(window, &hw_consts);
 	shader_store shaders(buses);
 	texture_store textures(buses);
+	text2d_renderer text2d(buses);
 	draw_event draw_event_inst(window, shaders, textures);
-	post_processing_event post_processing_event_inst(window, shaders, textures);
+	post_processing_event post_processing_event_inst(
+		window,
+		shaders,
+		textures,
+		text2d
+	);
 	post_render_pass_event post_render_event;
 
 	key_controller keys(buses, {
@@ -110,12 +118,12 @@ int main(int argc, const char * const * const argv) {
 		GLFW_KEY_P,
 		GLFW_KEY_PERIOD
 	});
-
 	mouse_controller mouse(buses, {
 		GLFW_MOUSE_BUTTON_LEFT
 	});
-
 	screen_controller screen(buses);
+
+	gui g(buses);
 
 	world w(buses);
 

@@ -35,10 +35,6 @@ void phys::particle_contact_resolver::resolve_contacts(std::vector<particle_cont
 		for (size_t i = 0; i < contacts.size(); i++) {
 			particle_contact &contact = contacts[i];
 
-			if (i == max_idx) {
-				continue;
-			}
-
 			if (contact.a == contacts[max_idx].a) {
 				contact.penetration -= phys::dot(contacts[max_idx].a_penetration_resolution, contact.contact_norm);
 			} else if (contact.a == contacts[max_idx].b) {

@@ -62,14 +62,12 @@ void phys::particle_contact::resolve_interpenetration() {
 	if (! b || ! b->has_finite_mass()) {
 		a_penetration_resolution = penetration * contact_norm;
 		a->pos += a_penetration_resolution;
-		penetration = 0;
 		return;
 	}
 
 	if (! a->has_finite_mass()) {
 		b_penetration_resolution = -penetration * contact_norm;
 		b->pos += b_penetration_resolution;
-		penetration = 0;
 		return;
 	}
 
@@ -80,7 +78,6 @@ void phys::particle_contact::resolve_interpenetration() {
 
 	a->pos += a_penetration_resolution;
 	b->pos += b_penetration_resolution;
-	penetration = 0;
 }
 
 phys::real phys::particle_contact::single_frame_buildup(real duration) {

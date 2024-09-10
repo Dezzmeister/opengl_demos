@@ -26,6 +26,7 @@ public:
 	void set_uniform(const std::string name, const glm::mat4 &value) const;
 	void set_uniform(const std::string name, const glm::vec3 &value) const;
 	void set_uniform(const std::string name, const glm::mat3 &value) const;
+	void set_uniform(const std::string name, const glm::vec4 &value) const;
 
 	void set_uniform(int loc, float value) const;
 	void set_uniform(int loc, int value) const;
@@ -34,6 +35,7 @@ public:
 	void set_uniform(int loc, const glm::mat4 &value) const;
 	void set_uniform(int loc, const glm::vec3 &value) const;
 	void set_uniform(int loc, const glm::mat3 &value) const;
+	void set_uniform(int loc, const glm::vec4 &value) const;
 
 private:
 	unique_handle<unsigned int> id;
