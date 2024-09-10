@@ -2,12 +2,14 @@
 
 screen_controller::screen_controller(event_buses &_buses) :
 	event_listener<pre_render_pass_event>(&_buses.render, -20),
+	event_listener<post_processing_event>(&_buses.render, -20),
 	event_listener<program_start_event>(&_buses.lifecycle, -100),
 	buses(_buses),
 	screen_width(-1),
 	screen_height(-1)
 {
 	event_listener<pre_render_pass_event>::subscribe();
+	event_listener<post_processing_event>::subscribe();
 	event_listener<program_start_event>::subscribe();
 }
 
@@ -28,6 +30,13 @@ int screen_controller::handle(pre_render_pass_event &event) {
 		screen_height = curr_height;
 	}
 
+	event.screen_width = screen_width;
+	event.screen_height = screen_height;
+
+	return 0;
+}
+
+int screen_controller::handle(post_processing_event &event) {
 	event.screen_width = screen_width;
 	event.screen_height = screen_height;
 

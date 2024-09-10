@@ -12,6 +12,7 @@
 #include "../shared/shapes.h"
 #include "../shared/world.h"
 #include "custom_events.h"
+#include "raycast.h"
 #include "spherical_particle_contact_generator.h"
 
 using namespace phys::literals;
@@ -24,6 +25,16 @@ namespace {
 			glm::vec3(0.61424, 0.04136, 0.04136),
 			glm::vec3(0.727811, 0.626959, 0.626959),
 			128 * 0.6f
+		}
+	};
+
+	// Gold
+	phong_color_material selected_sphere_mtl{
+		phong_color_material_properties{
+			glm::vec3(0.24725, 0.1995, 0.0745),
+			glm::vec3(0.75164, 0.60648, 0.22648),
+			glm::vec3(0.628281, 0.555802, 0.366065),
+			128 * 0.4f
 		}
 	};
 
@@ -75,10 +86,25 @@ namespace {
 		void hide_sphere(size_t i);
 		void hide_rod(size_t i);
 
+		// Returns true if the selection was successful (i.e. it changed
+		// state), false if not.
+		bool select_particle(int64_t i);
+
 	private:
-		// Any unused mesh instances will be moved to a location
+		// Any unused instanced mesh instances will be moved to a location
 		// far from anything that the player is likely to encounter
 		glm::mat4 hiding_transform;
+		mesh selected_sphere;
+		int64_t selected_particle{ -1 };
+		world &mesh_world;
+
+		glm::mat4 particle_transform_mat(size_t i) const;
+	};
+
+	// A raycast hit result
+	struct hit_result {
+		size_t i{ 0 };
+		phys::real t{ -1.0_r };
 	};
 }
 
@@ -87,7 +113,10 @@ class object_world :
 	public event_listener<pre_render_pass_event>,
 	public event_listener<post_render_pass_event>,
 	public event_listener<sphere_spawn_event>,
-	public event_listener<keydown_event>
+	public event_listener<keydown_event>,
+	public event_listener<player_spawn_event>,
+	public event_listener<player_move_event>,
+	public event_listener<player_look_event>
 {
 public:
 	object_world(
@@ -102,23 +131,34 @@ public:
 	int handle(post_render_pass_event &event) override;
 	int handle(sphere_spawn_event &event) override;
 	int handle(keydown_event &event) override;
+	int handle(player_spawn_event &event) override;
+	int handle(player_move_event &event) override;
+	int handle(player_look_event &event) override;
 
 private:
 	std::unique_ptr<world_state<N>> state;
 	world &mesh_world;
 	phys::particle_world phys_world;
+	custom_event_bus &custom_bus;
 
 	std::unique_ptr<directional_light> light{};
 	std::unique_ptr<mesh> floor{};
+
 	std::unique_ptr<phys::particle_plane_contact_generator<std::array<phys::particle, N>>> floor_contact_generator;
 	std::unique_ptr<spherical_particle_contact_generator<N>> sphere_contact_generator;
 	std::unique_ptr<phys::particle_gravity> gravity_generator;
+
+	glm::vec3 player_pos{};
+	glm::vec3 player_dir{};
+	std::vector<hit_result> hit_results{};
+
 	short pause_key;
 	short step_key;
 	bool paused{ false };
 	bool step{ false };
 
 	int64_t next_inactive_particle() const;
+	void do_raycast_and_update();
 };
 
 template <const size_t N>
@@ -132,30 +172,33 @@ world_state<N>::world_state(
 	rod_geom(std::move(_rod_geom)),
 	sphere_meshes(&sphere_geom, &sphere_mtl, N),
 	rod_meshes(&rod_geom, &rod_mtl, N),
-	hiding_transform(glm::translate(glm::identity<glm::mat4>(), _hiding_pos))
+	hiding_transform(glm::translate(glm::identity<glm::mat4>(), _hiding_pos)),
+	selected_sphere(&sphere_geom, &selected_sphere_mtl),
+	mesh_world(_mesh_world)
 {
 	for (size_t i = 0; i < N; i++) {
 		hide_sphere(i);
 		hide_rod(i);
 	}
 
-	_mesh_world.add_instanced_mesh(&sphere_meshes);
-	_mesh_world.add_instanced_mesh(&rod_meshes);
+	mesh_world.add_instanced_mesh(&sphere_meshes);
+	mesh_world.add_instanced_mesh(&rod_meshes);
 }
 
 template <const size_t N>
 void world_state<N>::update_meshes() {
 	for (size_t i = 0; i < N; i++) {
-		if (! active[i]) {
+		if (! active[i] || i == selected_particle) {
 			// TODO: Rods
 			hide_sphere(i);
 			continue;
 		}
 
-		sphere_meshes.set_model(i, glm::translate(glm::identity<glm::mat4>(),
-			phys::to_glm<glm::vec3>(particles[i].pos)
-			) * sphere_scale
-		);
+		sphere_meshes.set_model(i, particle_transform_mat(i));
+	}
+
+	if (selected_particle != -1) {
+		selected_sphere.set_model(particle_transform_mat((size_t)selected_particle));
 	}
 }
 
@@ -170,6 +213,32 @@ void world_state<N>::hide_rod(size_t i) {
 }
 
 template <const size_t N>
+bool world_state<N>::select_particle(int64_t i) {
+	if (selected_particle == i) {
+		return false;
+	}
+
+	selected_particle = i;
+
+	if (selected_particle == -1) {
+		mesh_world.remove_mesh(&selected_sphere);
+	} else {
+		selected_sphere.set_model(particle_transform_mat(i));
+		mesh_world.add_mesh(&selected_sphere);
+	}
+
+	return true;
+}
+
+template <const size_t N>
+glm::mat4 world_state<N>::particle_transform_mat(size_t i) const {
+	return glm::translate(
+		glm::identity<glm::mat4>(),
+		phys::to_glm<glm::vec3>(particles[i].pos)
+	) * sphere_scale;
+}
+
+template <const size_t N>
 object_world<N>::object_world(
 	event_buses &_buses,
 	custom_event_bus &_custom_bus,
@@ -181,6 +250,9 @@ object_world<N>::object_world(
 	event_listener<post_render_pass_event>(&_buses.render),
 	event_listener<sphere_spawn_event>(&_custom_bus),
 	event_listener<keydown_event>(&_buses.input),
+	event_listener<player_spawn_event>(&_buses.player),
+	event_listener<player_move_event>(&_buses.player),
+	event_listener<player_look_event>(&_buses.player),
 	state(std::make_unique<world_state<N>>(
 		_mesh_world,
 		shapes::make_sphere(20, 10, true),
@@ -192,6 +264,7 @@ object_world<N>::object_world(
 	// from jittering. Resting contact jittering can happen when the number of
 	// contacts is greater than max_iterations
 	phys_world(N),
+	custom_bus(_custom_bus),
 	floor_contact_generator(std::make_unique<phys::particle_plane_contact_generator<std::array<phys::particle, N>>>(
 		state->particles,
 		phys::vec3(0.0_r, 1.0_r, 0.0_r),
@@ -212,6 +285,9 @@ object_world<N>::object_world(
 	event_listener<post_render_pass_event>::subscribe();
 	event_listener<sphere_spawn_event>::subscribe();
 	event_listener<keydown_event>::subscribe();
+	event_listener<player_spawn_event>::subscribe();
+	event_listener<player_move_event>::subscribe();
+	event_listener<player_look_event>::subscribe();
 
 	light = std::make_unique<directional_light>(
 		glm::normalize(glm::vec3(1, -3, 1)),
@@ -260,11 +336,14 @@ int object_world<N>::handle(pre_render_pass_event &event) {
 
 	state->update_meshes();
 
+	do_raycast_and_update();
+
 	return 0;
 }
 
 template <const size_t N>
 int object_world<N>::handle(post_render_pass_event &event) {
+
 	return 0;
 }
 
@@ -299,6 +378,28 @@ int object_world<N>::handle(keydown_event &event) {
 }
 
 template <const size_t N>
+int object_world<N>::handle(player_spawn_event &event) {
+	player_pos = event.pos;
+	player_dir = event.dir;
+
+	return 0;
+}
+
+template <const size_t N>
+int object_world<N>::handle(player_move_event &event) {
+	player_pos = event.pos;
+
+	return 0;
+}
+
+template <const size_t N>
+int object_world<N>::handle(player_look_event &event) {
+	player_dir = event.dir;
+
+	return 0;
+}
+
+template <const size_t N>
 int64_t object_world<N>::next_inactive_particle() const {
 	for (size_t i = 0; i < N; i++) {
 		if (! state->active[i]) {
@@ -307,4 +408,48 @@ int64_t object_world<N>::next_inactive_particle() const {
 	}
 
 	return -1;
+}
+
+template <const size_t N>
+void object_world<N>::do_raycast_and_update() {
+	hit_results.clear();
+
+	for (size_t i = 0; i < N; i++) {
+		if (! state->active[i]) {
+			continue;
+		}
+
+		phys::real t = raycast_sphere_test(player_pos, player_dir, state->particles[i].pos, state->particles[i].radius);
+
+		if (t >= 0.0_r) {
+			hit_results.push_back({
+				.i = i,
+				.t = t
+			});
+		}
+	}
+
+	if (! hit_results.size()) {
+		bool was_selected = state->select_particle(-1);
+
+		if (was_selected) {
+			particle_deselect_event deselect_event{};
+			custom_bus.fire(deselect_event);
+		}
+
+		return;
+	}
+
+	std::sort(std::begin(hit_results), std::end(hit_results), [](const hit_result &a, const hit_result &b) {
+		return a.t < b.t;
+	});
+
+	bool was_selected = state->select_particle(hit_results[0].i);
+
+	if (was_selected) {
+		size_t i = hit_results[0].i;
+
+		particle_select_event select_event(state->particles[i], i);
+		custom_bus.fire(select_event);
+	}
 }

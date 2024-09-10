@@ -6,15 +6,28 @@
 
 using namespace std::literals::chrono_literals;
 
-gui::gui(event_buses &_buses) :
+namespace {
+	void write_vec3(std::stringstream &ss, const std::string &name, const phys::vec3 &v) {
+		ss << name << ": (" << v.x << ", " << v.y << ", " << v.z << ")\n";
+	};
+	void write_real(std::stringstream &ss, const std::string &name, const phys::real r) {
+		ss << name << ": " << r << "\n";
+	}
+}
+
+gui::gui(event_buses &_buses, custom_event_bus &_custom_bus) :
 	event_listener<program_start_event>(&_buses.lifecycle),
 	event_listener<pre_render_pass_event>(&_buses.render),
 	event_listener<post_processing_event>(&_buses.render),
+	event_listener<particle_select_event>(&_custom_bus),
+	event_listener<particle_deselect_event>(&_custom_bus),
 	buses(_buses)
 {
 	event_listener<program_start_event>::subscribe();
 	event_listener<pre_render_pass_event>::subscribe();
 	event_listener<post_processing_event>::subscribe();
+	event_listener<particle_select_event>::subscribe();
+	event_listener<particle_deselect_event>::subscribe();
 }
 
 int gui::handle(program_start_event &event) {
@@ -41,20 +54,74 @@ int gui::handle(pre_render_pass_event &event) {
 }
 
 int gui::handle(post_processing_event &event) {
+	draw_crosshair(event);
+	draw_fps_count(event);
+	draw_particle_info(event);
+
+	return 0;
+}
+
+int gui::handle(particle_select_event &event) {
+	selected_particle = &event.p;
+	particle_index = event.particle_index;
+
+	return 0;
+}
+
+int gui::handle(particle_deselect_event &event) {
+	selected_particle = nullptr;
+
+	return 0;
+}
+
+void gui::draw_fps_count(const post_processing_event &event) const {
 	std::stringstream ss{};
 	ss << std::setprecision(4) << " FPS: " << fps;
 
 	event.text2d.draw_text(
 		ss.str(),
 		*debug_font,
-		0,
-		12,
-		0,
-		0,
-		0,
+		0, 12,
+		0, 0, 0,
 		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
 		glm::vec4(0.4f)
 	);
+}
 
-	return 0;
+void gui::draw_crosshair(const post_processing_event &event) const {
+	event.text2d.draw_text(
+		"o",
+		*debug_font,
+		(event.screen_width - debug_font->glyph_width) / 2,
+		(event.screen_height + debug_font->glyph_height) / 2,
+		0, 0, 0,
+		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+		glm::vec4(0.0f)
+	);
+}
+
+void gui::draw_particle_info(const post_processing_event &event) const {
+	if (! selected_particle) {
+		return;
+	}
+
+	std::stringstream ss{};
+	ss << std::setprecision(5);
+
+	write_vec3(ss, "force", selected_particle->force);
+	write_vec3(ss, "pos", selected_particle->pos);
+	write_vec3(ss, "vel", selected_particle->vel);
+	write_vec3(ss, "acc", selected_particle->acc);
+	write_real(ss, "mass", selected_particle->get_mass());
+	write_real(ss, "radius", selected_particle->radius);
+
+	event.text2d.draw_text(
+		ss.str(),
+		*debug_font,
+		debug_font->glyph_width,
+		(event.screen_height - (6 * debug_font->glyph_height)),
+		0, 0, 0,
+		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+		glm::vec4(0.0f)
+	);
 }

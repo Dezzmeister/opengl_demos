@@ -135,12 +135,14 @@
   <ItemGroup>
     <ClCompile Include="gui.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="raycast.cpp" />
     <ClCompile Include="spawn_tool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="custom_events.h" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="object_world.h" />
+    <ClInclude Include="raycast.h" />
     <ClInclude Include="spawn_tool.h" />
     <ClInclude Include="spherical_particle_contact_generator.h" />
   </ItemGroup>

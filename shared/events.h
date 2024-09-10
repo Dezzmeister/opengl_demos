@@ -118,6 +118,8 @@ struct post_processing_event {
 	shader_store &shaders;
 	texture_store &textures;
 	text2d_renderer &text2d;
+	int screen_width;
+	int screen_height;
 
 	post_processing_event(
 		GLFWwindow * _window,
@@ -128,7 +130,9 @@ struct post_processing_event {
 		window(_window),
 		shaders(_shaders),
 		textures(_textures),
-		text2d(_text2d)
+		text2d(_text2d),
+		screen_width(0),
+		screen_height(0)
 	{}
 };
 

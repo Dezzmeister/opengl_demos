@@ -123,7 +123,7 @@ int main(int argc, const char * const * const argv) {
 	});
 	screen_controller screen(buses);
 
-	gui g(buses);
+	gui g(buses, custom_bus);
 
 	world w(buses);
 
