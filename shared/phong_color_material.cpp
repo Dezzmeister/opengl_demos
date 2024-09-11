@@ -5,10 +5,6 @@
 
 const std::string phong_color_material::phong_shader_name("phong_color");
 
-const std::string& phong_color_material::shader_name() const {
-	return phong_color_material::phong_shader_name;
-}
-
 void phong_color_material::prepare_draw(draw_event &event, const shader_program &shader, render_pass_state &render_pass) const {
 	static constexpr int ambient_loc = util::find_in_map(constants::shader_locs, "_color_mat.ambient");
 	static constexpr int diffuse_loc = util::find_in_map(constants::shader_locs, "_color_mat.diffuse");
@@ -19,4 +15,12 @@ void phong_color_material::prepare_draw(draw_event &event, const shader_program 
 	shader.set_uniform(diffuse_loc, mat.diffuse);
 	shader.set_uniform(specular_loc, mat.specular);
 	shader.set_uniform(shininess_loc, mat.shininess);
+}
+
+bool phong_color_material::supports_transparency() const {
+	return true;
+}
+
+const std::string& phong_color_material::shader_name() const {
+	return phong_color_material::phong_shader_name;
 }

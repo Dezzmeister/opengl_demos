@@ -1,19 +1,11 @@
 #include "../shared/phong_color_material.h"
+#include "constants.h"
 #include "spawn_tool.h"
 
 namespace {
 	const float min_scroll_f = 0.2f;
 	const float max_scroll_f = 10.0f;
 	const float scroll_f_step = 0.1f;
-
-	phong_color_material preview_mtl{
-		phong_color_material_properties{
-			glm::vec3(0.0215, 0.1745, 0.0215),
-			glm::vec3(0.07568, 0.61424, 0.07568),
-			glm::vec3(0.633, 0.727811, 0.633),
-			128 * 0.6f
-		}
-	};
 }
 
 spawn_tool::spawn_tool(
@@ -34,7 +26,7 @@ spawn_tool::spawn_tool(
 	custom_bus(_custom_bus),
 	activation_key(_activation_key),
 	preview_transform(_preview_transform),
-	preview(std::make_unique<mesh>(_preview_geom, &preview_mtl)),
+	preview(std::make_unique<mesh>(_preview_geom, &sphere_mtl)),
 	w(_w)
 {
 	event_listener<player_look_event>::subscribe();
@@ -44,6 +36,8 @@ spawn_tool::spawn_tool(
 	event_listener<mouse_scroll_event>::subscribe();
 	event_listener<keydown_event>::subscribe();
 	event_listener<pre_render_pass_event>::subscribe();
+
+	preview->set_alpha(0.4f);
 }
 
 int spawn_tool::handle(player_look_event &event) {

@@ -85,7 +85,7 @@ void gui::draw_fps_count(const post_processing_event &event) const {
 		0, 12,
 		0, 0, 0,
 		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
-		glm::vec4(0.4f)
+		glm::vec4(1.0f, 1.0f, 1.0f, 0.7f)
 	);
 }
 
@@ -96,7 +96,7 @@ void gui::draw_crosshair(const post_processing_event &event) const {
 		(event.screen_width - debug_font->glyph_width) / 2,
 		(event.screen_height + debug_font->glyph_height) / 2,
 		0, 0, 0,
-		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+		glm::vec4(0.3f, 0.3f, 1.0f, 1.0f),
 		glm::vec4(0.0f)
 	);
 }
@@ -111,7 +111,7 @@ void gui::draw_particle_info(const post_processing_event &event) const {
 		event.screen_height - (6 * debug_font->glyph_height),
 		40 * debug_font->glyph_width,
 		6 * debug_font->glyph_height,
-		glm::vec4(0.4f)
+		glm::vec4(1.0f, 1.0f, 1.0f, 0.7f)
 	);
 
 	std::stringstream ss{};
@@ -127,7 +127,7 @@ void gui::draw_particle_info(const post_processing_event &event) const {
 	event.draw2d.draw_text(
 		ss.str(),
 		*debug_font,
-		0,
+		debug_font->glyph_width,
 		(event.screen_height - (5 * debug_font->glyph_height)),
 		0, 0, 0,
 		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),

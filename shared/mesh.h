@@ -17,8 +17,11 @@ public:
 	void draw() const;
 
 	void set_model(const glm::mat4 &_model);
+	void set_alpha(float _alpha);
 
 	const glm::mat4& get_model() const;
+	const material * get_material() const;
+	bool has_transparency() const;
 
 	friend bool operator<(const mesh &a, const mesh &b);
 	friend bool operator==(const mesh &a, const mesh &b);
@@ -32,5 +35,6 @@ private:
 	const material * const mat;
 	const int first;
 	const unsigned int count;
+	float alpha;
 };
 

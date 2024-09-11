@@ -43,6 +43,16 @@ int shader_store::handle(program_start_event &event) {
 		std::nullopt,
 		shader<shader_type::Fragment>("../resources/phong_frag.glsl", "#define USE_MAPS\n" + max_lights_define)
 	)));
+	shaders.insert(std::make_pair("phong_color_transparent", shader_program(
+		shader<shader_type::Vertex>("../resources/phong_vert.glsl", "#define TRANSPARENCY\n" + max_lights_define),
+		std::nullopt,
+		shader<shader_type::Fragment>("../resources/phong_frag.glsl", "#define TRANSPARENCY\n" + max_lights_define)
+	)));
+	shaders.insert(std::make_pair("phong_map_transparency", shader_program(
+		shader<shader_type::Vertex>("../resources/phong_vert.glsl", "#define USE_MAPS\n#define TRANSPARENCY\n" + max_lights_define),
+		std::nullopt,
+		shader<shader_type::Fragment>("../resources/phong_frag.glsl", "#define USE_MAPS\n#define TRANSPARENCY\n" + max_lights_define)
+	)));
 	shaders.insert(std::make_pair("shadow_map", shader_program(
 		shader<shader_type::Vertex>("../resources/shadow_vert.glsl"),
 		std::nullopt,

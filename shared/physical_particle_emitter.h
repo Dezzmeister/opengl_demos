@@ -51,7 +51,7 @@ public:
 	bool is_done() const override;
 
 	void update(float millis) override;
-	void prepare_draw(draw_event &event, shader_program &shader) const override;
+	void prepare_draw(draw_event &event, const shader_program &shader) const override;
 	void draw() const override;
 
 	const std::string& shader_name() const override;

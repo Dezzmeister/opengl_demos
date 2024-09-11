@@ -24,14 +24,13 @@ struct phong_color_material_properties {
 
 class phong_color_material : public material {
 public:
-
 	constexpr phong_color_material(phong_color_material_properties _mat) :
 		mat(_mat)
 	{}
 
-	const std::string& shader_name() const override;
-
 	void prepare_draw(draw_event &event, const shader_program &shader, render_pass_state &render_pass) const override;
+	bool supports_transparency() const override;
+	const std::string& shader_name() const override;
 
 private:
 	const static std::string phong_shader_name;

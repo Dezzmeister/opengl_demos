@@ -15,7 +15,7 @@ public:
 	);
 
 	void prepare_draw(draw_event &event, const shader_program &shader, render_pass_state &render_pass) const override;
-
+	bool supports_transparency() const override;
 	const std::string& shader_name() const override;
 
 private:

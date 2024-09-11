@@ -76,6 +76,10 @@ layout(location = 150) uniform light lights[MAX_LIGHTS];
 
 layout(location = 32) uniform shadow_caster shadow_casters[MAX_LIGHTS];
 
+#ifdef TRANSPARENCY
+layout(location = 19) uniform float alpha;
+#endif
+
 float compute_point_shadow(int i, vec3 light_dir, vec3 norm) {
 	vec3 frag_to_light = frag_pos_world - lights[i].pos;
 	float current_depth = length(frag_to_light);
@@ -219,5 +223,9 @@ void main() {
 		color_out += ambient + (1.0 - shadow) * (diffuse + specular);
 	}
 
-	frag_color = vec4(color_out, 1.0);
+#ifndef TRANSPARENCY
+	float alpha = 1.0;
+#endif
+
+	frag_color = vec4(color_out, alpha);
 }

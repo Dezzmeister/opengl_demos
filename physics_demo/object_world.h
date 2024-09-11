@@ -11,6 +11,7 @@
 #include "../shared/physics/particle_world.h"
 #include "../shared/shapes.h"
 #include "../shared/world.h"
+#include "constants.h"
 #include "custom_events.h"
 #include "raycast.h"
 #include "spherical_particle_contact_generator.h"
@@ -18,16 +19,6 @@
 using namespace phys::literals;
 
 namespace {
-	// Ruby
-	phong_color_material sphere_mtl{
-		phong_color_material_properties{
-			glm::vec3(0.1745, 0.01175, 0.01175),
-			glm::vec3(0.61424, 0.04136, 0.04136),
-			glm::vec3(0.727811, 0.626959, 0.626959),
-			128 * 0.6f
-		}
-	};
-
 	// Gold
 	phong_color_material selected_sphere_mtl{
 		phong_color_material_properties{
@@ -290,14 +281,14 @@ object_world<N>::object_world(
 	event_listener<player_look_event>::subscribe();
 
 	light = std::make_unique<directional_light>(
-		glm::normalize(glm::vec3(1, -3, 1)),
+		glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f)),
 		light_properties(
 			glm::vec3(1.0f),
 			glm::vec3(1.0f),
 			glm::vec3(1.0f)
 		),
 		directional_shadow_caster_properties(
-			glm::normalize(glm::vec3(1, -3, 1)),
+			glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f)),
 			10.0f,
 			100.0f,
 			2048
@@ -380,6 +371,7 @@ template <const size_t N>
 int object_world<N>::handle(player_spawn_event &event) {
 	player_pos = event.pos;
 	player_dir = event.dir;
+	light->shadow_props.set_eye_pos(event.pos + glm::vec3(0.0f, 20.0f, 0.0f));
 
 	return 0;
 }

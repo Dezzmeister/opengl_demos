@@ -13,6 +13,7 @@ namespace constants {
 		{ "inv_view", 29 },
 		{ "num_lights", 149 },
 		{ "lights", 150 },
+		{ "alpha", 19 },
 
 		{ "_color_mat.ambient", 24 },
 		{ "_color_mat.diffuse", 25 },

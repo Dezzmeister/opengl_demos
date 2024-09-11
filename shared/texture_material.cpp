@@ -17,6 +17,10 @@ void texture_material::prepare_draw(draw_event &event, const shader_program &sha
 	shader.set_uniform("tex", tex_unit);
 }
 
+bool texture_material::supports_transparency() const {
+	return false;
+}
+
 const std::string& texture_material::shader_name() const {
 	return texture_material::texture_shader_name;
 }

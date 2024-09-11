@@ -4,7 +4,7 @@ model_pair::model_pair(const glm::mat4 &_model, const glm::mat4 &_inv_model) :
 	model(_model), inv_model(_inv_model)
 {}
 
-instanced_mesh::instanced_mesh(geometry * _geom, material * _mtl, size_t _instances) :
+instanced_mesh::instanced_mesh(const geometry * _geom, const material * _mtl, size_t _instances) :
 	geom(_geom),
 	mtl(_mtl),
 	models(_instances, model_pair(glm::identity<glm::mat4>(), glm::identity<glm::mat4>())),

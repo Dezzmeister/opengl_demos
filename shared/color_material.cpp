@@ -10,11 +10,14 @@ color_material::color_material(unsigned int _color) :
 		(float)((color & 0x0000ff00) >> 8) / 255.0f,
 		(float)(color & 0x000000ff) / 255.0f
 	)
-{
-}
+{}
 
 void color_material::prepare_draw(draw_event &event, const shader_program &sp, render_pass_state &render_pass) const {
 	sp.set_uniform("color", color_vec);
+}
+
+bool color_material::supports_transparency() const {
+	return false;
 }
 
 const std::string& color_material::shader_name() const {

@@ -38,6 +38,10 @@ void phong_map_material::prepare_draw(draw_event &event, const shader_program &s
 	shader.set_uniform(shininess_loc, shininess);
 }
 
+bool phong_map_material::supports_transparency() const {
+	return true;
+}
+
 const std::string& phong_map_material::shader_name() const {
 	return phong_map_material::phong_map_shader_name;
 }

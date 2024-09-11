@@ -6,6 +6,8 @@
 
 class world;
 
+// I don't know on what kind of system this struct would not be tightly packed
+// already, but better to be sure
 #pragma pack(push, 1)
 struct model_pair {
 	glm::mat4 model;
@@ -22,7 +24,7 @@ static_assert(sizeof(model_pair) == 16 * sizeof(float) * 2);
 class instanced_mesh {
 public:
 
-	instanced_mesh(geometry * _geom, material * _mtl, size_t _instances);
+	instanced_mesh(const geometry * _geom, const material * _mtl, size_t _instances);
 
 	void draw(draw_event &event, const shader_program &shader) const;
 
@@ -35,8 +37,8 @@ public:
 	friend class world;
 
 private:
-	geometry * geom;
-	material * mtl;
+	const geometry * geom;
+	const material * mtl;
 	std::vector<model_pair> models;
 	unique_handle<unsigned int> vbo;
 	mutable bool models_need_updating;

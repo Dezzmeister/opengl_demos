@@ -115,7 +115,7 @@ void physical_particle_emitter::update(float millis) {
 	glBufferData(GL_ARRAY_BUFFER, color_buf.size() * sizeof(glm::vec4), color_buf.data(), GL_STREAM_DRAW);
 }
 
-void physical_particle_emitter::prepare_draw(draw_event &event, shader_program &shader) const {
+void physical_particle_emitter::prepare_draw(draw_event &event, const shader_program &shader) const {
 	static constexpr int max_particle_size_loc = util::find_in_map(constants::shader_locs, "max_particle_size");
 
 	shader.set_uniform(max_particle_size_loc, max_particle_size);
