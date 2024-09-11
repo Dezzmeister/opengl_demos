@@ -5,6 +5,7 @@ using namespace phys::literals;
 void phys::particle_contact::resolve(real duration) {
 	resolve_vel(duration);
 	resolve_interpenetration();
+	num_resolutions++;
 }
 
 phys::real phys::particle_contact::calculate_separating_vel() const {
@@ -51,14 +52,19 @@ void phys::particle_contact::resolve_vel(real duration) {
 		return;
 	}
 
-	real ma = a->get_mass();
-	real mb = b->get_mass();
+	real inv_mass = a->get_inv_mass() + b->get_inv_mass();
+	real impulse_mag_per_inv_mass = dvs / inv_mass;
+	vec3 impulse_per_inv_mass = impulse_mag_per_inv_mass * contact_norm;
 
-	a->vel += (mb / (ma + mb)) * dvs * contact_norm;
-	b->vel -= (ma / (ma + mb)) * dvs * contact_norm;
+	a->vel += impulse_per_inv_mass * a->get_inv_mass();
+	b->vel -= impulse_per_inv_mass * b->get_inv_mass();
 }
 
 void phys::particle_contact::resolve_interpenetration() {
+	if (penetration <= 0) {
+		return;
+	}
+
 	if (! b || ! b->has_finite_mass()) {
 		a_penetration_resolution = penetration * contact_norm;
 		a->pos += a_penetration_resolution;
@@ -71,11 +77,11 @@ void phys::particle_contact::resolve_interpenetration() {
 		return;
 	}
 
-	real ma = a->get_mass();
-	real mb = b->get_mass();
-	a_penetration_resolution = (mb / (ma + mb)) * penetration * contact_norm;
-	b_penetration_resolution = -(ma / (ma + mb)) * penetration * contact_norm;
+	real inv_mass = a->get_inv_mass() + b->get_inv_mass();
+	vec3 disp_per_inv_mass = (penetration / inv_mass) * contact_norm;
 
+	a_penetration_resolution = disp_per_inv_mass * a->get_inv_mass();
+	b_penetration_resolution = -disp_per_inv_mass * b->get_inv_mass();
 	a->pos += a_penetration_resolution;
 	b->pos += b_penetration_resolution;
 }

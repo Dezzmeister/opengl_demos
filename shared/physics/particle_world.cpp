@@ -3,7 +3,7 @@
 using namespace phys::literals;
 
 phys::particle_world::particle_world(uint64_t _max_iterations) :
-	contact_resolver(_max_iterations)
+	contact_resolver(_max_iterations, 16)
 {}
 
 void phys::particle_world::integrate(real duration) {

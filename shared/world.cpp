@@ -246,13 +246,7 @@ void world::add_mesh_unsorted(mesh * m) {
 }
 
 void world::remove_mesh(const mesh * m) {
-	decltype(meshes)::iterator pos = std::lower_bound(std::begin(meshes), std::end(meshes), m, deref_cmp<mesh>);
-
-	if (**pos != *m) {
-		return;
-	}
-
-	meshes.erase(pos, std::next(pos));
+	std::erase(meshes, m);
 }
 
 void world::add_light(light * l) {

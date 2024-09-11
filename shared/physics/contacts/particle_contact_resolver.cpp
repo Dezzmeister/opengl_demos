@@ -1,7 +1,11 @@
 #include "../contacts.h"
 
-phys::particle_contact_resolver::particle_contact_resolver(uint64_t _max_iterations) :
-	max_iterations(_max_iterations)
+phys::particle_contact_resolver::particle_contact_resolver(
+	uint64_t _max_iterations,
+	uint64_t _max_per_contact_iterations
+) :
+	max_iterations(_max_iterations),
+	max_per_contact_iterations(_max_per_contact_iterations)
 {}
 
 void phys::particle_contact_resolver::resolve_contacts(std::vector<particle_contact> &contacts, real duration) {
@@ -20,7 +24,7 @@ void phys::particle_contact_resolver::resolve_contacts(std::vector<particle_cont
 
 			// By "max" we mean the contact with the "most negative" separating velocity,
 			// or the max closing velocity
-			if (vs < max && (vs < 0 || contacts[i].penetration > 0)) {
+			if (vs < max && (vs < 0 || contacts[i].penetration > 0) && contacts[i].num_resolutions < max_per_contact_iterations) {
 				max = vs;
 				max_idx = i;
 			}

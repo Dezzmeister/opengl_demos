@@ -51,21 +51,23 @@ void spherical_particle_contact_generator<N>::add_contacts(
 
 			phys::particle &a = particles[active_particles[i]];
 			phys::particle &b = particles[active_particles[j]];
-			phys::vec3 dx = a.pos - b.pos;
-			phys::real dsqr = phys::dot(dx, dx);
+			phys::vec3 projected_a_pos = a.pos + a.vel * duration;
+			phys::vec3 projected_b_pos = b.pos + b.vel * duration;
+			phys::vec3 projected_dx = projected_a_pos - projected_b_pos;
+			phys::real projected_dsqr = phys::dot(projected_dx, projected_dx);
 			phys::real min_dsqr = (a.radius + b.radius) * (a.radius + b.radius);
 
-			if (dsqr > min_dsqr) {
+			if (projected_dsqr > min_dsqr) {
 				continue;
 			}
 
 			phys::particle_contact contact{
 				.a = &particles[active_particles[i]],
 				.b = &particles[active_particles[j]],
-				.contact_norm = dx,
+				.contact_norm = projected_dx,
 				// TODO: Make this variable
-				.restitution = 1,
-				.penetration = std::sqrt(dsqr)
+				.restitution = 0.9_r,
+				.penetration = a.radius + b.radius - std::sqrt(phys::dot(a.pos - b.pos, a.pos - b.pos))
 			};
 
 			contacts.push_back(contact);

@@ -24,6 +24,7 @@ namespace phys {
 		vec3 a_penetration_resolution{ 0.0_r };
 		// The displacement applied to `b` during interpenetration resolution, if `b` is not null
 		vec3 b_penetration_resolution{ 0.0_r };
+		int num_resolutions{ 0 };
 
 		// Resolves the contact and the interpenetration by applying an impulse
 		// (a change in velocity) to one or both particles in the direction of the contact
@@ -46,10 +47,16 @@ namespace phys {
 
 	class particle_contact_resolver {
 	public:
-		// The maximum number of contacts that can be resolved in one pass
+		// The maximum number of contacts that can be resolved in one pass. Note that contacts may need to
+		// be resolved more than once
 		uint64_t max_iterations;
+		// The maximum number of times that a single contact can be resolved in one pass
+		uint64_t max_per_contact_iterations;
 
-		particle_contact_resolver(uint64_t _max_iterations);
+		particle_contact_resolver(
+			uint64_t _max_iterations,
+			uint64_t _max_per_contact_iterations
+		);
 
 		void resolve_contacts(std::vector<particle_contact> &contacts, real duration);
 

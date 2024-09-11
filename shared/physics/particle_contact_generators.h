@@ -39,15 +39,16 @@ phys::particle_plane_contact_generator<particle_container>::particle_plane_conta
 template <typename particle_container>
 void phys::particle_plane_contact_generator<particle_container>::add_contacts(contact_container &contacts, real duration) const {
 	for (particle &p : particles) {
-		real dist = phys::dot(p.pos - origin, normal);
+		vec3 projected_pos = p.pos + p.vel * duration;
+		real projected_dist = phys::dot(projected_pos - origin, normal);
 
-		if (dist < 0.0_r) {
+		if (projected_dist < 0.0_r) {
 			particle_contact contact{
 				.a = &p,
 				.b = nullptr,
 				.contact_norm = normal,
 				.restitution = restitution,
-				.penetration = -dist
+				.penetration = -phys::dot(p.pos - origin, normal)
 			};
 
 			contacts.push_back(contact);

@@ -300,7 +300,7 @@ object_world<N>::object_world(
 			glm::normalize(glm::vec3(1, -3, 1)),
 			10.0f,
 			100.0f,
-			1024
+			2048
 		)
 	);
 
@@ -330,13 +330,12 @@ int object_world<N>::handle(pre_render_pass_event &event) {
 		phys_world.prepare_frame();
 		// Clamp the timestep so that physics don't go crazy when the window is moved
 		// or resized, or when a frame takes too long
-		phys_world.run_physics(std::min(seconds, 0.01_r));
+		phys_world.run_physics(std::min(seconds, 0.02_r));
 		step = false;
 	}
 
-	state->update_meshes();
-
 	do_raycast_and_update();
+	state->update_meshes();
 
 	return 0;
 }
@@ -388,6 +387,7 @@ int object_world<N>::handle(player_spawn_event &event) {
 template <const size_t N>
 int object_world<N>::handle(player_move_event &event) {
 	player_pos = event.pos;
+	light->shadow_props.set_eye_pos(event.pos + glm::vec3(0.0f, 20.0f, 0.0f));
 
 	return 0;
 }
