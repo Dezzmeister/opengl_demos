@@ -39,7 +39,7 @@ static const char help_text[] =
 R"(Controls:
 	Mouse to look around
 	WASD to move
-	Hold LEFT SHIFT to spring
+	Hold LEFT SHIFT to sprint
 	F to toggle flashlight
 	T to toggle the particle spawn tool
 		While the tool is active:

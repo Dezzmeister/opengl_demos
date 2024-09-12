@@ -94,9 +94,14 @@ int shader_store::handle(program_start_event &event) {
 		shader<shader_type::Fragment>("../resources/text2d_frag.glsl")
 	)));
 	shaders.insert(std::make_pair("rect2d", shader_program(
-		shader<shader_type::Vertex>("../resources/rect2d_vert.glsl"),
+		shader<shader_type::Vertex>("../resources/draw2d_vert.glsl"),
 		std::nullopt,
 		shader<shader_type::Fragment>("../resources/rect2d_frag.glsl")
+	)));
+	shaders.insert(std::make_pair("icon2d", shader_program(
+		shader<shader_type::Vertex>("../resources/draw2d_vert.glsl"),
+		std::nullopt,
+		shader<shader_type::Fragment>("../resources/icon2d_frag.glsl")
 	)));
 
 	event.shaders = this;

@@ -319,7 +319,7 @@ int object_world<N>::handle(pre_render_pass_event &event) {
 		phys::real seconds = ((phys::real)millis) / 1000.0_r;
 
 		phys_world.prepare_frame();
-		// Clamp the timestep so that physics don't go crazy when the window is moved
+		// Clamp the timestep so that physics doesn't go crazy when the window is moved
 		// or resized, or when a frame takes too long
 		phys_world.run_physics(std::min(seconds, 0.02_r));
 		step = false;

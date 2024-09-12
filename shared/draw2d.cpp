@@ -14,7 +14,8 @@ namespace {
 		{ "font", 7 },
 		{ "bg_color", 8 },
 		{ "fg_color", 9 },
-		{ "color", 10 }
+		{ "color", 10 },
+		{ "icon", 11 }
 	};
 }
 
@@ -50,13 +51,13 @@ renderer2d::renderer2d(event_buses &_buses) :
 	glBindBuffer(GL_ARRAY_BUFFER, text_vbo);
 	glVertexAttribIPointer(0, 1, GL_UNSIGNED_BYTE, sizeof(char), 0);
 	glEnableVertexAttribArray(0);
-	glBufferData(GL_ARRAY_BUFFER, sizeof tmp_buf, NULL, GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof text_vbo_buf, NULL, GL_STREAM_DRAW);
 
 	glGenVertexArrays(1, &rect_vao);
 	glBindVertexArray(rect_vao);
 	glGenBuffers(1, &rect_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, rect_vbo);
-	glVertexAttribIPointer(0, 2, GL_INT, sizeof(glm::ivec2), 0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
 	glEnableVertexAttribArray(0);
 	glBufferData(GL_ARRAY_BUFFER, sizeof rect_vbo_buf, NULL, GL_STREAM_DRAW);
 }
@@ -127,7 +128,7 @@ void renderer2d::draw_text(
 	while (in_char_pos < text.size()) {
 		bool text_too_tall = max_height && ((curr_y - y) > max_height);
 		bool text_too_long = max_width && (curr_x - x + f.glyph_width) > max_width;
-		bool text_buf_full = out_char_pos == util::c_arr_size(tmp_buf);
+		bool text_buf_full = out_char_pos == util::c_arr_size(text_vbo_buf);
 
 		if (text_too_tall) {
 			break;
@@ -166,7 +167,7 @@ void renderer2d::draw_text(
 		} else if (c < ' ' || c > '~') {
 			in_char_pos++;
 		} else {
-			tmp_buf[out_char_pos++] = c;
+			text_vbo_buf[out_char_pos++] = c;
 			curr_x += f.glyph_width;
 			in_char_pos++;
 		}
@@ -187,20 +188,16 @@ void renderer2d::draw_rect(
 	int height,
 	const glm::vec4 &color
 ) const {
-	static constexpr int screen_width_loc = util::find_in_map(text_shader_locs, "screen_width");
-	static constexpr int screen_height_loc = util::find_in_map(text_shader_locs, "screen_height");
 	static constexpr int color_loc = util::find_in_map(text_shader_locs, "color");
 
-	rect_vbo_buf[0] = glm::ivec2(x, y);
-	rect_vbo_buf[1] = glm::ivec2(x, y + height);
-	rect_vbo_buf[2] = glm::ivec2(x + width, y + height);
-	rect_vbo_buf[3] = glm::ivec2(x + width, y + height);
-	rect_vbo_buf[4] = glm::ivec2(x + width, y);
-	rect_vbo_buf[5] = glm::ivec2(x, y);
+	rect_vbo_buf[0] = screen_to_gl(glm::ivec2(x, y));
+	rect_vbo_buf[1] = screen_to_gl(glm::ivec2(x, y + height));
+	rect_vbo_buf[2] = screen_to_gl(glm::ivec2(x + width, y + height));
+	rect_vbo_buf[3] = screen_to_gl(glm::ivec2(x + width, y + height));
+	rect_vbo_buf[4] = screen_to_gl(glm::ivec2(x + width, y));
+	rect_vbo_buf[5] = screen_to_gl(glm::ivec2(x, y));
 
 	rect_shader->use();
-	rect_shader->set_uniform(screen_width_loc, screen_width);
-	rect_shader->set_uniform(screen_height_loc, screen_height);
 	rect_shader->set_uniform(color_loc, color);
 
 	shader_use_event shader_event(*rect_shader);
@@ -220,11 +217,51 @@ void renderer2d::draw_rect(
 	glDisable(GL_BLEND);
 }
 
+void renderer2d::draw_icon(
+	const texture &icon,
+	int x,
+	int y,
+	int width,
+	int height
+) const {
+	static constexpr int icon_loc = util::find_in_map(text_shader_locs, "icon");
+
+	rect_vbo_buf[0] = screen_to_gl(glm::ivec2(x, y));
+	rect_vbo_buf[1] = screen_to_gl(glm::ivec2(x, y + height));
+	rect_vbo_buf[2] = screen_to_gl(glm::ivec2(x + width, y + height));
+	rect_vbo_buf[3] = screen_to_gl(glm::ivec2(x + width, y + height));
+	rect_vbo_buf[4] = screen_to_gl(glm::ivec2(x + width, y));
+	rect_vbo_buf[5] = screen_to_gl(glm::ivec2(x, y));
+
+
+	icon_shader->use();
+
+	shader_use_event shader_event(*icon_shader);
+	buses.render.fire(shader_event);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, icon.get_id());
+	icon_shader->set_uniform(icon_loc, 0);
+
+	glBindVertexArray(rect_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, rect_vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof rect_vbo_buf, rect_vbo_buf);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST);
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+}
+
 void renderer2d::draw_line(size_t num_chars, int x, int y) const {
 	static constexpr int x_offset_loc = util::find_in_map(text_shader_locs, "x_offset");
 	static constexpr int y_offset_loc = util::find_in_map(text_shader_locs, "y_offset");
 
-	glBufferSubData(GL_ARRAY_BUFFER, 0, num_chars * sizeof(char), tmp_buf);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, num_chars * sizeof(char), text_vbo_buf);
 	text_shader->set_uniform(x_offset_loc, x);
 	text_shader->set_uniform(y_offset_loc, y);
 
@@ -236,6 +273,7 @@ int renderer2d::handle(program_start_event &event) {
 
 	text_shader = &event.shaders->shaders.at("text2d");
 	rect_shader = &event.shaders->shaders.at("rect2d");
+	icon_shader = &event.shaders->shaders.at("icon2d");
 
 	screen_width = event.screen_width;
 	screen_height = event.screen_height;
@@ -250,4 +288,11 @@ int renderer2d::handle(screen_resize_event &event) {
 	screen_height = event.new_height;
 
 	return 0;
+}
+
+glm::vec2 renderer2d::screen_to_gl(const glm::ivec2 &v) const {
+	float x = 2.0f * (v.x - screen_width / 2.0f) / screen_width;
+	float y = 2.0f * (screen_height / 2.0f - v.y) / screen_height;
+
+	return glm::vec2(x, y);
 }

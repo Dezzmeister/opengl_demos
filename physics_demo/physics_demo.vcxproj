@@ -147,6 +147,17 @@
     <ClInclude Include="raycast.h" />
     <ClInclude Include="spawn_tool.h" />
     <ClInclude Include="spherical_particle_contact_generator.h" />
+    <ClInclude Include="tools.h" />
+    <ClInclude Include="tool_selector.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="attributions.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icons\empty-hand.png" />
+    <Image Include="icons\item-background.png" />
+    <Image Include="icons\new-particle.png" />
+    <Image Include="icons\selected-item-background.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

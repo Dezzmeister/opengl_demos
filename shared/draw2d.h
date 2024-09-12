@@ -86,6 +86,14 @@ public:
 		const glm::vec4 &color
 	) const;
 
+	void draw_icon(
+		const texture &icon,
+		int x,
+		int y,
+		int width,
+		int height
+	) const;
+
 	int handle(program_start_event &event) override;
 	int handle(screen_resize_event &event) override;
 
@@ -95,16 +103,19 @@ private:
 
 	unique_handle<unsigned int> text_vao;
 	unique_handle<unsigned int> text_vbo;
-	mutable char tmp_buf[4096]{};
+	mutable char text_vbo_buf[4096]{};
 	const shader_program * text_shader{ nullptr };
 
 	unique_handle<unsigned int> rect_vao;
 	unique_handle<unsigned int> rect_vbo;
-	mutable glm::ivec2 rect_vbo_buf[6]{};
+	mutable glm::vec2 rect_vbo_buf[6]{};
 	const shader_program * rect_shader{ nullptr };
+	const shader_program * icon_shader{ nullptr };
 
 	int screen_width{ 0 };
 	int screen_height{ 0 };
 
 	void draw_line(size_t num_chars, int x, int y) const;
+
+	glm::vec2 screen_to_gl(const glm::ivec2 &v) const;
 };
