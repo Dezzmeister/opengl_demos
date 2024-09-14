@@ -107,13 +107,23 @@ public:
 		listeners.erase(it, std::next(it));
 	}
 
-	void _fire(EventType &event) {
+	int _fire(EventType &event) {
 #ifdef DEBUG_LOGS
 		std::cout << "[DEBUG] Event fired on " + event_type_name << " channel with " << listeners.size() << " handler(s)" << std::endl;
 #endif
 		for (auto listener : listeners) {
-			listener.listener->handle(event);
+			int status = listener.listener->handle(event);
+
+			// TODO: Meaningful status codes
+			if (status) {
+#ifdef DEBUG_LOGS
+				std::cout << "[DEBUG] Event cancelled on " + event_type_name << " channel after handler returned " + status << std::endl;
+#endif
+				return status;
+			}
 		}
+
+		return 0;
 	}
 
 protected:
@@ -132,21 +142,24 @@ class event_bus : public event_channel<Events>... {
 public:
 	template <typename EventType>
 	requires exists<EventType, Events ...>::value && effectful<EventType>
-	void fire(EventType &event) {
+	int fire(EventType &event) {
 		event.before_fire();
 
 		event_channel<EventType> * channel = static_cast<event_channel<EventType> *>(this);
 
-		channel->_fire(event);
+		int status = channel->_fire(event);
+
 		event.after_fire();
+
+		return status;
 	}
 
 	template <typename EventType>
 	requires exists<EventType, Events ...>::value && !effectful<EventType>
-	void fire(EventType &event) {
+	int fire(EventType &event) {
 		event_channel<EventType> * channel = static_cast<event_channel<EventType> *>(this);
 
-		channel->_fire(event);
+		return channel->_fire(event);
 	}
 };
 
@@ -253,6 +266,10 @@ public:
 
 		channel->_unsubscribe(this);
 		id = nullptr;
+	}
+
+	bool is_subscribed() const {
+		return id != nullptr;
 	}
 
 	virtual int handle(EventType &event) = 0;

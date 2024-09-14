@@ -40,6 +40,12 @@ renderer2d::renderer2d(event_buses &_buses) :
 	}),
 	rect_vbo(0, [](unsigned int vbo) {
 		glDeleteBuffers(1, &vbo);
+	}),
+	icon_vao(0, [](unsigned int vao) {
+		glDeleteVertexArrays(1, &vao);
+	}),
+	icon_vbo(0, [](unsigned int vbo) {
+		glDeleteBuffers(1, &vbo);
 	})
 {
 	event_listener<program_start_event>::subscribe();
@@ -57,9 +63,19 @@ renderer2d::renderer2d(event_buses &_buses) :
 	glBindVertexArray(rect_vao);
 	glGenBuffers(1, &rect_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, rect_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof rect_vbo_buf, NULL, GL_STREAM_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
 	glEnableVertexAttribArray(0);
-	glBufferData(GL_ARRAY_BUFFER, sizeof rect_vbo_buf, NULL, GL_STREAM_DRAW);
+
+	glGenVertexArrays(1, &icon_vao);
+	glBindVertexArray(icon_vao);
+	glGenBuffers(1, &icon_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, icon_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof icon_vbo_buf, NULL, GL_STREAM_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(glm::vec2), 0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(glm::vec2), (void*)sizeof(glm::vec2));
+	glEnableVertexAttribArray(1);
 }
 
 const font& renderer2d::load_font(const std::string &font_name, const std::string &font_path, int glyph_width, int glyph_height) {
@@ -155,7 +171,7 @@ void renderer2d::draw_text(
 			continue;
 		}
 
-		const char c = text.at(in_char_pos);
+		const char c = text[in_char_pos];
 
 		if (c == '\n') {
 			draw_line(out_char_pos, draw_x, curr_y);
@@ -226,13 +242,19 @@ void renderer2d::draw_icon(
 ) const {
 	static constexpr int icon_loc = util::find_in_map(text_shader_locs, "icon");
 
-	rect_vbo_buf[0] = screen_to_gl(glm::ivec2(x, y));
-	rect_vbo_buf[1] = screen_to_gl(glm::ivec2(x, y + height));
-	rect_vbo_buf[2] = screen_to_gl(glm::ivec2(x + width, y + height));
-	rect_vbo_buf[3] = screen_to_gl(glm::ivec2(x + width, y + height));
-	rect_vbo_buf[4] = screen_to_gl(glm::ivec2(x + width, y));
-	rect_vbo_buf[5] = screen_to_gl(glm::ivec2(x, y));
+	icon_vbo_buf[0] = screen_to_gl(glm::ivec2(x, y));
+	icon_vbo_buf[2] = screen_to_gl(glm::ivec2(x, y + height));
+	icon_vbo_buf[4] = screen_to_gl(glm::ivec2(x + width, y + height));
+	icon_vbo_buf[6] = screen_to_gl(glm::ivec2(x + width, y + height));
+	icon_vbo_buf[8] = screen_to_gl(glm::ivec2(x + width, y));
+	icon_vbo_buf[10] = screen_to_gl(glm::ivec2(x, y));
 
+	icon_vbo_buf[1] = glm::vec2(0.0f, 1.0f);
+	icon_vbo_buf[3] = glm::vec2(0.0f, 0.0f);
+	icon_vbo_buf[5] = glm::vec2(1.0f, 0.0f);
+	icon_vbo_buf[7] = glm::vec2(1.0f, 0.0f);
+	icon_vbo_buf[9] = glm::vec2(1.0f, 1.0f);
+	icon_vbo_buf[11] = glm::vec2(0.0f, 1.0f);
 
 	icon_shader->use();
 
@@ -243,9 +265,9 @@ void renderer2d::draw_icon(
 	glBindTexture(GL_TEXTURE_2D, icon.get_id());
 	icon_shader->set_uniform(icon_loc, 0);
 
-	glBindVertexArray(rect_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, rect_vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof rect_vbo_buf, rect_vbo_buf);
+	glBindVertexArray(icon_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, icon_vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof icon_vbo_buf, icon_vbo_buf);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -16,16 +16,27 @@ namespace {
 	}
 }
 
-mouse_controller::mouse_controller(event_buses &_buses, std::vector<uint8_t> _watched_buttons) :
+mouse_controller::mouse_controller(
+	event_buses &_buses,
+	std::vector<uint8_t> _watched_buttons,
+	short _mouse_unlock_key
+) :
 	event_listener<pre_render_pass_event>(&_buses.render, -20),
 	event_listener<program_start_event>(&_buses.lifecycle),
+	event_listener<keydown_event>(&_buses.input),
 	buses(_buses),
-	watched_buttons(_watched_buttons)
+	watched_buttons(_watched_buttons),
+	mouse_unlock_key(_mouse_unlock_key)
 {
 	event_listener<pre_render_pass_event>::subscribe();
 	event_listener<program_start_event>::subscribe();
+	event_listener<keydown_event>::subscribe();
 
 	mouse_controllers.push_back(this);
+
+	if (std::find(std::begin(watched_buttons), std::end(watched_buttons), GLFW_MOUSE_BUTTON_LEFT) == watched_buttons.end()) {
+		watched_buttons.push_back(GLFW_MOUSE_BUTTON_LEFT);
+	}
 }
 
 mouse_controller::~mouse_controller() {
@@ -44,18 +55,28 @@ int mouse_controller::handle(pre_render_pass_event &event) {
 		buttons[button] = is_pressed;
 
 		if (is_pressed) {
-			mousedown_event event(button);
+			mousedown_event event(button, is_mouse_locked);
 			buses.input.fire(event);
 		} else {
-			mouseup_event event(button);
+			mouseup_event event(button, is_mouse_locked);
 			buses.input.fire(event);
 		}
 	}
 
 	if (scroll_offset.x != 0.0f || scroll_offset.y != 0.0f) {
-		mouse_scroll_event event(scroll_offset);
+		mouse_scroll_event event(scroll_offset, is_mouse_locked);
 		buses.input.fire(event);
 		scroll_offset = glm::vec2(0.0f);
+	}
+
+	if (! is_mouse_locked && buttons[GLFW_MOUSE_BUTTON_LEFT]) {
+		glfwSetInputMode(event.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+		mouse_lock_event lock_event(event.window);
+		buses.input.fire(lock_event);
+
+		is_mouse_locked = true;
+		mouse_locked_window = event.window;
 	}
 
 	return 0;
@@ -66,6 +87,20 @@ int mouse_controller::handle(program_start_event &event) {
 
 	if (! scroll_callback_bound) {
 		glfwSetScrollCallback(event.window, scroll_callback);
+	}
+
+	return 0;
+}
+
+int mouse_controller::handle(keydown_event &event) {
+	if (is_mouse_locked && event.key == mouse_unlock_key) {
+		glfwSetInputMode(mouse_locked_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+		mouse_unlock_event unlock_event(mouse_locked_window);
+		buses.input.fire(unlock_event);
+
+		is_mouse_locked = false;
+		mouse_locked_window = nullptr;
 	}
 
 	return 0;

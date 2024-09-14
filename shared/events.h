@@ -174,36 +174,85 @@ struct shader_use_event {
 // that the key is pressed.
 struct keydown_event {
 	const short key;
+	const bool is_mouse_locked;
 
-	keydown_event(const short _key) : key(_key) {}
+	keydown_event(
+		const short _key,
+		bool _is_mouse_locked
+	) :
+		key(_key),
+		is_mouse_locked(_is_mouse_locked)
+	{}
 };
 
 // Fired whenever a key is released.
 struct keyup_event {
 	const short key;
+	const bool is_mouse_locked;
 
-	keyup_event(const short _key) : key(_key) {}
+	keyup_event(
+		const short _key,
+		bool _is_mouse_locked
+	) :
+		key(_key),
+		is_mouse_locked(_is_mouse_locked)
+	{}
 };
 
 // Fired whenever a mouse button is pressed.
 struct mousedown_event {
 	const uint8_t button;
+	const bool is_mouse_locked;
 
-	mousedown_event(const uint8_t _button) : button(_button) {}
+	mousedown_event(
+		const uint8_t _button,
+		bool _is_mouse_locked
+	) :
+		button(_button),
+		is_mouse_locked(_is_mouse_locked)
+	{}
 };
 
 // Fired whenever a mouse button is released.
 struct mouseup_event {
 	const uint8_t button;
+	const bool is_mouse_locked;
 
-	mouseup_event(const uint8_t _button) : button(_button) {}
+	mouseup_event(
+		const uint8_t _button,
+		bool _is_mouse_locked
+	) :
+		button(_button),
+		is_mouse_locked(_is_mouse_locked)
+	{}
 };
 
 // Fired whenever the mouse is scrolled.
 struct mouse_scroll_event {
 	const glm::vec2 offset;
+	const bool is_mouse_locked;
 
-	mouse_scroll_event(const glm::vec2 &_offset) : offset(_offset) {}
+	mouse_scroll_event(
+		const glm::vec2 &_offset,
+		bool _is_mouse_locked
+	) :
+		offset(_offset),
+		is_mouse_locked(_is_mouse_locked)
+	{}
+};
+
+// Fired when the cursor is locked.
+struct mouse_lock_event {
+	GLFWwindow * window;
+
+	mouse_lock_event(GLFWwindow * _window) : window(_window) {}
+};
+
+// Fired when the cursor is unlocked.
+struct mouse_unlock_event {
+	GLFWwindow * window;
+
+	mouse_unlock_event(GLFWwindow * _window) : window(_window) {}
 };
 
 class player;
@@ -267,7 +316,9 @@ using input_event_bus = event_bus<
 	keyup_event,
 	mousedown_event,
 	mouseup_event,
-	mouse_scroll_event
+	mouse_scroll_event,
+	mouse_lock_event,
+	mouse_unlock_event
 >;
 using player_event_bus = event_bus<
 	player_look_event,

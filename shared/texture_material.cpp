@@ -8,7 +8,7 @@ texture_material::texture_material(std::string _texture_name) :
 {}
 
 void texture_material::prepare_draw(draw_event &event, const shader_program &shader, render_pass_state &render_pass) const {
-	const texture &tex = event.textures.textures.at(texture_name);
+	const texture &tex = event.textures.get(texture_name);
 	const int tex_unit = render_pass.next_texture_unit();
 
 	glActiveTexture(GL_TEXTURE0 + tex_unit);

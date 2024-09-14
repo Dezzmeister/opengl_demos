@@ -136,19 +136,21 @@
     <ClCompile Include="constants.cpp" />
     <ClCompile Include="gui.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="pointer_tool.cpp" />
     <ClCompile Include="raycast.cpp" />
     <ClCompile Include="spawn_tool.cpp" />
+    <ClCompile Include="tools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="constants.h" />
     <ClInclude Include="custom_events.h" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="object_world.h" />
+    <ClInclude Include="pointer_tool.h" />
     <ClInclude Include="raycast.h" />
     <ClInclude Include="spawn_tool.h" />
     <ClInclude Include="spherical_particle_contact_generator.h" />
     <ClInclude Include="tools.h" />
-    <ClInclude Include="tool_selector.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="attributions.html" />

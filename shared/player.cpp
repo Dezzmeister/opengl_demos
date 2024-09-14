@@ -8,6 +8,8 @@ player::player(event_buses &_buses) :
 	event_listener<keydown_event>(&_buses.input),
 	event_listener<keyup_event>(&_buses.input),
 	event_listener<pre_render_pass_event>(&_buses.render, -50),
+	event_listener<mouse_lock_event>(&_buses.input),
+	event_listener<mouse_unlock_event>(&_buses.input),
 	speed(2.0f),
 	look_sensitivity(0.5f),
 	buses(_buses),
@@ -24,6 +26,8 @@ player::player(event_buses &_buses) :
 	event_listener<keydown_event>::subscribe();
 	event_listener<keyup_event>::subscribe();
 	event_listener<pre_render_pass_event>::subscribe();
+	event_listener<mouse_lock_event>::subscribe();
+	event_listener<mouse_unlock_event>::subscribe();
 }
 
 int player::handle(keydown_event &event) {
@@ -35,8 +39,6 @@ int player::handle(keydown_event &event) {
 		input_vel.x -= 1.0f;
 	} else if (event.key == GLFW_KEY_D) {
 		input_vel.x += 1.0f;
-	} else if (event.key == GLFW_KEY_ESCAPE) {
-		release_input();
 	} else if (event.key == GLFW_KEY_LEFT_SHIFT) {
 		sprint_mul = 1.5f;
 	}
@@ -85,11 +87,7 @@ int player::handle(pre_render_pass_event &event) {
 	const float move_y = input_vel.y * full_speed_f;
 	const float move_x = input_vel.x * full_speed_f;
 
-	if (glfwGetMouseButton(event.window, GLFW_MOUSE_BUTTON_LEFT) && captured_mouse == nullptr) {
-		capture_input(event.window);
-	}
-
-	if (captured_mouse != nullptr) {
+	if (is_mouse_locked) {
 		glm::vec3 old_dir = cam.dir;
 		last_mouse = curr_mouse;
 		glfwGetCursorPos(event.window, &curr_mouse.x, &curr_mouse.y);
@@ -151,25 +149,28 @@ int player::handle(pre_render_pass_event &event) {
 		return 0;
 	}
 
-	player_move_event pme(*this, cam.pos + pos_diff, cam.pos, cam.dir);
-	buses.player.fire(pme);
-	cam.pos = pme.pos;
+	if (is_mouse_locked) {
+		player_move_event pme(*this, cam.pos + pos_diff, cam.pos, cam.dir);
+		buses.player.fire(pme);
+		cam.pos = pme.pos;
+	}
+
 	cam.update_view_mat();
 
 	return 0;
 }
 
-void player::capture_input(GLFWwindow * window) {
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwGetCursorPos(window, &curr_mouse.x, &curr_mouse.y);
-	captured_mouse = window;
+int player::handle(mouse_lock_event &event) {
+	is_mouse_locked = true;
+	glfwGetCursorPos(event.window, &curr_mouse.x, &curr_mouse.y);
+
+	return 0;
 }
 
-void player::release_input() {
-	if (captured_mouse != nullptr) {
-		glfwSetInputMode(captured_mouse, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		captured_mouse = nullptr;
-	}
+int player::handle(mouse_unlock_event &event) {
+	is_mouse_locked = false;
+
+	return 0;
 }
 
 const camera& player::get_camera() const {

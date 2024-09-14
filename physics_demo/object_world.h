@@ -19,16 +19,6 @@
 using namespace phys::literals;
 
 namespace {
-	// Gold
-	phong_color_material selected_sphere_mtl{
-		phong_color_material_properties{
-			glm::vec3(0.24725, 0.1995, 0.0745),
-			glm::vec3(0.75164, 0.60648, 0.22648),
-			glm::vec3(0.628281, 0.555802, 0.366065),
-			128 * 0.4f
-		}
-	};
-
 	// Chrome
 	phong_color_material rod_mtl{
 		phong_color_material_properties{
@@ -50,14 +40,10 @@ namespace {
 	};
 
 	constexpr float floor_y = -1.0f;
-	constexpr float sphere_radius = 0.1f;
 	constexpr float cyl_radius = 0.05f;
-	const glm::mat4 sphere_scale = glm::scale(glm::identity<glm::mat4>(),
-		glm::vec3(sphere_radius / 0.5f, sphere_radius / 0.5f, sphere_radius / 0.5f));
 
 	template <const size_t N>
 	struct world_state {
-		geometry sphere_geom;
 		geometry rod_geom;
 		instanced_mesh sphere_meshes;
 		instanced_mesh rod_meshes;
@@ -67,7 +53,6 @@ namespace {
 
 		world_state(
 			world &_mesh_world,
-			geometry _sphere_geom,
 			geometry _rod_geom,
 			const glm::vec3 &_hiding_pos
 		);
@@ -85,7 +70,6 @@ namespace {
 		// Any unused instanced mesh instances will be moved to a location
 		// far from anything that the player is likely to encounter
 		glm::mat4 hiding_transform;
-		mesh selected_sphere;
 		int64_t selected_particle{ -1 };
 		world &mesh_world;
 
@@ -155,16 +139,13 @@ private:
 template <const size_t N>
 world_state<N>::world_state(
 	world &_mesh_world,
-	geometry _sphere_geom,
 	geometry _rod_geom,
 	const glm::vec3 &_hiding_pos
 ) :
-	sphere_geom(std::move(_sphere_geom)),
 	rod_geom(std::move(_rod_geom)),
-	sphere_meshes(&sphere_geom, &sphere_mtl, N),
+	sphere_meshes(sphere_geom.get(), &sphere_mtl, N),
 	rod_meshes(&rod_geom, &rod_mtl, N),
 	hiding_transform(glm::translate(glm::identity<glm::mat4>(), _hiding_pos)),
-	selected_sphere(&sphere_geom, &selected_sphere_mtl),
 	mesh_world(_mesh_world)
 {
 	for (size_t i = 0; i < N; i++) {
@@ -179,17 +160,13 @@ world_state<N>::world_state(
 template <const size_t N>
 void world_state<N>::update_meshes() {
 	for (size_t i = 0; i < N; i++) {
-		if (! active[i] || i == selected_particle) {
+		if (! active[i]) {
 			// TODO: Rods
 			hide_sphere(i);
 			continue;
 		}
 
 		sphere_meshes.set_model(i, particle_transform_mat(i));
-	}
-
-	if (selected_particle != -1) {
-		selected_sphere.set_model(particle_transform_mat((size_t)selected_particle));
 	}
 }
 
@@ -210,13 +187,6 @@ bool world_state<N>::select_particle(int64_t i) {
 	}
 
 	selected_particle = i;
-
-	if (selected_particle == -1) {
-		mesh_world.remove_mesh(&selected_sphere);
-	} else {
-		selected_sphere.set_model(particle_transform_mat(i));
-		mesh_world.add_mesh(&selected_sphere);
-	}
 
 	return true;
 }
@@ -246,7 +216,6 @@ object_world<N>::object_world(
 	event_listener<player_look_event>(&_buses.player),
 	state(std::make_unique<world_state<N>>(
 		_mesh_world,
-		shapes::make_sphere(20, 10, true),
 		shapes::make_cylinder(20, true),
 		glm::vec3(0.0f, -10000.0f, 0.0f)
 	)),
@@ -358,6 +327,10 @@ int object_world<N>::handle(sphere_spawn_event &event) {
 
 template <const size_t N>
 int object_world<N>::handle(keydown_event &event) {
+	if (! event.is_mouse_locked) {
+		return 0;
+	}
+
 	if (event.key == pause_key) {
 		paused = ! paused;
 	} else if (event.key == step_key) {
@@ -425,7 +398,7 @@ void object_world<N>::do_raycast_and_update() {
 		bool was_selected = state->select_particle(-1);
 
 		if (was_selected) {
-			particle_deselect_event deselect_event{};
+			particle_deselect_event deselect_event(state->sphere_meshes);
 			custom_bus.fire(deselect_event);
 		}
 
@@ -441,7 +414,7 @@ void object_world<N>::do_raycast_and_update() {
 	if (was_selected) {
 		size_t i = hit_results[0].i;
 
-		particle_select_event select_event(state->particles[i], i);
+		particle_select_event select_event(state->sphere_meshes, state->particles[i], i);
 		custom_bus.fire(select_event);
 	}
 }

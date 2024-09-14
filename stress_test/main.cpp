@@ -150,6 +150,7 @@ int main(int argc, const char * const * const argv) {
 		GLFW_KEY_R,
 		GLFW_KEY_ESCAPE
 	});
+	mouse_controller mouse(buses, {}, GLFW_KEY_ESCAPE);
 	screen_controller screen(buses);
 
 	constexpr float cube_size = 0.5f;

@@ -4,17 +4,22 @@
 #include "events.h"
 
 class key_controller :
-	public event_listener<pre_render_pass_event>
+	public event_listener<pre_render_pass_event>,
+	public event_listener<mouse_lock_event>,
+	public event_listener<mouse_unlock_event>
 {
 public:
 	key_controller(event_buses &_buses, std::vector<short> _watched_keys);
 
 	int handle(pre_render_pass_event &event) override;
+	int handle(mouse_lock_event &event) override;
+	int handle(mouse_unlock_event &event) override;
 
 private:
 	event_buses &buses;
-	std::bitset<GLFW_KEY_LAST> keys;
+	std::bitset<GLFW_KEY_LAST> keys{};
 	std::vector<short> watched_keys;
+	bool is_mouse_locked{ false };
 };
 
 class screen_controller :
@@ -37,10 +42,16 @@ private:
 
 class mouse_controller :
 	public event_listener<pre_render_pass_event>,
-	public event_listener<program_start_event>
+	public event_listener<program_start_event>,
+	public event_listener<keydown_event>
 {
 public:
-	mouse_controller(event_buses &_buses, std::vector<uint8_t> _watched_buttons);
+	mouse_controller(
+		event_buses &_buses,
+		std::vector<uint8_t>
+		_watched_buttons,
+		short _mouse_unlock_key
+	);
 	~mouse_controller();
 
 	// These are deleted so that mouse controllers can receive scroll input,
@@ -55,6 +66,7 @@ public:
 
 	int handle(pre_render_pass_event &event) override;
 	int handle(program_start_event &event) override;
+	int handle(keydown_event &event) override;
 
 	void set_scroll_offset(const float x, const float y);
 
@@ -63,5 +75,8 @@ private:
 	std::bitset<GLFW_MOUSE_BUTTON_LAST> buttons{};
 	std::vector<uint8_t> watched_buttons;
 	glm::vec2 scroll_offset{};
+	GLFWwindow * mouse_locked_window{ nullptr };
+	short mouse_unlock_key;
+	bool is_mouse_locked{ false };
 };
 

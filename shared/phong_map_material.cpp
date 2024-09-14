@@ -21,8 +21,8 @@ void phong_map_material::prepare_draw(draw_event &event, const shader_program &s
 	static constexpr int specular_loc = util::find_in_map(constants::shader_locs, "_texture_mat.specular");
 	static constexpr int shininess_loc = util::find_in_map(constants::shader_locs, "_texture_mat.shininess");
 
-	const texture &diffuse_map = event.textures.textures.at(diffuse_map_name);
-	const texture &specular_map = event.textures.textures.at(specular_map_name);
+	const texture &diffuse_map = event.textures.get(diffuse_map_name);
+	const texture &specular_map = event.textures.get(specular_map_name);
 
 	const int diffuse_tex_unit = render_pass.next_texture_unit();
 	const int specular_tex_unit = render_pass.next_texture_unit();

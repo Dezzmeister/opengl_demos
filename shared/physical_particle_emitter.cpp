@@ -95,7 +95,7 @@ void physical_particle_emitter::update(float millis) {
 	color_buf.clear();
 
 	for (size_t i = 0; i < particles.size(); i++) {
-		particle &p = particles.at(i);
+		particle &p = particles[i];
 		p.physics.acc = phys::vec3(0.0_r);
 
 		if (! is_particle_dead(p, now)) {
@@ -226,7 +226,7 @@ int64_t physical_particle_emitter::next_dead_particle_pos(size_t start) const {
 	const particle::time_point now = particle::clock::now();
 
 	for (size_t i = start; i < particles.size(); i++) {
-		if (is_particle_dead(particles.at(i), now)) {
+		if (is_particle_dead(particles[i], now)) {
 			return i;
 		}
 	}

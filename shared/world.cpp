@@ -79,9 +79,9 @@ int world::handle(pre_render_pass_event &event) {
 	long long millis = event.delta.count();
 
 	for (int64_t i = particle_emitters.size() - 1; i >= 0; i--) {
-		particle_emitters.at(i)->update((float)millis);
+		particle_emitters[i]->update((float)millis);
 
-		if (particle_emitters.at(i)->is_done()) {
+		if (particle_emitters[i]->is_done()) {
 			particle_emitters.erase(std::begin(particle_emitters) + i);
 		}
 	}
@@ -236,7 +236,7 @@ void world::prepare_shadow_maps(draw_event &event) const {
 	glCullFace(GL_FRONT);
 
 	for (; i < lights.size(); i++) {
-		const light * l = lights.at(i);
+		const light * l = lights[i];
 
 		if (!l->casts_shadow()) {
 			continue;
@@ -346,7 +346,7 @@ void world::remove_particle_emitter(particle_emitter * emitter) {
 void world::prepare_draw_lights(const shader_program &shader, render_pass_state &render_pass) const {
 	int i = 0;
 	for (; i < lights.size(); i++) {
-		const light &l = *lights.at(i);
+		const light &l = *lights[i];
 
 		l.prepare_draw(i, shader, render_pass);
 	}

@@ -112,6 +112,10 @@ private:
 	const shader_program * rect_shader{ nullptr };
 	const shader_program * icon_shader{ nullptr };
 
+	unique_handle<unsigned int> icon_vao;
+	unique_handle<unsigned int> icon_vbo;
+	mutable glm::vec2 icon_vbo_buf[12]{};
+
 	int screen_width{ 0 };
 	int screen_height{ 0 };
 

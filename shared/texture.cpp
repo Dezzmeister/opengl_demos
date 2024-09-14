@@ -27,10 +27,10 @@ texture::texture(const char * const path, bool generate_mipmap) :
 	Gdiplus::Bitmap tex_bmp(wc_path.c_str());
 	tex_bmp.GetPixelFormat();
 
-	width = tex_bmp.GetWidth();
-	height = tex_bmp.GetHeight();
+	dimensions.x = tex_bmp.GetWidth();
+	dimensions.y = tex_bmp.GetHeight();
 
-	Gdiplus::Rect clip(0, 0, width, height);
+	Gdiplus::Rect clip(0, 0, dimensions.x, dimensions.y);
 	Gdiplus::BitmapData data;
 
 	int internal_gl_format;
@@ -55,8 +55,8 @@ texture::texture(const char * const path, bool generate_mipmap) :
 
 	tex_bmp.LockBits(&clip, Gdiplus::ImageLockMode::ImageLockModeRead, gdi_format, &data);
 
-	assert(("BitmapData width is correct", width == data.Width));
-	assert(("BitmapData height is correct", height == data.Height));
+	assert(("BitmapData width is correct", dimensions.x == data.Width));
+	assert(("BitmapData height is correct", dimensions.y == data.Height));
 	assert(("BitmapData PixelFormat is correct", data.PixelFormat == gdi_format));
 
 	unsigned char * buf = new unsigned char[data.Stride * data.Height];
@@ -65,7 +65,7 @@ texture::texture(const char * const path, bool generate_mipmap) :
 		memcpy(buf + data.Stride * (data.Height - i - 1), (unsigned char *)data.Scan0 + data.Stride * i, data.Stride);
 	}
 
-	glTexImage2D(GL_TEXTURE_2D, 0, internal_gl_format, width, height, 0, external_gl_format, GL_UNSIGNED_BYTE, buf);
+	glTexImage2D(GL_TEXTURE_2D, 0, internal_gl_format, dimensions.x, dimensions.y, 0, external_gl_format, GL_UNSIGNED_BYTE, buf);
 
 	if (generate_mipmap) {
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -78,4 +78,12 @@ texture::texture(const char * const path, bool generate_mipmap) :
 
 unsigned int texture::get_id() const {
 	return id;
+}
+
+const glm::uvec2& texture::get_dimensions() const {
+	return dimensions;
+}
+
+bool operator==(const texture &a, const texture &b) {
+	return a.get_id() == b.get_id();
 }

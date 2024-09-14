@@ -1,4 +1,6 @@
+#include <memory>
 #include "../shared/phong_color_material.h"
+#include "../shared/shapes.h"
 #include "constants.h"
 #include "spawn_tool.h"
 
@@ -11,33 +13,56 @@ namespace {
 spawn_tool::spawn_tool(
 	event_buses &_buses,
 	custom_event_bus &_custom_bus,
+	texture_store &_textures,
 	short _activation_key,
-	geometry * _preview_geom,
 	const glm::mat4 &_preview_transform,
 	world &_w
 ) :
+	tool(_textures.store("spawn_tool_icon", texture("./icons/new-particle.png"))),
 	event_listener<player_look_event>(&_buses.player),
 	event_listener<player_move_event>(&_buses.player),
 	event_listener<player_spawn_event>(&_buses.player),
 	event_listener<mousedown_event>(&_buses.input),
+	event_listener<mouseup_event>(&_buses.input),
 	event_listener<mouse_scroll_event>(&_buses.input),
-	event_listener<keydown_event>(&_buses.input),
 	event_listener<pre_render_pass_event>(&_buses.render),
+	event_listener<tool_select_event>(&_custom_bus, -10),
 	custom_bus(_custom_bus),
 	activation_key(_activation_key),
 	preview_transform(_preview_transform),
-	preview(std::make_unique<mesh>(_preview_geom, &sphere_mtl)),
+	sphere_geom(std::make_unique<geometry>(shapes::make_sphere(20, 10, true))),
+	preview(std::make_unique<mesh>(sphere_geom.get(), &sphere_mtl)),
 	w(_w)
 {
 	event_listener<player_look_event>::subscribe();
 	event_listener<player_move_event>::subscribe();
 	event_listener<player_spawn_event>::subscribe();
-	event_listener<mousedown_event>::subscribe();
-	event_listener<mouse_scroll_event>::subscribe();
-	event_listener<keydown_event>::subscribe();
-	event_listener<pre_render_pass_event>::subscribe();
 
 	preview->set_alpha(0.4f);
+}
+
+void spawn_tool::activate() {
+	event_listener<mousedown_event>::subscribe();
+	event_listener<mouseup_event>::subscribe();
+	event_listener<mouse_scroll_event>::subscribe();
+	event_listener<pre_render_pass_event>::subscribe();
+	event_listener<tool_select_event>::subscribe();
+
+	w.add_mesh(preview.get());
+}
+
+void spawn_tool::deactivate() {
+	event_listener<mousedown_event>::unsubscribe();
+	event_listener<mouseup_event>::unsubscribe();
+	event_listener<mouse_scroll_event>::unsubscribe();
+	event_listener<pre_render_pass_event>::unsubscribe();
+	event_listener<tool_select_event>::unsubscribe();
+
+	w.remove_mesh(preview.get());
+}
+
+bool spawn_tool::is_active() const {
+	return event_listener<pre_render_pass_event>::is_subscribed();
 }
 
 int spawn_tool::handle(player_look_event &event) {
@@ -60,18 +85,30 @@ int spawn_tool::handle(player_spawn_event &event) {
 }
 
 int spawn_tool::handle(mousedown_event &event) {
-	if (! active) {
+	if (! event.is_mouse_locked) {
 		return 0;
 	}
 
-	sphere_spawn_event spawn_event(player_pos + (dir * scroll_f));
-	custom_bus.fire(spawn_event);
+	if (event.button == GLFW_MOUSE_BUTTON_LEFT) {
+		sphere_spawn_event spawn_event(player_pos + (dir * scroll_f));
+		custom_bus.fire(spawn_event);
+	} else if (event.button == GLFW_MOUSE_BUTTON_RIGHT) {
+		can_zoom = true;
+	}
+
+	return 0;
+}
+
+int spawn_tool::handle(mouseup_event &event) {
+	if (event.button == GLFW_MOUSE_BUTTON_RIGHT) {
+		can_zoom = false;
+	}
 
 	return 0;
 }
 
 int spawn_tool::handle(mouse_scroll_event &event) {
-	if (! active) {
+	if (! can_zoom || ! event.is_mouse_locked) {
 		return 0;
 	}
 
@@ -81,31 +118,21 @@ int spawn_tool::handle(mouse_scroll_event &event) {
 	return 0;
 }
 
-int spawn_tool::handle(keydown_event &event) {
-	if (event.key == activation_key) {
-		active = ! active;
-
-		if (active) {
-			w.add_mesh(preview.get());
-		} else {
-			w.remove_mesh(preview.get());
-		}
-	}
-
-	return 0;
-}
-
 int spawn_tool::handle(pre_render_pass_event &event) {
-	if (! active) {
-		return 0;
-	}
-
 	const glm::mat4 trans_part = glm::translate(
 		glm::identity<glm::mat4>(),
 		player_pos + (dir * scroll_f)
 	);
 
 	preview->set_model(trans_part * preview_transform);
+
+	return 0;
+}
+
+int spawn_tool::handle(tool_select_event &event) {
+	if (can_zoom) {
+		return 1;
+	}
 
 	return 0;
 }

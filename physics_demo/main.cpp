@@ -25,7 +25,7 @@
 #include "custom_events.h"
 #include "gui.h"
 #include "object_world.h"
-#include "spawn_tool.h"
+#include "tools.h"
 
 using namespace phys::literals;
 
@@ -41,10 +41,10 @@ R"(Controls:
 	WASD to move
 	Hold LEFT SHIFT to sprint
 	F to toggle flashlight
-	T to toggle the particle spawn tool
-		While the tool is active:
+	Scroll to change the active tool
+		While the spawn tool is active:
 		LEFT_MOUSE to spawn a particle
-		SCROLL to move the cursor
+		Hold RIGHT_MOUSE + SCROLL to move the cursor
 	P to pause the physics simulation
 		While the simulation is paused:
 		PERIOD to step forward one frame
@@ -119,17 +119,19 @@ int main(int argc, const char * const * const argv) {
 		GLFW_KEY_PERIOD
 	});
 	mouse_controller mouse(buses, {
-		GLFW_MOUSE_BUTTON_LEFT
-	});
+		GLFW_MOUSE_BUTTON_LEFT,
+		GLFW_MOUSE_BUTTON_RIGHT
+	}, GLFW_KEY_ESCAPE);
 	screen_controller screen(buses);
 
 	gui g(buses, custom_bus);
-
 	world w(buses);
-
-	buses.lifecycle.fire(program_start);
+	toolbox tools(buses, custom_bus, w);
 
 	shapes::init();
+	init_constants();
+
+	buses.lifecycle.fire(program_start);
 
 	object_world<1000> objects(
 		buses,
@@ -140,16 +142,6 @@ int main(int argc, const char * const * const argv) {
 	);
 
 	flashlight lc(buses, pl, w, GLFW_KEY_F);
-
-	geometry sphere = shapes::make_sphere(20, 10, true);
-	spawn_tool sphere_spawner(
-		buses,
-		custom_bus,
-		GLFW_KEY_T,
-		&sphere,
-		glm::scale(glm::identity<glm::mat4>(), glm::vec3(0.2f)),
-		w
-	);
 
 	printf(help_text);
 

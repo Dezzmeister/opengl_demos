@@ -2,11 +2,14 @@
 
 key_controller::key_controller(event_buses &_buses, std::vector<short> _watched_keys) :
 	event_listener<pre_render_pass_event>(&_buses.render, -20),
+	event_listener<mouse_lock_event>(&_buses.input),
+	event_listener<mouse_unlock_event>(&_buses.input),
 	buses(_buses),
-	keys({}),
 	watched_keys(_watched_keys)
 {
 	event_listener<pre_render_pass_event>::subscribe();
+	event_listener<mouse_lock_event>::subscribe();
+	event_listener<mouse_unlock_event>::subscribe();
 }
 
 int key_controller::handle(pre_render_pass_event &event) {
@@ -21,13 +24,25 @@ int key_controller::handle(pre_render_pass_event &event) {
 		keys[key] = is_pressed;
 
 		if (is_pressed) {
-			keydown_event event(key);
+			keydown_event event(key, is_mouse_locked);
 			buses.input.fire(event);
 		} else {
-			keyup_event event(key);
+			keyup_event event(key, is_mouse_locked);
 			buses.input.fire(event);
 		}
 	}
+
+	return 0;
+}
+
+int key_controller::handle(mouse_lock_event &event) {
+	is_mouse_locked = true;
+
+	return 0;
+}
+
+int key_controller::handle(mouse_unlock_event &event) {
+	is_mouse_locked = false;
 
 	return 0;
 }

@@ -27,6 +27,15 @@
     <ClCompile Include="raycast.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="constants.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pointer_tool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="object_world.h">
@@ -47,5 +56,31 @@
     <ClInclude Include="raycast.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="constants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pointer_tool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icons\empty-hand.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icons\item-background.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icons\new-particle.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icons\selected-item-background.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="attributions.html" />
   </ItemGroup>
 </Project>

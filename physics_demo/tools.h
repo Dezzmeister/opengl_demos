@@ -1,17 +1,41 @@
 #pragma once
+#include "../shared/events.h"
 #include "../shared/texture.h"
+#include "../shared/world.h"
+#include "custom_events.h"
 
-enum class tool_type {
-	pointer,
-	particle_spawn
+class tool {
+public:
+	const texture &icon;
+
+	tool(const texture &_icon);
+	virtual ~tool() = default;
+
+	virtual void activate() = 0;
+	virtual void deactivate() = 0;
+	virtual bool is_active() const = 0;
 };
 
-struct tool {
-	const texture &icon;
-	tool_type type;
+class toolbox :
+	public event_listener<program_start_event>,
+	public event_listener<mouse_scroll_event>
+{
+public:
+	toolbox(
+		event_buses &_buses,
+		custom_event_bus &_custom_bus,
+		world &_mesh_world
+	);
 
-	tool(const texture &_icon, tool_type _type) :
-		icon(_icon),
-		type(_type)
-	{}
+	int handle(program_start_event &event) override;
+	int handle(mouse_scroll_event &event) override;
+
+private:
+	event_buses &buses;
+	custom_event_bus &custom_bus;
+	world &mesh_world;
+	std::vector<std::unique_ptr<tool>> tools{};
+	size_t curr_tool{};
+
+	void register_tool(const tool * t);
 };

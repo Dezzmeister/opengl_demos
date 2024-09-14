@@ -514,7 +514,7 @@ int main(int argc, const char * const * const argv) {
 		GLFW_KEY_UP,
 		GLFW_KEY_DOWN
 	});
-
+	mouse_controller mouse(buses, {}, GLFW_KEY_ESCAPE);
 	screen_controller screen(buses);
 
 	world w(buses);
