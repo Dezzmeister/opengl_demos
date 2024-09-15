@@ -18,10 +18,23 @@ struct tool_select_event {
 	tool_select_event(const tool * _tool) : t(_tool) {}
 };
 
-struct sphere_spawn_event {
+struct particle_spawn_event {
 	const glm::vec3 pos;
 
-	sphere_spawn_event(const glm::vec3 &_pos) : pos(_pos) {}
+	particle_spawn_event(const glm::vec3 &_pos) : pos(_pos) {}
+};
+
+struct connector_spawn_event {
+	const size_t particle_a_index;
+	const size_t particle_b_index;
+
+	connector_spawn_event(
+		size_t _particle_a_index,
+		size_t _particle_b_index
+	) :
+		particle_a_index(_particle_a_index),
+		particle_b_index(_particle_b_index)
+	{}
 };
 
 struct particle_select_event {
@@ -53,7 +66,8 @@ struct particle_deselect_event {
 using custom_event_bus = event_bus<
 	tool_register_event,
 	tool_select_event,
-	sphere_spawn_event,
+	particle_spawn_event,
+	connector_spawn_event,
 	particle_select_event,
 	particle_deselect_event
 >;

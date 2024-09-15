@@ -136,9 +136,11 @@
     <ClCompile Include="constants.cpp" />
     <ClCompile Include="gui.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="particle_utils.cpp" />
     <ClCompile Include="pointer_tool.cpp" />
     <ClCompile Include="raycast.cpp" />
-    <ClCompile Include="spawn_tool.cpp" />
+    <ClCompile Include="particle_spawn_tool.cpp" />
+    <ClCompile Include="connector_spawn_tool.cpp" />
     <ClCompile Include="tools.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -146,9 +148,11 @@
     <ClInclude Include="custom_events.h" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="object_world.h" />
+    <ClInclude Include="particle_utils.h" />
     <ClInclude Include="pointer_tool.h" />
     <ClInclude Include="raycast.h" />
-    <ClInclude Include="spawn_tool.h" />
+    <ClInclude Include="particle_spawn_tool.h" />
+    <ClInclude Include="connector_spawn_tool.h" />
     <ClInclude Include="spherical_particle_contact_generator.h" />
     <ClInclude Include="tools.h" />
   </ItemGroup>
@@ -159,6 +163,7 @@
     <Image Include="icons\empty-hand.png" />
     <Image Include="icons\item-background.png" />
     <Image Include="icons\new-particle.png" />
+    <Image Include="icons\new-rod.png" />
     <Image Include="icons\selected-item-background.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

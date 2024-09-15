@@ -5,8 +5,8 @@
 #include "../shared/phong_color_material.h"
 #include "../shared/physics/math.h"
 
-// Ruby
 extern const phong_color_material sphere_mtl;
+extern const phong_color_material selected_sphere_mtl;
 
 extern const phys::real sphere_radius;
 extern const glm::mat4 sphere_scale;

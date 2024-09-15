@@ -18,7 +18,7 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="spawn_tool.cpp">
+    <ClCompile Include="particle_spawn_tool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="gui.cpp">
@@ -36,12 +36,18 @@
     <ClCompile Include="pointer_tool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="connector_spawn_tool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="particle_utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="object_world.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="spawn_tool.h">
+    <ClInclude Include="particle_spawn_tool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="custom_events.h">
@@ -65,6 +71,12 @@
     <ClInclude Include="pointer_tool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="connector_spawn_tool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="particle_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="icons\empty-hand.png">
@@ -77,6 +89,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="icons\selected-item-background.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icons\new-rod.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

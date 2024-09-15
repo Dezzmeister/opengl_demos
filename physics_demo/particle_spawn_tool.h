@@ -7,7 +7,7 @@
 #include "custom_events.h"
 #include "tools.h"
 
-class spawn_tool :
+class particle_spawn_tool :
 	public tool,
 	public event_listener<player_look_event>,
 	public event_listener<player_move_event>,
@@ -19,12 +19,10 @@ class spawn_tool :
 	public event_listener<tool_select_event>
 {
 public:
-	spawn_tool(
+	particle_spawn_tool(
 		event_buses &_buses,
 		custom_event_bus &_custom_bus,
 		texture_store &_textures,
-		short _activation_key,
-		const glm::mat4 &_preview_transform,
 		world &_w
 	);
 
@@ -43,8 +41,6 @@ public:
 
 private:
 	custom_event_bus &custom_bus;
-	const short activation_key;
-	const glm::mat4 preview_transform;
 	std::unique_ptr<geometry> sphere_geom;
 	std::unique_ptr<mesh> preview;
 	world &w;

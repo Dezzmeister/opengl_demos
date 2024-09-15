@@ -1,7 +1,8 @@
 #include "../shared/shapes.h"
 #include "../shared/texture_store.h"
 #include "pointer_tool.h"
-#include "spawn_tool.h"
+#include "particle_spawn_tool.h"
+#include "connector_spawn_tool.h"
 #include "tools.h"
 
 tool::tool(const texture &_icon) :
@@ -31,12 +32,17 @@ int toolbox::handle(program_start_event &event) {
 		mesh_world
 	));
 
-	tools.push_back(std::make_unique<spawn_tool>(
+	tools.push_back(std::make_unique<particle_spawn_tool>(
 		buses,
 		custom_bus,
 		*event.textures,
-		GLFW_KEY_T,
-		glm::scale(glm::identity<glm::mat4>(), glm::vec3(0.2f)),
+		mesh_world
+	));
+
+	tools.push_back(std::make_unique<connector_spawn_tool>(
+		buses,
+		custom_bus,
+		*event.textures,
 		mesh_world
 	));
 

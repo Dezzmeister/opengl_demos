@@ -1,19 +1,10 @@
 #include "../shared/draw2d.h"
 #include "../shared/phong_color_material.h"
 #include "constants.h"
+#include "particle_utils.h"
 #include "pointer_tool.h"
 
 namespace {
-	// Gold
-	phong_color_material selected_sphere_mtl{
-		phong_color_material_properties{
-			glm::vec3(0.24725, 0.1995, 0.0745),
-			glm::vec3(0.75164, 0.60648, 0.22648),
-			glm::vec3(0.628281, 0.555802, 0.366065),
-			128 * 0.4f
-		}
-	};
-
 	void write_vec3(std::stringstream &ss, const std::string &name, const phys::vec3 &v) {
 		ss << name << ": (" << v.x << ", " << v.y << ", " << v.z << ")\n";
 	};
@@ -122,10 +113,7 @@ int pointer_tool::handle(particle_select_event &event) {
 	particle_index = event.particle_index;
 	particle_mesh = &event.particle_mesh;
 
-	selected_particle_mesh->set_model(glm::translate(
-		glm::identity<glm::mat4>(),
-		phys::to_glm<glm::vec3>(selected_particle->pos)
-	) * sphere_scale);
+	move_mesh_to_particle(selected_particle_mesh.get(), selected_particle);
 
 	if (is_active()) {
 		mesh_world.add_mesh(selected_particle_mesh.get());
@@ -145,13 +133,6 @@ int pointer_tool::handle(particle_deselect_event &event) {
 }
 
 void pointer_tool::update_meshes() {
-	selected_particle_mesh->set_model(glm::translate(
-		glm::identity<glm::mat4>(),
-		phys::to_glm<glm::vec3>(selected_particle->pos)
-	) * sphere_scale);
-
-	particle_mesh->set_model(particle_index, glm::translate(
-		glm::identity<glm::mat4>(),
-		glm::vec3(0.0f, -10000.0f, 0.0f)
-	));
+	move_mesh_to_particle(selected_particle_mesh.get(), selected_particle);
+	hide_particle(particle_mesh, particle_index);
 }

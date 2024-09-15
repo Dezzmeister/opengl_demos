@@ -87,7 +87,7 @@ template <const size_t N>
 class object_world :
 	public event_listener<pre_render_pass_event>,
 	public event_listener<post_render_pass_event>,
-	public event_listener<sphere_spawn_event>,
+	public event_listener<particle_spawn_event>,
 	public event_listener<keydown_event>,
 	public event_listener<player_spawn_event>,
 	public event_listener<player_move_event>,
@@ -104,7 +104,7 @@ public:
 
 	int handle(pre_render_pass_event &event) override;
 	int handle(post_render_pass_event &event) override;
-	int handle(sphere_spawn_event &event) override;
+	int handle(particle_spawn_event &event) override;
 	int handle(keydown_event &event) override;
 	int handle(player_spawn_event &event) override;
 	int handle(player_move_event &event) override;
@@ -209,7 +209,7 @@ object_world<N>::object_world(
 ) :
 	event_listener<pre_render_pass_event>(&_buses.render, -10),
 	event_listener<post_render_pass_event>(&_buses.render),
-	event_listener<sphere_spawn_event>(&_custom_bus),
+	event_listener<particle_spawn_event>(&_custom_bus),
 	event_listener<keydown_event>(&_buses.input),
 	event_listener<player_spawn_event>(&_buses.player),
 	event_listener<player_move_event>(&_buses.player),
@@ -243,7 +243,7 @@ object_world<N>::object_world(
 {
 	event_listener<pre_render_pass_event>::subscribe();
 	event_listener<post_render_pass_event>::subscribe();
-	event_listener<sphere_spawn_event>::subscribe();
+	event_listener<particle_spawn_event>::subscribe();
 	event_listener<keydown_event>::subscribe();
 	event_listener<player_spawn_event>::subscribe();
 	event_listener<player_move_event>::subscribe();
@@ -307,7 +307,7 @@ int object_world<N>::handle(post_render_pass_event &event) {
 }
 
 template <const size_t N>
-int object_world<N>::handle(sphere_spawn_event &event) {
+int object_world<N>::handle(particle_spawn_event &event) {
 	int64_t i = next_inactive_particle();
 
 	if (i == -1) {

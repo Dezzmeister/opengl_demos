@@ -94,7 +94,7 @@ void gui::draw_tools(const post_processing_event &event) const {
 	const glm::uvec2 &dimensions = tools[0]->icon.get_dimensions();
 	const int spacing = 20;
 	const int height_needed = (int)((dimensions.y * tools.size()) + (spacing * (tools.size() - 1)));
-	float scale_f = 1.0;
+	float scale_f = 100.0f / dimensions.y;
 
 	if (height_needed > event.screen_height) {
 		scale_f = event.screen_height / (float)height_needed;
