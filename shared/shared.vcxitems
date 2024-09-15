@@ -40,6 +40,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\force_generators\particle_drag.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\force_generators\particle_gravity.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\force_generators\particle_spring.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)physics\links\particle_rod.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\math.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)mouse_controller.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\particle.cpp" />

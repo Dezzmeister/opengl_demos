@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <bitset>
+#include <glm/gtc/quaternion.hpp>
 #include <memory>
 #include "../shared/events.h"
 #include "../shared/instanced_mesh.h"
@@ -8,6 +9,7 @@
 #include "../shared/physics/particle.h"
 #include "../shared/physics/particle_contact_generators.h"
 #include "../shared/physics/particle_force_generators.h"
+#include "../shared/physics/particle_links.h"
 #include "../shared/physics/particle_world.h"
 #include "../shared/shapes.h"
 #include "../shared/world.h"
@@ -41,6 +43,7 @@ namespace {
 
 	constexpr float floor_y = -1.0f;
 	constexpr float cyl_radius = 0.05f;
+	constexpr glm::vec3 y_axis = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	template <const size_t N>
 	struct world_state {
@@ -50,6 +53,8 @@ namespace {
 
 		std::array<phys::particle, N> particles{};
 		std::bitset<N> active{};
+		// These won't be moved, because we reserve N of them on construction
+		std::vector<phys::particle_rod> rods{};
 
 		world_state(
 			world &_mesh_world,
@@ -65,6 +70,8 @@ namespace {
 		// Returns true if the selection was successful (i.e. it changed
 		// state), false if not.
 		bool select_particle(int64_t i);
+
+		phys::particle_rod * create_rod(size_t particle_a_index, size_t particle_b_index);
 
 	private:
 		// Any unused instanced mesh instances will be moved to a location
@@ -86,8 +93,8 @@ namespace {
 template <const size_t N>
 class object_world :
 	public event_listener<pre_render_pass_event>,
-	public event_listener<post_render_pass_event>,
 	public event_listener<particle_spawn_event>,
+	public event_listener<connector_spawn_event>,
 	public event_listener<keydown_event>,
 	public event_listener<player_spawn_event>,
 	public event_listener<player_move_event>,
@@ -103,8 +110,8 @@ public:
 	);
 
 	int handle(pre_render_pass_event &event) override;
-	int handle(post_render_pass_event &event) override;
 	int handle(particle_spawn_event &event) override;
+	int handle(connector_spawn_event &event) override;
 	int handle(keydown_event &event) override;
 	int handle(player_spawn_event &event) override;
 	int handle(player_move_event &event) override;
@@ -155,6 +162,8 @@ world_state<N>::world_state(
 
 	mesh_world.add_instanced_mesh(&sphere_meshes);
 	mesh_world.add_instanced_mesh(&rod_meshes);
+
+	rods.reserve(N);
 }
 
 template <const size_t N>
@@ -167,6 +176,35 @@ void world_state<N>::update_meshes() {
 		}
 
 		sphere_meshes.set_model(i, particle_transform_mat(i));
+	}
+
+	for (size_t i = 0; i < rods.size(); i++) {
+		phys::particle_rod &rod = rods[i];
+
+		glm::vec3 dr = phys::to_glm<glm::vec3>(rod.a->pos - rod.b->pos);
+		float r = glm::length(dr);
+
+		glm::mat4 scale_mat = glm::scale(
+			glm::identity<glm::mat4>(),
+			glm::vec3(cyl_radius, r, cyl_radius)
+		);
+
+		glm::vec3 axis = glm::cross(y_axis, dr);
+		float cos_t = glm::dot(y_axis, dr) / r;
+		float sin_t = glm::length(axis) / r;
+		float cos_t_2 = std::sqrt((1.0f + cos_t) / 2.0f);
+		float sin_t_2 = std::sqrt((1.0f - cos_t) / 2.0f);
+
+		glm::quat rot = glm::quat(cos_t_2, sin_t_2 * glm::normalize(axis));
+
+		glm::mat4 rot_mat = glm::mat4_cast(rot);
+
+		glm::mat4 trans_mat = glm::translate(
+			glm::identity<glm::mat4>(),
+			(rod.a->pos + rod.b->pos) / 2.0f
+		);
+
+		rod_meshes.set_model(i, trans_mat * rot_mat * scale_mat);
 	}
 }
 
@@ -200,6 +238,18 @@ glm::mat4 world_state<N>::particle_transform_mat(size_t i) const {
 }
 
 template <const size_t N>
+phys::particle_rod * world_state<N>::create_rod(size_t particle_a_index, size_t particle_b_index) {
+	phys::particle * a = &particles[particle_a_index];
+	phys::particle * b = &particles[particle_b_index];
+	phys::real length = std::sqrt(phys::dot(a->pos - b->pos, a->pos - b->pos));
+
+	phys::particle_rod rod(a, b, length);
+	rods.push_back(rod);
+
+	return &rods[rods.size() - 1];
+}
+
+template <const size_t N>
 object_world<N>::object_world(
 	event_buses &_buses,
 	custom_event_bus &_custom_bus,
@@ -208,8 +258,8 @@ object_world<N>::object_world(
 	short _step_key
 ) :
 	event_listener<pre_render_pass_event>(&_buses.render, -10),
-	event_listener<post_render_pass_event>(&_buses.render),
 	event_listener<particle_spawn_event>(&_custom_bus),
+	event_listener<connector_spawn_event>(&_custom_bus),
 	event_listener<keydown_event>(&_buses.input),
 	event_listener<player_spawn_event>(&_buses.player),
 	event_listener<player_move_event>(&_buses.player),
@@ -242,8 +292,8 @@ object_world<N>::object_world(
 	step_key(_step_key)
 {
 	event_listener<pre_render_pass_event>::subscribe();
-	event_listener<post_render_pass_event>::subscribe();
 	event_listener<particle_spawn_event>::subscribe();
+	event_listener<connector_spawn_event>::subscribe();
 	event_listener<keydown_event>::subscribe();
 	event_listener<player_spawn_event>::subscribe();
 	event_listener<player_move_event>::subscribe();
@@ -301,12 +351,6 @@ int object_world<N>::handle(pre_render_pass_event &event) {
 }
 
 template <const size_t N>
-int object_world<N>::handle(post_render_pass_event &event) {
-
-	return 0;
-}
-
-template <const size_t N>
 int object_world<N>::handle(particle_spawn_event &event) {
 	int64_t i = next_inactive_particle();
 
@@ -321,6 +365,14 @@ int object_world<N>::handle(particle_spawn_event &event) {
 	state->active[i] = true;
 	phys_world.add_particle(&state->particles[i]);
 	phys_world.force_registry.add(&state->particles[i], gravity_generator.get());
+
+	return 0;
+}
+
+template <const size_t N>
+int object_world<N>::handle(connector_spawn_event &event) {
+	phys::particle_rod * rod = state->create_rod(event.particle_a_index, event.particle_b_index);
+	phys_world.add_link(rod);
 
 	return 0;
 }

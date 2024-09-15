@@ -30,6 +30,10 @@ void phys::particle_world::run_physics(real duration) {
 		cg->add_contacts(contacts, duration);
 	}
 
+	for (particle_link * link : links) {
+		link->generate_contacts(contacts, duration);
+	}
+
 	contact_resolver.resolve_contacts(contacts, duration);
 }
 
@@ -47,4 +51,12 @@ void phys::particle_world::add_contact_generator(particle_contact_generator * ge
 
 void phys::particle_world::remove_contact_generator(particle_contact_generator * generator) {
 	std::erase(contact_generators, generator);
+}
+
+void phys::particle_world::add_link(particle_link * link) {
+	links.push_back(link);
+}
+
+void phys::particle_world::remove_link(particle_link * link) {
+	std::erase(links, link);
 }
