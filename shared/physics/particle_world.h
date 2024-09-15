@@ -33,5 +33,6 @@ namespace phys {
 		std::vector<particle_link *> links{};
 
 		void integrate(real duration);
+		void update_constraints(real duration);
 	};
 }

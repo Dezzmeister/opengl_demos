@@ -30,11 +30,19 @@ void phys::particle_world::run_physics(real duration) {
 		cg->add_contacts(contacts, duration);
 	}
 
-	for (particle_link * link : links) {
-		link->generate_contacts(contacts, duration);
-	}
-
 	contact_resolver.resolve_contacts(contacts, duration);
+
+	update_constraints(duration);
+}
+
+void phys::particle_world::update_constraints(real duration) {
+	real dt = duration / 16.0_r;
+
+	for (size_t i = 0; i < 16; i++) {
+		for (particle_link * link : links) {
+			link->update_constraint(dt);
+		}
+	}
 }
 
 void phys::particle_world::add_particle(particle * p) {

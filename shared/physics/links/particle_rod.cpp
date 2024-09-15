@@ -14,31 +14,31 @@ phys::particle_rod::particle_rod(
 	length(_length)
 {}
 
-void phys::particle_rod::generate_contacts(contact_container &contacts, real duration) {
-	vec3 proj_a_pos = a->pos + a->vel * duration;
-	vec3 proj_b_pos = b->pos + b->vel * duration;
-	vec3 proj_dx = proj_a_pos - proj_b_pos;
-	real proj_len = std::sqrt(phys::dot(proj_dx, proj_dx));
+void phys::particle_rod::update_constraint(real duration) {
+	vec3 r = a->pos - b->pos;
+	real d = std::sqrt(phys::dot(r, r));
+	real disp = length - d;
 
-	if (proj_len == length) {
+	if (disp == 0.0_r) {
 		return;
 	}
 
-	if (proj_len < length) {
-		contacts.push_back({
-			.a = a,
-			.b = b,
-			.contact_norm = proj_dx,
-			.restitution = 0,
-			.penetration = length - proj_len
-		});
-	} else {
-		contacts.push_back({
-			.a = a,
-			.b = b,
-			.contact_norm = -proj_dx,
-			.restitution = 0,
-			.penetration = proj_len - length
-		});
+	vec3 dir = phys::normalize(r);
+	vec3 v = a->vel - b->vel;
+	real inv_m = a->get_inv_mass() + b->get_inv_mass();
+
+	if (inv_m == 0.0_r) {
+		return;
 	}
+
+	float v_in_dir = phys::dot(v, dir);
+	float bias_f = 0.01f;
+	float bias = -(bias_f / duration) * disp;
+	float lambda = -(v_in_dir + bias) / inv_m;
+
+	vec3 a_impulse = dir * lambda;
+	vec3 b_impulse = -dir * lambda;
+
+	a->vel += a_impulse * a->get_inv_mass();
+	b->vel += b_impulse * b->get_inv_mass();
 }

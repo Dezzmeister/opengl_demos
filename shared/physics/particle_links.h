@@ -15,7 +15,7 @@ namespace phys {
 
 		virtual ~particle_link() = default;
 
-		virtual void generate_contacts(contact_container &contacts, real duration) = 0;
+		virtual void update_constraint(real duration) = 0;
 	};
 
 	class particle_rod : public particle_link {
@@ -24,6 +24,6 @@ namespace phys {
 
 		particle_rod(particle * _a, particle * _b, real _length);
 
-		void generate_contacts(contact_container &contacts, real duration) override;
+		void update_constraint(real duration) override;
 	};
 }
