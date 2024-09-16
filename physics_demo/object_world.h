@@ -169,13 +169,9 @@ world_state<N>::world_state(
 template <const size_t N>
 void world_state<N>::update_meshes() {
 	for (size_t i = 0; i < N; i++) {
-		if (! active[i]) {
-			// TODO: Rods
-			hide_sphere(i);
-			continue;
+		if (active[i]) {
+			sphere_meshes.set_model(i, particle_transform_mat(i));
 		}
-
-		sphere_meshes.set_model(i, particle_transform_mat(i));
 	}
 
 	for (size_t i = 0; i < rods.size(); i++) {

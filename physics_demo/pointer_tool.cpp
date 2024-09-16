@@ -20,7 +20,11 @@ pointer_tool::pointer_tool(
 	texture_store &_textures,
 	world &_mesh_world
 ) :
-	tool(_textures.store("pointer_tool_icon", texture("./icons/empty-hand.png"))),
+	tool(
+		_textures.store("pointer_tool_icon", texture("./icons/empty-hand.png")),
+		"Pointer Tool",
+		"Point at a particle to see its physical\nproperties."
+	),
 	event_listener<program_start_event>(&_buses.lifecycle),
 	event_listener<pre_render_pass_event>(&_buses.render),
 	event_listener<post_processing_event>(&_buses.render),
@@ -77,12 +81,24 @@ int pointer_tool::handle(post_processing_event &event) {
 		return 0;
 	}
 
+	int width = 256;
+	int height = 100;
+	int sw = 3;
+
 	event.draw2d.draw_rect(
 		0,
-		event.screen_height - (6 * debug_font->glyph_height),
-		40 * debug_font->glyph_width,
-		6 * debug_font->glyph_height,
-		glm::vec4(1.0f, 1.0f, 1.0f, 0.7f)
+		event.screen_height - height,
+		width,
+		height,
+		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+	);
+
+	event.draw2d.draw_rect(
+		sw,
+		event.screen_height - height + sw,
+		width - (2 * sw),
+		height - (2 * sw),
+		glm::vec4(1.0f, 1.0f, 0.917f, 1.0f)
 	);
 
 	std::stringstream ss{};
@@ -98,9 +114,11 @@ int pointer_tool::handle(post_processing_event &event) {
 	event.draw2d.draw_text(
 		ss.str(),
 		*debug_font,
-		debug_font->glyph_width,
-		(event.screen_height - (5 * debug_font->glyph_height)),
-		0, 0, 0,
+		sw + 2,
+		event.screen_height - height + sw + debug_font->glyph_height,
+		width - (2 * sw) + 2,
+		height - (2 * sw),
+		0,
 		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
 		glm::vec4(0.0f)
 	);

@@ -122,5 +122,66 @@ void gui::draw_tools(const post_processing_event &event) const {
 		);
 
 		y += height + scaled_spacing;
+
+		if (t->is_active()) {
+			draw_tool_info(event, t);
+		}
 	}
+}
+
+void gui::draw_tool_info(const post_processing_event &event, const tool * t) const {
+	int width = 256;
+	int height = 100;
+	int title_height = debug_font->glyph_height;
+	int sw = 3;
+
+	event.draw2d.draw_rect(
+		event.screen_width - width,
+		event.screen_height - height,
+		width,
+		height,
+		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+	);
+
+	event.draw2d.draw_rect(
+		event.screen_width - width + sw,
+		event.screen_height - height + sw,
+		width - (sw * 2),
+		height - (sw * 2),
+		glm::vec4(1.0f, 1.0f, 0.917f, 1.0f)
+	);
+
+	event.draw2d.draw_rect(
+		event.screen_width - width,
+		event.screen_height - height + title_height + sw,
+		width,
+		sw,
+		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+	);
+
+	int title_width = (int)(t->name.size()) * debug_font->glyph_width;
+
+	event.draw2d.draw_text(
+		t->name,
+		*debug_font,
+		event.screen_width - width + (width - title_width) / 2,
+		event.screen_height - height + title_height + sw,
+		width,
+		debug_font->glyph_height,
+		0,
+		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+		glm::vec4(0.0f)
+	);
+
+	event.draw2d.draw_text(
+		t->tooltip,
+		*debug_font,
+		event.screen_width - width + sw + 2,
+		event.screen_height - height + (2 * sw) + title_height + debug_font->glyph_height,
+		width - (2 * sw) - 2,
+		height - title_height - (3 * sw),
+		0,
+		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+		glm::vec4(0.0f)
+	);
 }

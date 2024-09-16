@@ -5,8 +5,14 @@
 #include "connector_spawn_tool.h"
 #include "tools.h"
 
-tool::tool(const texture &_icon) :
-	icon(_icon)
+tool::tool(
+	const texture &_icon,
+	const std::string &_name,
+	const std::string &_tooltip
+) :
+	icon(_icon),
+	name(_name),
+	tooltip(_tooltip)
 {}
 
 toolbox::toolbox(

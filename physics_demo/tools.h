@@ -7,8 +7,14 @@
 class tool {
 public:
 	const texture &icon;
+	const std::string name;
+	const std::string tooltip;
 
-	tool(const texture &_icon);
+	tool(
+		const texture &_icon,
+		const std::string &_name,
+		const std::string &_tooltip
+	);
 	virtual ~tool() = default;
 
 	virtual void activate() = 0;

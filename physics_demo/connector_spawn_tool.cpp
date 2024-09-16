@@ -9,7 +9,11 @@ connector_spawn_tool::connector_spawn_tool(
 	texture_store &_textures,
 	world &_mesh_world
 ) :
-	tool(_textures.store("rod_spawn_tool_icon", texture("./icons/new-rod.png"))),
+	tool(
+		_textures.store("rod_spawn_tool_icon", texture("./icons/new-rod.png")),
+		"New Rod Tool",
+		"Left click two particles to connect them with a rigid beam. Right click to cancel your current selection."
+	),
 	event_listener<pre_render_pass_event>(&_buses.render),
 	event_listener<mousedown_event>(&_buses.input),
 	event_listener<particle_select_event>(&_custom_bus),

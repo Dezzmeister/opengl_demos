@@ -32,4 +32,6 @@ private:
 	void draw_fps_count(const post_processing_event &event) const;
 	void draw_crosshair(const post_processing_event &event) const;
 	void draw_tools(const post_processing_event &event) const;
+
+	void draw_tool_info(const post_processing_event &event, const tool * t) const;
 };

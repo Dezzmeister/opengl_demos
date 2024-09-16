@@ -36,6 +36,10 @@ void phys::particle_world::run_physics(real duration) {
 }
 
 void phys::particle_world::update_constraints(real duration) {
+	if (duration == 0.0_r) {
+		return;
+	}
+
 	real dt = duration / 16.0_r;
 
 	for (size_t i = 0; i < 16; i++) {
