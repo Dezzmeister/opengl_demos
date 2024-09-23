@@ -6,7 +6,7 @@
 
 namespace {
 	const float min_scroll_f = 0.2f;
-	const float max_scroll_f = 10.0f;
+	const float max_scroll_f = 10000.0f;
 	const float scroll_f_step = 0.1f;
 }
 

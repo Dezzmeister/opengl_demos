@@ -30,6 +30,8 @@ namespace phys {
 	inline const auto &to_phys = ident<T>;
 
 	namespace literals {
-		real operator""_r(long double val);
+		constexpr real operator""_r(long double val) {
+			return (real)val;
+		}
 	}
 }

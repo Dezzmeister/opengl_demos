@@ -49,7 +49,16 @@ int toolbox::handle(program_start_event &event) {
 		buses,
 		custom_bus,
 		*event.textures,
-		mesh_world
+		mesh_world,
+		connector_type::Rod
+	));
+
+	tools.push_back(std::make_unique<connector_spawn_tool>(
+		buses,
+		custom_bus,
+		*event.textures,
+		mesh_world,
+		connector_type::Cable
 	));
 
 	for (size_t i = 0; i < tools.size(); i++) {

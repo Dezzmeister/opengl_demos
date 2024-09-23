@@ -4,10 +4,10 @@
 namespace phys {
 	class particle {
 	public:
-		vec3 pos;
-		vec3 vel;
-		vec3 acc;
-		vec3 force;
+		vec3 pos{};
+		vec3 vel{};
+		vec3 acc{};
+		vec3 force{};
 
 		real damping;
 		// TODO: Move this out into the spherical particle contact generator.

@@ -94,13 +94,14 @@ void gui::draw_tools(const post_processing_event &event) const {
 	const glm::uvec2 &dimensions = tools[0]->icon.get_dimensions();
 	const int spacing = 20;
 	const int height_needed = (int)((dimensions.y * tools.size()) + (spacing * (tools.size() - 1)));
+	const int available_height = event.screen_height - 100;
 	float scale_f = 100.0f / dimensions.y;
 
-	if (height_needed > event.screen_height) {
-		scale_f = event.screen_height / (float)height_needed;
+	if (height_needed > available_height) {
+		scale_f = available_height / (float)height_needed;
 	}
 
-	int y = (int)((event.screen_height - (height_needed * scale_f)) / 2);
+	int y = (int)((available_height - (height_needed * scale_f)) / 2);
 	int x = (int)(event.screen_width - (dimensions.x * scale_f));
 	int width = (int)(dimensions.x * scale_f);
 	int height = (int)(dimensions.y * scale_f);

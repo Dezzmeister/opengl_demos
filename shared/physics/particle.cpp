@@ -5,10 +5,6 @@
 using namespace phys::literals;
 
 phys::particle::particle() :
-	pos(0.0_r),
-	vel(0.0_r),
-	acc(0.0_r),
-	force(0.0_r),
 	damping(0.995_r),
 	radius(0.0_r),
 	inv_mass(1.0_r)

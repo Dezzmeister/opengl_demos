@@ -6,6 +6,11 @@
 #include "custom_events.h"
 #include "tools.h"
 
+enum class connector_type {
+	Rod,
+	Cable
+};
+
 class connector_spawn_tool :
 	public tool,
 	public event_listener<pre_render_pass_event>,
@@ -18,7 +23,8 @@ public:
 		event_buses &_buses,
 		custom_event_bus &_custom_bus,
 		texture_store &_textures,
-		world &_mesh_world
+		world &_mesh_world,
+		connector_type _type
 	);
 
 	void activate() override;
@@ -34,6 +40,7 @@ private:
 	event_buses &buses;
 	custom_event_bus &custom_bus;
 	world &mesh_world;
+	connector_type type;
 	const phys::particle * selected_particle{ nullptr };
 	int64_t selected_particle_index{ -1 };
 	const phys::particle * particle_a{ nullptr };

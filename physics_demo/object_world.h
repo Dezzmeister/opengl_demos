@@ -21,13 +21,13 @@
 using namespace phys::literals;
 
 namespace {
-	// Chrome
+	// Cyan plastic
 	phong_color_material rod_mtl{
 		phong_color_material_properties{
-			glm::vec3(0.25, 0.25, 0.25),
-			glm::vec3(0.4, 0.4, 0.4),
-			glm::vec3(0.774597, 0.774597, 0.774597),
-			128 * 0.6f
+			glm::vec3(0.0, 0.1, 0.06),
+			glm::vec3(0.0, 0.50980392, 0.50980392),
+			glm::vec3(0.50196078, 0.50196078, 0.50196078),
+			128 * 0.25f
 		}
 	};
 
@@ -41,20 +41,45 @@ namespace {
 		},
 	};
 
+	// Black rubber
+	phong_color_material cable_mtl{
+		phong_color_material_properties{
+			glm::vec3(0.02, 0.02, 0.02),
+			glm::vec3(0.01, 0.01, 0.01),
+			glm::vec3(0.4, 0.4, 0.4),
+			128 * 0.078125f
+		},
+	};
+
 	constexpr float floor_y = -1.0f;
-	constexpr float cyl_radius = 0.05f;
+	constexpr float rod_radius = 0.05f;
 	constexpr glm::vec3 y_axis = glm::vec3(0.0f, 1.0f, 0.0f);
+
+	constexpr phys::real cable_segment_length = 0.1_r;
+	constexpr float cable_radius = 0.01f;
+
+	struct cable {
+		std::vector<phys::particle> particles{};
+		std::vector<phys::particle_rod> pieces{};
+		phys::particle_plane_contact_generator<std::vector<phys::particle>> floor_contact_generator;
+		size_t cable_mesh_offset{};
+
+		cable();
+	};
 
 	template <const size_t N>
 	struct world_state {
 		geometry rod_geom;
 		instanced_mesh sphere_meshes;
 		instanced_mesh rod_meshes;
+		instanced_mesh cable_meshes;
 
 		std::array<phys::particle, N> particles{};
 		std::bitset<N> active{};
 		// These won't be moved, because we reserve N of them on construction
 		std::vector<phys::particle_rod> rods{};
+		// Same with these - we reserve N
+		std::vector<std::unique_ptr<cable>> cables{};
 
 		world_state(
 			world &_mesh_world,
@@ -64,8 +89,7 @@ namespace {
 
 		void update_meshes();
 
-		void hide_sphere(size_t i);
-		void hide_rod(size_t i);
+		void hide_object(instanced_mesh &m, size_t i);
 
 		// Returns true if the selection was successful (i.e. it changed
 		// state), false if not.
@@ -73,7 +97,11 @@ namespace {
 
 		phys::particle_rod * create_rod(size_t particle_a_index, size_t particle_b_index);
 
+		cable * create_cable(size_t particle_a_index, size_t particle_b_index);
+
 	private:
+		static constexpr size_t max_cable_segments = N * 10;
+
 		// Any unused instanced mesh instances will be moved to a location
 		// far from anything that the player is likely to encounter
 		glm::mat4 hiding_transform;
@@ -81,6 +109,9 @@ namespace {
 		world &mesh_world;
 
 		glm::mat4 particle_transform_mat(size_t i) const;
+
+		size_t used_cable_segments() const;
+		size_t next_cable_mesh_offset() const;
 	};
 
 	// A raycast hit result
@@ -94,7 +125,8 @@ template <const size_t N>
 class object_world :
 	public event_listener<pre_render_pass_event>,
 	public event_listener<particle_spawn_event>,
-	public event_listener<connector_spawn_event>,
+	public event_listener<rod_spawn_event>,
+	public event_listener<cable_spawn_event>,
 	public event_listener<keydown_event>,
 	public event_listener<player_spawn_event>,
 	public event_listener<player_move_event>,
@@ -111,7 +143,8 @@ public:
 
 	int handle(pre_render_pass_event &event) override;
 	int handle(particle_spawn_event &event) override;
-	int handle(connector_spawn_event &event) override;
+	int handle(rod_spawn_event &event) override;
+	int handle(cable_spawn_event &event) override;
 	int handle(keydown_event &event) override;
 	int handle(player_spawn_event &event) override;
 	int handle(player_move_event &event) override;
@@ -152,18 +185,25 @@ world_state<N>::world_state(
 	rod_geom(std::move(_rod_geom)),
 	sphere_meshes(sphere_geom.get(), &sphere_mtl, N),
 	rod_meshes(&rod_geom, &rod_mtl, N),
+	cable_meshes(&rod_geom, &cable_mtl, max_cable_segments),
 	hiding_transform(glm::translate(glm::identity<glm::mat4>(), _hiding_pos)),
 	mesh_world(_mesh_world)
 {
 	for (size_t i = 0; i < N; i++) {
-		hide_sphere(i);
-		hide_rod(i);
+		hide_object(sphere_meshes, i);
+		hide_object(rod_meshes, i);
+	}
+
+	for (size_t i = 0; i < max_cable_segments; i++) {
+		hide_object(cable_meshes, i);
 	}
 
 	mesh_world.add_instanced_mesh(&sphere_meshes);
 	mesh_world.add_instanced_mesh(&rod_meshes);
+	mesh_world.add_instanced_mesh(&cable_meshes);
 
 	rods.reserve(N);
+	cables.reserve(N);
 }
 
 template <const size_t N>
@@ -182,7 +222,7 @@ void world_state<N>::update_meshes() {
 
 		glm::mat4 scale_mat = glm::scale(
 			glm::identity<glm::mat4>(),
-			glm::vec3(cyl_radius, r, cyl_radius)
+			glm::vec3(rod_radius, r, rod_radius)
 		);
 
 		glm::vec3 axis = glm::cross(y_axis, dr);
@@ -202,16 +242,44 @@ void world_state<N>::update_meshes() {
 
 		rod_meshes.set_model(i, trans_mat * rot_mat * scale_mat);
 	}
+
+	for (size_t i = 0; i < cables.size(); i++) {
+		cable &c = *cables[i];
+
+		for (size_t j = 0; j < c.pieces.size(); j++) {
+			phys::particle_rod &cable = c.pieces[j];
+
+			glm::vec3 dr = phys::to_glm<glm::vec3>(cable.a->pos - cable.b->pos);
+			float r = glm::length(dr);
+
+			glm::mat4 scale_mat = glm::scale(
+				glm::identity<glm::mat4>(),
+				glm::vec3(cable_radius, r, cable_radius)
+			);
+
+			glm::vec3 axis = glm::cross(y_axis, dr);
+			float cos_t = glm::dot(y_axis, dr) / r;
+			float sin_t = glm::length(axis) / r;
+			float cos_t_2 = std::sqrt((1.0f + cos_t) / 2.0f);
+			float sin_t_2 = std::sqrt((1.0f - cos_t) / 2.0f);
+
+			glm::quat rot = glm::quat(cos_t_2, sin_t_2 * glm::normalize(axis));
+
+			glm::mat4 rot_mat = glm::mat4_cast(rot);
+
+			glm::mat4 trans_mat = glm::translate(
+				glm::identity<glm::mat4>(),
+				(cable.a->pos + cable.b->pos) / 2.0f
+			);
+
+			cable_meshes.set_model(j + c.cable_mesh_offset, trans_mat * rot_mat * scale_mat);
+		}
+	}
 }
 
 template <const size_t N>
-void world_state<N>::hide_sphere(size_t i) {
-	sphere_meshes.set_model(i, hiding_transform);
-}
-
-template <const size_t N>
-void world_state<N>::hide_rod(size_t i) {
-	rod_meshes.set_model(i, hiding_transform);
+void world_state<N>::hide_object(instanced_mesh &m, size_t i) {
+	m.set_model(i, hiding_transform);
 }
 
 template <const size_t N>
@@ -245,6 +313,97 @@ phys::particle_rod * world_state<N>::create_rod(size_t particle_a_index, size_t 
 	return &rods[rods.size() - 1];
 }
 
+cable::cable() :
+	floor_contact_generator(
+		particles,
+		phys::vec3(0.0_r, 1.0_r, 0.0_r),
+		phys::vec3(0.0_r, floor_y + cable_radius, 0.0_r),
+		0.9_r
+	)
+{}
+
+template <const size_t N>
+cable * world_state<N>::create_cable(size_t particle_a_index, size_t particle_b_index) {
+	phys::particle * a = &particles[particle_a_index];
+	phys::particle * b = &particles[particle_b_index];
+
+	phys::vec3 r = b->pos - a->pos;
+	phys::real d = std::sqrt(phys::dot(r, r));
+
+	size_t segments_needed = (size_t) std::ceil(d / cable_segment_length);
+	size_t used_segments = used_cable_segments();
+
+	if (used_segments + segments_needed > max_cable_segments) {
+		// TODO: Show the user an error
+		return nullptr;
+	}
+
+	std::unique_ptr<cable> out = std::make_unique<cable>();
+	out->cable_mesh_offset = next_cable_mesh_offset();
+
+	if (segments_needed == 1) {
+		phys::particle_rod segment(a, b, d);
+
+		out->particles = {};
+		out->pieces = { segment };
+		cables.push_back(std::move(out));
+
+		return cables[cables.size() - 1].get();
+	}
+
+	const phys::real step = d / segments_needed;
+
+	for (size_t i = 0; i < segments_needed - 1; i++) {
+		phys::particle p{};
+		p.pos = a->pos + ((i + 1) * step * r);
+		p.vel = phys::vec3(0.0_r);
+		p.acc = phys::vec3(0.0_r);
+		p.force = phys::vec3(0.0_r);
+		p.damping = 0.5_r,
+
+		out->particles.push_back(p);
+	}
+
+	phys::particle_rod first_piece(a, &out->particles[0], step);
+	phys::particle_rod last_piece(&out->particles[out->particles.size() - 1], b, step);
+
+	out->pieces.push_back(first_piece);
+
+	for (size_t i = 0; i < segments_needed - 2; i++) {
+		phys::particle_rod piece(&out->particles[i], &out->particles[i + 1], step);
+		out->pieces.push_back(piece);
+	}
+
+	out->pieces.push_back(last_piece);
+
+	cables.push_back(std::move(out));
+
+	return cables[cables.size() - 1].get();
+}
+
+template <const size_t N>
+size_t world_state<N>::used_cable_segments() const {
+	size_t out = 0;
+
+	for (size_t i = 0; i < cables.size(); i++) {
+		out += cables[i]->pieces.size();
+	}
+
+	return out;
+}
+
+template <const size_t N>
+size_t world_state<N>::next_cable_mesh_offset() const {
+	if (! cables.size()) {
+		return 0;
+	}
+
+	// TODO: Come up with a better algorithm for this when cables can be deleted
+	const cable &c = *cables[cables.size() - 1];
+
+	return c.cable_mesh_offset + c.pieces.size();
+}
+
 template <const size_t N>
 object_world<N>::object_world(
 	event_buses &_buses,
@@ -255,7 +414,8 @@ object_world<N>::object_world(
 ) :
 	event_listener<pre_render_pass_event>(&_buses.render, -10),
 	event_listener<particle_spawn_event>(&_custom_bus),
-	event_listener<connector_spawn_event>(&_custom_bus),
+	event_listener<rod_spawn_event>(&_custom_bus),
+	event_listener<cable_spawn_event>(&_custom_bus),
 	event_listener<keydown_event>(&_buses.input),
 	event_listener<player_spawn_event>(&_buses.player),
 	event_listener<player_move_event>(&_buses.player),
@@ -289,7 +449,8 @@ object_world<N>::object_world(
 {
 	event_listener<pre_render_pass_event>::subscribe();
 	event_listener<particle_spawn_event>::subscribe();
-	event_listener<connector_spawn_event>::subscribe();
+	event_listener<rod_spawn_event>::subscribe();
+	event_listener<cable_spawn_event>::subscribe();
 	event_listener<keydown_event>::subscribe();
 	event_listener<player_spawn_event>::subscribe();
 	event_listener<player_move_event>::subscribe();
@@ -366,9 +527,27 @@ int object_world<N>::handle(particle_spawn_event &event) {
 }
 
 template <const size_t N>
-int object_world<N>::handle(connector_spawn_event &event) {
+int object_world<N>::handle(rod_spawn_event &event) {
 	phys::particle_rod * rod = state->create_rod(event.particle_a_index, event.particle_b_index);
 	phys_world.add_link(rod);
+
+	return 0;
+}
+
+template <const size_t N>
+int object_world<N>::handle(cable_spawn_event &event) {
+	cable * c = state->create_cable(event.particle_a_index, event.particle_b_index);
+
+	for (phys::particle &p : c->particles) {
+		phys_world.add_particle(&p);
+		phys_world.force_registry.add(&p, gravity_generator.get());
+	}
+
+	for (phys::particle_rod &rod : c->pieces) {
+		phys_world.add_link(&rod);
+	}
+
+	phys_world.add_contact_generator(&c->floor_contact_generator);
 
 	return 0;
 }
