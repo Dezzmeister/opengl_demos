@@ -81,7 +81,7 @@ int pointer_tool::handle(post_processing_event &event) {
 		return 0;
 	}
 
-	int width = 256;
+	int width = 280;
 	int height = 100;
 	int sw = 3;
 

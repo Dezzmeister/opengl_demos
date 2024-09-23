@@ -352,14 +352,17 @@ cable * world_state<N>::create_cable(size_t particle_a_index, size_t particle_b_
 	}
 
 	const phys::real step = d / segments_needed;
+	const phys::real linear_mass_density = 0.1_r /* kg/m */;
+	const phys::real mass = linear_mass_density * step;
 
 	for (size_t i = 0; i < segments_needed - 1; i++) {
 		phys::particle p{};
-		p.pos = a->pos + ((i + 1) * step * r);
+		p.pos = a->pos + (((i + 1) / (phys::real)segments_needed) * r);
 		p.vel = phys::vec3(0.0_r);
 		p.acc = phys::vec3(0.0_r);
 		p.force = phys::vec3(0.0_r);
-		p.damping = 0.5_r,
+		p.damping = 0.5_r;
+		p.set_mass(mass);
 
 		out->particles.push_back(p);
 	}
@@ -369,7 +372,7 @@ cable * world_state<N>::create_cable(size_t particle_a_index, size_t particle_b_
 
 	out->pieces.push_back(first_piece);
 
-	for (size_t i = 0; i < segments_needed - 2; i++) {
+	for (size_t i = 0; i < out->particles.size() - 1; i++) {
 		phys::particle_rod piece(&out->particles[i], &out->particles[i + 1], step);
 		out->pieces.push_back(piece);
 	}

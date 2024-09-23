@@ -131,7 +131,7 @@ void gui::draw_tools(const post_processing_event &event) const {
 }
 
 void gui::draw_tool_info(const post_processing_event &event, const tool * t) const {
-	int width = 256;
+	int width = 280;
 	int height = 100;
 	int title_height = debug_font->glyph_height;
 	int sw = 3;
