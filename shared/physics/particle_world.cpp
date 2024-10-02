@@ -2,49 +2,63 @@
 
 using namespace phys::literals;
 
-phys::particle_world::particle_world(uint64_t _max_iterations) :
-	contact_resolver(_max_iterations, 16)
+phys::particle_world::particle_world(uint64_t _solver_iterations) :
+	solver_iterations(_solver_iterations)
 {}
-
-void phys::particle_world::integrate(real duration) {
-	for (particle * p : particles) {
-		p->integrate(duration);
-	}
-}
 
 void phys::particle_world::prepare_frame() {
 	for (particle * p : particles) {
 		p->force = phys::vec3(0.0_r);
 		p->acc = phys::vec3(0.0_r);
 	}
+
+	collision_constraints.clear();
 }
 
 void phys::particle_world::run_physics(real duration) {
 	force_registry.update_forces(duration);
 
-	integrate(duration);
-
-	contacts.clear();
-
-	for (particle_contact_generator * cg : contact_generators) {
-		cg->add_contacts(contacts, duration);
+	for (particle * p : particles) {
+		p->vel += (duration * p->get_inv_mass() * p->force);
 	}
 
-	contact_resolver.resolve_contacts(contacts, duration);
+	damp_velocities(duration);
 
-	update_constraints(duration);
+	for (particle * p : particles) {
+		p->p = p->pos + duration * p->vel;
+	}
+
+	generate_collision_constraints(duration);
+	project_constraints();
+
+	for (particle * p : particles) {
+		p->vel = (p->p - p->pos) / duration;
+		p->pos = p->p;
+	}
+
+	for (std::unique_ptr<constraint> &c : collision_constraints) {
+		c->update_velocities(duration);
+	}
 }
 
-void phys::particle_world::update_constraints(real duration) {
-	if (duration == 0.0_r) {
-		return;
+void phys::particle_world::damp_velocities(real duration) {
+	// TODO
+}
+
+void phys::particle_world::generate_collision_constraints(real dt) {
+	for (constraint_generator * cg : constraint_generators) {
+		cg->generate_constraints(dt, collision_constraints);
 	}
+}
 
-	real dt = duration / 16.0_r;
+void phys::particle_world::project_constraints() {
+	for (size_t i = 0; i < solver_iterations; i++) {
+		for (constraint * c : fixed_constraints) {
+			c->project();
+		}
 
-	for (size_t i = 0; i < 16; i++) {
-		for (particle_link * link : links) {
-			link->update_constraint(dt);
+		for (std::unique_ptr<constraint> &c : collision_constraints) {
+			c->project();
 		}
 	}
 }
@@ -57,18 +71,18 @@ void phys::particle_world::remove_particle(particle *p) {
 	std::erase(particles, p);
 }
 
-void phys::particle_world::add_contact_generator(particle_contact_generator * generator) {
-	contact_generators.push_back(generator);
+void phys::particle_world::add_constraint_generator(constraint_generator * generator) {
+	constraint_generators.push_back(generator);
 }
 
-void phys::particle_world::remove_contact_generator(particle_contact_generator * generator) {
-	std::erase(contact_generators, generator);
+void phys::particle_world::remove_constraint_generator(constraint_generator * generator) {
+	std::erase(constraint_generators, generator);
 }
 
-void phys::particle_world::add_link(particle_link * link) {
-	links.push_back(link);
+void phys::particle_world::add_fixed_constraint(constraint * c) {
+	fixed_constraints.push_back(c);
 }
 
-void phys::particle_world::remove_link(particle_link * link) {
-	std::erase(links, link);
+void phys::particle_world::remove_fixed_constraint(constraint * c) {
+	std::erase(fixed_constraints, c);
 }

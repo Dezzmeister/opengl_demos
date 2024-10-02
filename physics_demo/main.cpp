@@ -21,16 +21,10 @@
 #include "../shared/texture_store.h"
 #include "../shared/util.h"
 #include "../shared/world.h"
-#include "../shared/physics/particle_contact_generators.h"
 #include "custom_events.h"
 #include "gui.h"
 #include "object_world.h"
 #include "tools.h"
-
-using namespace phys::literals;
-
-std::vector<phys::particle> ps{};
-const phys::particle_plane_contact_generator<std::vector<phys::particle>> abcdef(ps, phys::vec3{}, phys::vec3{}, 1.0_r);
 
 using namespace phys::literals;
 using namespace std::literals::chrono_literals;

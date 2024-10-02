@@ -8,6 +8,8 @@ namespace phys {
 		vec3 vel{};
 		vec3 acc{};
 		vec3 force{};
+		// Position estimate
+		vec3 p{};
 
 		real damping;
 		// TODO: Move this out into the spherical particle contact generator.

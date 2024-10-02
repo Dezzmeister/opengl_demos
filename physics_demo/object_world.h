@@ -6,17 +6,16 @@
 #include "../shared/events.h"
 #include "../shared/instanced_mesh.h"
 #include "../shared/phong_color_material.h"
+#include "../shared/physics/constraints.h"
 #include "../shared/physics/particle.h"
-#include "../shared/physics/particle_contact_generators.h"
 #include "../shared/physics/particle_force_generators.h"
-#include "../shared/physics/particle_links.h"
 #include "../shared/physics/particle_world.h"
 #include "../shared/shapes.h"
 #include "../shared/world.h"
 #include "constants.h"
 #include "custom_events.h"
+#include "particle_collision_constraint_generator.h"
 #include "raycast.h"
-#include "spherical_particle_contact_generator.h"
 
 using namespace phys::literals;
 
@@ -60,8 +59,8 @@ namespace {
 
 	struct cable {
 		std::vector<phys::particle> particles{};
-		std::vector<phys::particle_rod> pieces{};
-		phys::particle_plane_contact_generator<std::vector<phys::particle>> floor_contact_generator;
+		std::vector<phys::distance_constraint> pieces{};
+		phys::plane_collision_constraint_generator<std::vector<phys::particle>> floor_constraint_generator;
 		size_t cable_mesh_offset{};
 
 		cable();
@@ -77,7 +76,7 @@ namespace {
 		std::array<phys::particle, N> particles{};
 		std::bitset<N> active{};
 		// These won't be moved, because we reserve N of them on construction
-		std::vector<phys::particle_rod> rods{};
+		std::vector<phys::distance_constraint> rods{};
 		// Same with these - we reserve N
 		std::vector<std::unique_ptr<cable>> cables{};
 
@@ -95,7 +94,7 @@ namespace {
 		// state), false if not.
 		bool select_particle(int64_t i);
 
-		phys::particle_rod * create_rod(size_t particle_a_index, size_t particle_b_index);
+		phys::distance_constraint * create_rod(size_t particle_a_index, size_t particle_b_index);
 
 		cable * create_cable(size_t particle_a_index, size_t particle_b_index);
 
@@ -159,8 +158,8 @@ private:
 	std::unique_ptr<directional_light> light{};
 	std::unique_ptr<mesh> floor{};
 
-	std::unique_ptr<phys::particle_plane_contact_generator<std::array<phys::particle, N>>> floor_contact_generator;
-	std::unique_ptr<spherical_particle_contact_generator<N>> sphere_contact_generator;
+	std::unique_ptr<phys::plane_collision_constraint_generator<std::array<phys::particle, N>>> floor_constraint_generator;
+	std::unique_ptr<particle_collision_constraint_generator<N>> particle_collision_generator;
 	std::unique_ptr<phys::particle_gravity> gravity_generator;
 
 	glm::vec3 player_pos{};
@@ -215,7 +214,7 @@ void world_state<N>::update_meshes() {
 	}
 
 	for (size_t i = 0; i < rods.size(); i++) {
-		phys::particle_rod &rod = rods[i];
+		phys::distance_constraint &rod = rods[i];
 
 		glm::vec3 dr = phys::to_glm<glm::vec3>(rod.a->pos - rod.b->pos);
 		float r = glm::length(dr);
@@ -247,7 +246,7 @@ void world_state<N>::update_meshes() {
 		cable &c = *cables[i];
 
 		for (size_t j = 0; j < c.pieces.size(); j++) {
-			phys::particle_rod &cable = c.pieces[j];
+			phys::distance_constraint &cable = c.pieces[j];
 
 			glm::vec3 dr = phys::to_glm<glm::vec3>(cable.a->pos - cable.b->pos);
 			float r = glm::length(dr);
@@ -302,19 +301,19 @@ glm::mat4 world_state<N>::particle_transform_mat(size_t i) const {
 }
 
 template <const size_t N>
-phys::particle_rod * world_state<N>::create_rod(size_t particle_a_index, size_t particle_b_index) {
+phys::distance_constraint * world_state<N>::create_rod(size_t particle_a_index, size_t particle_b_index) {
 	phys::particle * a = &particles[particle_a_index];
 	phys::particle * b = &particles[particle_b_index];
 	phys::real length = std::sqrt(phys::dot(a->pos - b->pos, a->pos - b->pos));
 
-	phys::particle_rod rod(a, b, length);
+	phys::distance_constraint rod(a, b, length, 1.0_r);
 	rods.push_back(rod);
 
 	return &rods[rods.size() - 1];
 }
 
 cable::cable() :
-	floor_contact_generator(
+	floor_constraint_generator(
 		particles,
 		phys::vec3(0.0_r, 1.0_r, 0.0_r),
 		phys::vec3(0.0_r, floor_y + cable_radius, 0.0_r),
@@ -342,7 +341,7 @@ cable * world_state<N>::create_cable(size_t particle_a_index, size_t particle_b_
 	out->cable_mesh_offset = next_cable_mesh_offset();
 
 	if (segments_needed == 1) {
-		phys::particle_rod segment(a, b, d);
+		phys::distance_constraint segment(a, b, d, 1.0_r);
 
 		out->particles = {};
 		out->pieces = { segment };
@@ -367,13 +366,13 @@ cable * world_state<N>::create_cable(size_t particle_a_index, size_t particle_b_
 		out->particles.push_back(p);
 	}
 
-	phys::particle_rod first_piece(a, &out->particles[0], step);
-	phys::particle_rod last_piece(&out->particles[out->particles.size() - 1], b, step);
+	phys::distance_constraint first_piece(a, &out->particles[0], step, 1.0_r);
+	phys::distance_constraint last_piece(&out->particles[out->particles.size() - 1], b, step, 1.0_r);
 
 	out->pieces.push_back(first_piece);
 
 	for (size_t i = 0; i < out->particles.size() - 1; i++) {
-		phys::particle_rod piece(&out->particles[i], &out->particles[i + 1], step);
+		phys::distance_constraint piece(&out->particles[i], &out->particles[i + 1], step, 1.0_r);
 		out->pieces.push_back(piece);
 	}
 
@@ -429,18 +428,15 @@ object_world<N>::object_world(
 		glm::vec3(0.0f, -10000.0f, 0.0f)
 	)),
 	mesh_world(_mesh_world),
-	// Setting max_iterations = N here helps prevent particles in resting contact
-	// from jittering. Resting contact jittering can happen when the number of
-	// contacts is greater than max_iterations
-	phys_world(N),
+	phys_world(32),
 	custom_bus(_custom_bus),
-	floor_contact_generator(std::make_unique<phys::particle_plane_contact_generator<std::array<phys::particle, N>>>(
+	floor_constraint_generator(std::make_unique<phys::plane_collision_constraint_generator<std::array<phys::particle, N>>>(
 		state->particles,
 		phys::vec3(0.0_r, 1.0_r, 0.0_r),
 		phys::vec3(0.0_r, floor_y + sphere_radius, 0.0_r),
 		0.9_r
 	)),
-	sphere_contact_generator(std::make_unique<spherical_particle_contact_generator<N>>(
+	particle_collision_generator(std::make_unique<particle_collision_constraint_generator<N>>(
 		state->particles,
 		state->active
 	)),
@@ -487,8 +483,8 @@ object_world<N>::object_world(
 
 	mesh_world.add_mesh(floor.get());
 
-	phys_world.add_contact_generator(floor_contact_generator.get());
-	phys_world.add_contact_generator(sphere_contact_generator.get());
+	phys_world.add_constraint_generator(floor_constraint_generator.get());
+	phys_world.add_constraint_generator(particle_collision_generator.get());
 }
 
 template <const size_t N>
@@ -531,8 +527,8 @@ int object_world<N>::handle(particle_spawn_event &event) {
 
 template <const size_t N>
 int object_world<N>::handle(rod_spawn_event &event) {
-	phys::particle_rod * rod = state->create_rod(event.particle_a_index, event.particle_b_index);
-	phys_world.add_link(rod);
+	phys::distance_constraint * rod = state->create_rod(event.particle_a_index, event.particle_b_index);
+	phys_world.add_fixed_constraint(rod);
 
 	return 0;
 }
@@ -546,11 +542,11 @@ int object_world<N>::handle(cable_spawn_event &event) {
 		phys_world.force_registry.add(&p, gravity_generator.get());
 	}
 
-	for (phys::particle_rod &rod : c->pieces) {
-		phys_world.add_link(&rod);
+	for (phys::distance_constraint &rod : c->pieces) {
+		phys_world.add_fixed_constraint(&rod);
 	}
 
-	phys_world.add_contact_generator(&c->floor_contact_generator);
+	phys_world.add_constraint_generator(&c->floor_constraint_generator);
 
 	return 0;
 }

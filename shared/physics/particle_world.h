@@ -1,18 +1,17 @@
 #pragma once
+#include <memory>
 #include <vector>
-#include "contacts.h"
+#include "constraint.h"
 #include "particle.h"
-#include "particle_contact_generator.h"
 #include "particle_force_registry.h"
-#include "particle_links.h"
 
 namespace phys {
 	class particle_world {
 	public:
 		particle_force_registry force_registry{};
-		particle_contact_resolver contact_resolver;
+		size_t solver_iterations;
 
-		particle_world(uint64_t _max_iterations);
+		particle_world(uint64_t _solver_iterations);
 
 		void prepare_frame();
 		void run_physics(real duration);
@@ -20,19 +19,20 @@ namespace phys {
 		void add_particle(particle * p);
 		void remove_particle(particle * p);
 
-		void add_contact_generator(particle_contact_generator * generator);
-		void remove_contact_generator(particle_contact_generator * generator);
+		void add_fixed_constraint(constraint * c);
+		void remove_fixed_constraint(constraint * c);
 
-		void add_link(particle_link * link);
-		void remove_link(particle_link * link);
+		void add_constraint_generator(constraint_generator * generator);
+		void remove_constraint_generator(constraint_generator * generator);
 
 	private:
 		std::vector<particle *> particles{};
-		std::vector<particle_contact_generator *> contact_generators{};
-		std::vector<particle_contact> contacts{};
-		std::vector<particle_link *> links{};
+		std::vector<constraint_generator *> constraint_generators{};
+		std::vector<constraint *> fixed_constraints{};
+		std::vector<std::unique_ptr<constraint>> collision_constraints{};
 
-		void integrate(real duration);
-		void update_constraints(real duration);
+		void damp_velocities(real duration);
+		void generate_collision_constraints(real duration);
+		void project_constraints();
 	};
 }

@@ -148,12 +148,12 @@
     <ClInclude Include="custom_events.h" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="object_world.h" />
+    <ClInclude Include="particle_collision_constraint_generator.h" />
     <ClInclude Include="particle_utils.h" />
     <ClInclude Include="pointer_tool.h" />
     <ClInclude Include="raycast.h" />
     <ClInclude Include="particle_spawn_tool.h" />
     <ClInclude Include="connector_spawn_tool.h" />
-    <ClInclude Include="spherical_particle_contact_generator.h" />
     <ClInclude Include="tools.h" />
   </ItemGroup>
   <ItemGroup>
