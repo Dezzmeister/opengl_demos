@@ -216,7 +216,7 @@ void world_state<N>::update_meshes() {
 	for (size_t i = 0; i < rods.size(); i++) {
 		phys::distance_constraint &rod = rods[i];
 
-		glm::vec3 dr = phys::to_glm<glm::vec3>(rod.a->pos - rod.b->pos);
+		glm::vec3 dr = phys::to_glm<glm::vec3>(rod.a()->pos - rod.b()->pos);
 		float r = glm::length(dr);
 
 		glm::mat4 scale_mat = glm::scale(
@@ -236,7 +236,7 @@ void world_state<N>::update_meshes() {
 
 		glm::mat4 trans_mat = glm::translate(
 			glm::identity<glm::mat4>(),
-			(rod.a->pos + rod.b->pos) / 2.0f
+			(rod.a()->pos + rod.b()->pos) / 2.0f
 		);
 
 		rod_meshes.set_model(i, trans_mat * rot_mat * scale_mat);
@@ -248,7 +248,7 @@ void world_state<N>::update_meshes() {
 		for (size_t j = 0; j < c.pieces.size(); j++) {
 			phys::distance_constraint &cable = c.pieces[j];
 
-			glm::vec3 dr = phys::to_glm<glm::vec3>(cable.a->pos - cable.b->pos);
+			glm::vec3 dr = phys::to_glm<glm::vec3>(cable.a()->pos - cable.b()->pos);
 			float r = glm::length(dr);
 
 			glm::mat4 scale_mat = glm::scale(
@@ -268,7 +268,7 @@ void world_state<N>::update_meshes() {
 
 			glm::mat4 trans_mat = glm::translate(
 				glm::identity<glm::mat4>(),
-				(cable.a->pos + cable.b->pos) / 2.0f
+				(cable.a()->pos + cable.b()->pos) / 2.0f
 			);
 
 			cable_meshes.set_model(j + c.cable_mesh_offset, trans_mat * rot_mat * scale_mat);

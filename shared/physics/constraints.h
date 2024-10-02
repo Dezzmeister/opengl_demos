@@ -2,10 +2,8 @@
 #include "constraint.h"
 
 namespace phys {
-	class distance_constraint : public constraint {
+	class distance_constraint : public particle_constraint<2> {
 	public:
-		particle * a;
-		particle * b;
 		real distance;
 
 		distance_constraint(
@@ -17,27 +15,24 @@ namespace phys {
 
 		real eval_constraint() const override;
 		vec3 eval_gradient(const particle &p) const override;
-		void project() override;
 		void update_velocities(real dt) override;
 	};
 
-	class plane_collision_constraint : public constraint {
+	class plane_collision_constraint : public particle_constraint<1> {
 	public:
-		particle * p;
 		vec3 normal;
 		vec3 origin;
 		real restitution;
 
 		plane_collision_constraint(
-			particle * _p,
+			particle * _a,
 			vec3 _normal,
 			vec3 _origin,
 			real _restitution
 		);
 
 		real eval_constraint() const override;
-		vec3 eval_gradient(const particle &_p) const override;
-		void project() override;
+		vec3 eval_gradient(const particle &p) const override;
 		void update_velocities(real dt) override;
 	};
 
@@ -60,19 +55,15 @@ namespace phys {
 		real restitution;
 	};
 
-	class particle_collision_constraint : public constraint {
+	class particle_collision_constraint : public particle_constraint<2> {
 	public:
-		particle * a;
-		particle * b;
-
 		particle_collision_constraint(
-			phys::particle * _a,
-			phys::particle * _b
+			particle * _a,
+			particle * _b
 		);
 
 		real eval_constraint() const override;
 		vec3 eval_gradient(const particle &p) const override;
-		void project() override;
 		void update_velocities(real dt) override;
 	};
 }
