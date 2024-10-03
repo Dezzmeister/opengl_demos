@@ -318,7 +318,7 @@ cable::cable() :
 		phys::vec3(0.0_r, 1.0_r, 0.0_r),
 		phys::vec3(0.0_r, floor_y + cable_radius, 0.0_r),
 		0.9_r,
-		0.8_r
+		0.2_r
 	)
 {}
 
@@ -436,7 +436,7 @@ object_world<N>::object_world(
 		phys::vec3(0.0_r, 1.0_r, 0.0_r),
 		phys::vec3(0.0_r, floor_y + sphere_radius, 0.0_r),
 		0.9_r,
-		0.8_r
+		0.2_r
 	)),
 	particle_collision_generator(std::make_unique<particle_collision_constraint_generator<N>>(
 		state->particles,

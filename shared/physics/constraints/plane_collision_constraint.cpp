@@ -33,7 +33,7 @@ void phys::plane_collision_constraint::update_velocities(real dt) {
 	decomposed_vec3 parts = decompose_vec3(old_vel, normal);
 
 	vec3 new_parallel = -parts.parallel * restitution;
-	vec3 new_perp = parts.perp * friction;
+	real f = 1 - friction * dt;
 
-	a()->vel = new_parallel + new_perp;
+	a()->vel = new_parallel + f * parts.perp;
 }

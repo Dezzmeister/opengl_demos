@@ -81,6 +81,8 @@ namespace phys {
 	private:
 		vec3 a_old_vel;
 		vec3 b_old_vel;
+		vec3 a_old_pos;
+		vec3 b_old_pos;
 	};
 }
 
