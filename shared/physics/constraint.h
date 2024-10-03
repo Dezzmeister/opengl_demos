@@ -23,7 +23,7 @@ namespace phys {
 		virtual vec3 eval_gradient(const particle &p) const = 0;
 
 		// TODO: Make this default/generic
-		virtual void project() = 0;
+		virtual void project(real inv_solver_iterations) = 0;
 		virtual void update_velocities(real dt) = 0;
 	};
 
@@ -48,7 +48,7 @@ namespace phys {
 
 		virtual real eval_constraint() const = 0;
 		virtual vec3 eval_gradient(const particle &p) const = 0;
-		void project() override;
+		void project(real inv_solver_iterations) override;
 		virtual void update_velocities(real dt) = 0;
 
 		phys::particle * a() requires (N >= 1);
@@ -73,19 +73,26 @@ phys::particle_constraint<N>::particle_constraint(
 {}
 
 template <const size_t N>
-void phys::particle_constraint<N>::project() {
+void phys::particle_constraint<N>::project(real inv_solver_iterations) {
+	using namespace phys::literals;
+
 	if constexpr (N == 0) {
 		return;
 	}
 
-	real denom = 0;
+	real denom = 0.0_r;
+	real k = (stiffness == 1.0_r) ? 1.0_r : 1 - std::pow((1 - stiffness), inv_solver_iterations);
 
 	for (size_t i = 0; i < N; i++) {
 		particle &p = *particles[i];
 		vec3 grad = eval_gradient(p);
 
 		denom += (p.get_inv_mass() * phys::dot(grad, grad));
-		dps[i] = p.get_inv_mass() * grad;
+		dps[i] = k * p.get_inv_mass() * grad;
+	}
+
+	if (denom == 0.0_r) {
+		return;
 	}
 
 	real s = eval_constraint() / denom;

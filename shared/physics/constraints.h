@@ -23,17 +23,22 @@ namespace phys {
 		vec3 normal;
 		vec3 origin;
 		real restitution;
+		real friction;
 
 		plane_collision_constraint(
 			particle * _a,
 			vec3 _normal,
 			vec3 _origin,
-			real _restitution
+			real _restitution,
+			real _friction
 		);
 
 		real eval_constraint() const override;
 		vec3 eval_gradient(const particle &p) const override;
 		void update_velocities(real dt) override;
+
+	private:
+		vec3 old_vel;
 	};
 
 	template <typename particle_container>
@@ -43,7 +48,8 @@ namespace phys {
 			particle_container &_particles,
 			vec3 _normal,
 			vec3 _origin,
-			real _restitution
+			real _restitution,
+			real _friction
 		);
 
 		void generate_constraints(real dt, std::vector<std::unique_ptr<constraint>> &constraints) override;
@@ -53,18 +59,28 @@ namespace phys {
 		vec3 normal;
 		vec3 origin;
 		real restitution;
+		real friction;
 	};
 
 	class particle_collision_constraint : public particle_constraint<2> {
 	public:
+		real restitution;
+		real friction;
+
 		particle_collision_constraint(
 			particle * _a,
-			particle * _b
+			particle * _b,
+			real _restitution,
+			real _friction
 		);
 
 		real eval_constraint() const override;
 		vec3 eval_gradient(const particle &p) const override;
 		void update_velocities(real dt) override;
+
+	private:
+		vec3 a_old_vel;
+		vec3 b_old_vel;
 	};
 }
 
@@ -73,12 +89,14 @@ phys::plane_collision_constraint_generator<particle_container>::plane_collision_
 	particle_container &_particles,
 	vec3 _normal,
 	vec3 _origin,
-	real _restitution
+	real _restitution,
+	real _friction
 ) :
 	particles(_particles),
 	normal(_normal),
 	origin(_origin),
-	restitution(_restitution)
+	restitution(_restitution),
+	friction(_friction)
 {}
 
 template <typename particle_container>
@@ -94,7 +112,8 @@ void phys::plane_collision_constraint_generator<particle_container>::generate_co
 				&p,
 				normal,
 				origin,
-				restitution
+				restitution,
+				friction
 			));
 		}
 	}

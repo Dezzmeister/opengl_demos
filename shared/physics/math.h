@@ -34,4 +34,13 @@ namespace phys {
 			return (real)val;
 		}
 	}
+
+	struct decomposed_vec3 {
+		vec3 parallel{};
+		vec3 perp{};
+	};
+
+	// Decomposes a vector into parallel and perpendicular vectors (with reference to `n`).
+	// `n` must be normalized. The resulting vectors will add up to `v`.
+	struct decomposed_vec3 decompose_vec3(const vec3 &v, const vec3 &n);
 }

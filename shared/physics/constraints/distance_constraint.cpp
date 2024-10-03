@@ -12,7 +12,6 @@ phys::distance_constraint::distance_constraint(
 	distance(_distance)
 {}
 
-
 phys::real phys::distance_constraint::eval_constraint() const {
 	vec3 dx = a()->p - b()->p;
 

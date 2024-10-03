@@ -30,6 +30,7 @@ namespace phys {
 		std::vector<constraint_generator *> constraint_generators{};
 		std::vector<constraint *> fixed_constraints{};
 		std::vector<std::unique_ptr<constraint>> collision_constraints{};
+		real inv_solver_iterations;
 
 		void damp_velocities(real duration);
 		void generate_collision_constraints(real duration);

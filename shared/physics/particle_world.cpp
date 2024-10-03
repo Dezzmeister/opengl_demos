@@ -3,7 +3,8 @@
 using namespace phys::literals;
 
 phys::particle_world::particle_world(uint64_t _solver_iterations) :
-	solver_iterations(_solver_iterations)
+	solver_iterations(_solver_iterations),
+	inv_solver_iterations(1.0_r / (real)_solver_iterations)
 {}
 
 void phys::particle_world::prepare_frame() {
@@ -54,11 +55,11 @@ void phys::particle_world::generate_collision_constraints(real dt) {
 void phys::particle_world::project_constraints() {
 	for (size_t i = 0; i < solver_iterations; i++) {
 		for (constraint * c : fixed_constraints) {
-			c->project();
+			c->project(inv_solver_iterations);
 		}
 
 		for (std::unique_ptr<constraint> &c : collision_constraints) {
-			c->project();
+			c->project(inv_solver_iterations);
 		}
 	}
 }

@@ -6,12 +6,15 @@ phys::plane_collision_constraint::plane_collision_constraint(
 	particle * _a,
 	vec3 _normal,
 	vec3 _origin,
-	real _restitution
+	real _restitution,
+	real _friction
 ) :
 	particle_constraint<1>(1.0_r, constraint_type::Inequality, { _a }),
 	normal(_normal),
 	origin(_origin),
-	restitution(_restitution)
+	restitution(_restitution),
+	friction(_friction),
+	old_vel(_a->vel)
 {}
 
 phys::real phys::plane_collision_constraint::eval_constraint() const {
@@ -27,5 +30,10 @@ phys::vec3 phys::plane_collision_constraint::eval_gradient(const particle &p) co
 }
 
 void phys::plane_collision_constraint::update_velocities(real dt) {
-	// TODO
+	decomposed_vec3 parts = decompose_vec3(old_vel, normal);
+
+	vec3 new_parallel = -parts.parallel * restitution;
+	vec3 new_perp = parts.perp * friction;
+
+	a()->vel = new_parallel + new_perp;
 }

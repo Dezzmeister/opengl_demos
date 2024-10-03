@@ -48,7 +48,7 @@ void particle_collision_constraint_generator<N>::generate_constraints(
 			phys::particle &a = particles[active_particles[i]];
 			phys::particle &b = particles[active_particles[j]];
 
-			phys::particle_collision_constraint c(&a, &b);
+			phys::particle_collision_constraint c(&a, &b, 0.9_r, 0.9_r);
 
 			if (c.eval_constraint() < 0.0_r) {
 				constraints.push_back(std::make_unique<phys::particle_collision_constraint>(c));
