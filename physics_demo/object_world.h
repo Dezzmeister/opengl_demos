@@ -161,6 +161,10 @@ private:
 	std::unique_ptr<phys::plane_collision_constraint_generator<std::array<phys::particle, N>>> floor_constraint_generator;
 	std::unique_ptr<particle_collision_constraint_generator<N>> particle_collision_generator;
 	std::unique_ptr<phys::particle_gravity> gravity_generator;
+	size_t phys_iter_per_s;
+	long long timestep_ms;
+	phys::real timestep_s;
+	long long prev_update{};
 
 	glm::vec3 player_pos{};
 	glm::vec3 player_dir{};
@@ -318,7 +322,7 @@ cable::cable() :
 		phys::vec3(0.0_r, 1.0_r, 0.0_r),
 		phys::vec3(0.0_r, floor_y + cable_radius, 0.0_r),
 		0.9_r,
-		0.2_r
+		0.6_r
 	)
 {}
 
@@ -429,14 +433,14 @@ object_world<N>::object_world(
 		glm::vec3(0.0f, -10000.0f, 0.0f)
 	)),
 	mesh_world(_mesh_world),
-	phys_world(32),
+	phys_world(8),
 	custom_bus(_custom_bus),
 	floor_constraint_generator(std::make_unique<phys::plane_collision_constraint_generator<std::array<phys::particle, N>>>(
 		state->particles,
 		phys::vec3(0.0_r, 1.0_r, 0.0_r),
 		phys::vec3(0.0_r, floor_y + sphere_radius, 0.0_r),
 		0.9_r,
-		0.2_r
+		0.6_r
 	)),
 	particle_collision_generator(std::make_unique<particle_collision_constraint_generator<N>>(
 		state->particles,
@@ -445,6 +449,9 @@ object_world<N>::object_world(
 	gravity_generator(std::make_unique<phys::particle_gravity>(
 		phys::vec3(0.0_r, -9.8_r, 0.0_r)
 	)),
+	phys_iter_per_s(60),
+	timestep_ms(1000 / phys_iter_per_s),
+	timestep_s(timestep_ms / 1000.0_r),
 	pause_key(_pause_key),
 	step_key(_step_key)
 {
@@ -491,15 +498,32 @@ object_world<N>::object_world(
 
 template <const size_t N>
 int object_world<N>::handle(pre_render_pass_event &event) {
-	if (! paused || (paused && step)) {
-		long long millis = event.delta.count();
-		phys::real seconds = ((phys::real)millis) / 1000.0_r;
+	std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
+	std::chrono::time_point<std::chrono::steady_clock, std::chrono::milliseconds> now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+	long long millis = now_ms.time_since_epoch().count();
 
-		phys_world.prepare_frame();
-		// Clamp the timestep so that physics doesn't go crazy when the window is moved
-		// or resized, or when a frame takes too long
-		phys_world.run_physics(std::min(seconds, 0.02_r));
-		step = false;
+	if (! prev_update) {
+		prev_update = millis;
+		return 0;
+	}
+
+	if (! paused || (paused && step)) {
+		long long dm = millis - prev_update;
+		long long num_iters = dm / timestep_ms;
+
+		if (num_iters * timestep_ms > 1000) {
+			num_iters = 1;
+		}
+
+		if (num_iters) {
+			step = false;
+			prev_update += (num_iters * timestep_ms);
+		}
+
+		for (long long i = 0; i < num_iters; i++) {
+			phys_world.prepare_frame();
+			phys_world.run_physics(timestep_s);
+		}
 	}
 
 	do_raycast_and_update();
@@ -633,16 +657,20 @@ void object_world<N>::do_raycast_and_update() {
 		return;
 	}
 
-	std::sort(std::begin(hit_results), std::end(hit_results), [](const hit_result &a, const hit_result &b) {
-		return a.t < b.t;
-	});
+	phys::real min_t = hit_results[0].t;
+	size_t min_i = hit_results[0].i;
 
-	bool was_selected = state->select_particle(hit_results[0].i);
+	for (size_t i = 1; i < hit_results.size(); i++) {
+		if (hit_results[i].t < min_t) {
+			min_t = hit_results[i].t;
+			min_i = hit_results[i].i;
+		}
+	}
+
+	bool was_selected = state->select_particle(min_i);
 
 	if (was_selected) {
-		size_t i = hit_results[0].i;
-
-		particle_select_event select_event(state->sphere_meshes, state->particles[i], i);
+		particle_select_event select_event(state->sphere_meshes, state->particles[min_i], min_i);
 		custom_bus.fire(select_event);
 	}
 }

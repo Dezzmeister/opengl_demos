@@ -9,12 +9,12 @@ phys::particle_collision_constraint::particle_collision_constraint(
 	real _friction
 ) :
 	particle_constraint<2>(1.0_r, phys::constraint_type::Inequality, { _a, _b }),
+	restitution(_restitution),
+	friction(_friction),
 	a_old_vel(_a->vel),
 	b_old_vel(_b->vel),
 	a_old_pos(_a->p),
-	b_old_pos(_b->p),
-	restitution(_restitution),
-	friction(_friction)
+	b_old_pos(_b->p)
 {}
 
 phys::real phys::particle_collision_constraint::eval_constraint() const {
@@ -40,6 +40,8 @@ phys::vec3 phys::particle_collision_constraint::eval_gradient(const particle &p)
 }
 
 void phys::particle_collision_constraint::update_velocities(real dt) {
+	// TODO: Uncomment this and fix it
+	/*
 	if (a_old_pos == b_old_pos) {
 		return;
 	}
@@ -62,4 +64,5 @@ void phys::particle_collision_constraint::update_velocities(real dt) {
 
 	a()->vel = -ua + f * a_parts.perp;
 	b()->vel = -ub + f * b_parts.perp;
+	*/
 }

@@ -20,11 +20,11 @@ namespace phys {
 		virtual ~constraint() = default;
 
 		virtual real eval_constraint() const = 0;
-		virtual vec3 eval_gradient(const particle &p) const = 0;
 
-		// TODO: Make this default/generic
 		virtual void project(real inv_solver_iterations) = 0;
 		virtual void update_velocities(real dt) = 0;
+
+		bool is_satisfied() const;
 	};
 
 	class constraint_generator {
@@ -100,7 +100,8 @@ void phys::particle_constraint<N>::project(real inv_solver_iterations) {
 	for (size_t i = 0; i < N; i++) {
 		dps[i] *= -s;
 
-		particles[i]->p += dps[i];
+		particles[i]->p_accum += dps[i];
+		particles[i]->n++;
 	}
 }
 

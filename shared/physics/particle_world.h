@@ -9,12 +9,11 @@ namespace phys {
 	class particle_world {
 	public:
 		particle_force_registry force_registry{};
-		size_t solver_iterations;
 
 		particle_world(uint64_t _solver_iterations);
 
 		void prepare_frame();
-		void run_physics(real duration);
+		void run_physics(real dt);
 
 		void add_particle(particle * p);
 		void remove_particle(particle * p);
@@ -30,10 +29,12 @@ namespace phys {
 		std::vector<constraint_generator *> constraint_generators{};
 		std::vector<constraint *> fixed_constraints{};
 		std::vector<std::unique_ptr<constraint>> collision_constraints{};
+		size_t solver_iterations;
 		real inv_solver_iterations;
+		real min_pos_change_sqr;
+		bool solve_forward{};
 
-		void damp_velocities(real duration);
-		void generate_collision_constraints(real duration);
-		void project_constraints();
+		void generate_collision_constraints(real dt);
+		void solve_constraints(real dt);
 	};
 }

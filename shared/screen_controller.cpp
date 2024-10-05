@@ -19,6 +19,10 @@ int screen_controller::handle(pre_render_pass_event &event) {
 
 	glfwGetWindowSize(event.window, &curr_width, &curr_height);
 
+	if (! curr_width || ! curr_height) {
+		return 0;
+	}
+
 	if (curr_width != screen_width || curr_height != screen_height) {
 		if (screen_width != -1 || screen_height != -1) {
 			screen_resize_event resize_event(screen_width, screen_height, curr_width, curr_height);

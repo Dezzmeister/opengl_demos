@@ -52,6 +52,10 @@ int main(int argc, const char * const * const argv) {
 	event_buses buses;
 	custom_event_bus custom_bus;
 	gdi_plus_context gdi_plus;
+#pragma warning(push)
+#pragma warning(disable: 4996)
+	_controlfp(EM_DENORMAL | EM_UNDERFLOW | EM_INEXACT, _MCW_EM);
+#pragma warning(pop)
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

@@ -1,10 +1,13 @@
+#include <algorithm>
+#include <ranges>
 #include "particle_world.h"
 
 using namespace phys::literals;
 
 phys::particle_world::particle_world(uint64_t _solver_iterations) :
 	solver_iterations(_solver_iterations),
-	inv_solver_iterations(1.0_r / (real)_solver_iterations)
+	inv_solver_iterations(1.0_r / (real)_solver_iterations),
+	min_pos_change_sqr(0.00001_r * 0.00001_r)
 {}
 
 void phys::particle_world::prepare_frame() {
@@ -16,34 +19,42 @@ void phys::particle_world::prepare_frame() {
 	collision_constraints.clear();
 }
 
-void phys::particle_world::run_physics(real duration) {
-	force_registry.update_forces(duration);
-
-	for (particle * p : particles) {
-		p->vel += (duration * p->get_inv_mass() * p->force);
+void phys::particle_world::run_physics(real dt) {
+	if (dt == 0.0_r) {
+		return;
 	}
 
-	damp_velocities(duration);
+	force_registry.update_forces(dt);
 
 	for (particle * p : particles) {
-		p->p = p->pos + duration * p->vel;
+		p->vel += (dt * p->get_inv_mass() * p->force * p->damping);
 	}
 
-	generate_collision_constraints(duration);
-	project_constraints();
+	for (particle * p : particles) {
+		p->p = p->pos + dt * p->vel;
+	}
+
+	generate_collision_constraints(dt);
+	solve_constraints(dt);
 
 	for (particle * p : particles) {
-		p->vel = (p->p - p->pos) / duration;
+		const vec3 dp = p->pos - p->p;
+
+		if (phys::dot(dp, dp) <= min_pos_change_sqr) {
+			p->p = p->pos;
+		}
+
+		p->vel = (p->p - p->pos) / dt;
 		p->pos = p->p;
 	}
 
-	for (std::unique_ptr<constraint> &c : collision_constraints) {
-		c->update_velocities(duration);
+	for (constraint * c : fixed_constraints) {
+		c->update_velocities(dt);
 	}
-}
 
-void phys::particle_world::damp_velocities(real duration) {
-	// TODO
+	for (std::unique_ptr<constraint> &c : collision_constraints) {
+		c->update_velocities(dt);
+	}
 }
 
 void phys::particle_world::generate_collision_constraints(real dt) {
@@ -52,14 +63,34 @@ void phys::particle_world::generate_collision_constraints(real dt) {
 	}
 }
 
-void phys::particle_world::project_constraints() {
+void phys::particle_world::solve_constraints(real dt) {
 	for (size_t i = 0; i < solver_iterations; i++) {
-		for (constraint * c : fixed_constraints) {
-			c->project(inv_solver_iterations);
+		if (solve_forward) {
+			for (constraint * c : fixed_constraints) {
+				c->project(inv_solver_iterations);
+			}
+
+			for (std::unique_ptr<constraint> &c : collision_constraints) {
+				c->project(inv_solver_iterations);
+			}
+		} else {
+			for (std::unique_ptr<constraint> &c : std::ranges::reverse_view(collision_constraints)) {
+				c->project(inv_solver_iterations);
+			}
+
+			for (constraint * c : std::ranges::reverse_view(fixed_constraints)) {
+				c->project(inv_solver_iterations);
+			}
 		}
 
-		for (std::unique_ptr<constraint> &c : collision_constraints) {
-			c->project(inv_solver_iterations);
+		solve_forward = ! solve_forward;
+
+		for (particle * p : particles) {
+			if (p->n) {
+				p->p += (p->p_accum / (real)p->n);
+				p->p_accum = vec3(0.0_r);
+				p->n = 0;
+			}
 		}
 	}
 }
