@@ -19,7 +19,7 @@ particle_spawn_tool::particle_spawn_tool(
 	tool(
 		_textures.store("particle_spawn_tool_icon", texture("./icons/new-particle.png")),
 		"New Particle Tool",
-		"Left Click to spawn a particle. Hold\nRight Mouse and scroll to move the 3D\ncursor in and out."
+		"Left Click to spawn a particle. Hold Right Mouse and scroll to move the 3D cursor in and out."
 	),
 	event_listener<player_look_event>(&_buses.player),
 	event_listener<player_move_event>(&_buses.player),

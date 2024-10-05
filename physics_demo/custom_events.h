@@ -52,12 +52,12 @@ struct cable_spawn_event {
 
 struct particle_select_event {
 	instanced_mesh &particle_mesh;
-	const phys::particle &p;
+	phys::particle &p;
 	size_t particle_index;
 
 	particle_select_event(
 		instanced_mesh &_particle_mesh,
-		const phys::particle &_p,
+		phys::particle &_p,
 		size_t _particle_index
 	) :
 		particle_mesh(_particle_mesh),

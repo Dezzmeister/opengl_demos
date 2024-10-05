@@ -104,7 +104,8 @@ void renderer2d::draw_text(
 	int max_height,
 	int line_spacing,
 	const glm::vec4 &fg_color,
-	const glm::vec4 &bg_color
+	const glm::vec4 &bg_color,
+	bool auto_break
 ) const {
 	static constexpr int glyph_width_loc = util::find_in_map(text_shader_locs, "glyph_width");
 	static constexpr int glyph_height_loc = util::find_in_map(text_shader_locs, "glyph_height");
@@ -155,11 +156,58 @@ void renderer2d::draw_text(
 				break;
 			}
 
-			draw_line(out_char_pos, draw_x, curr_y);
-			draw_x = x;
-			curr_x = x;
-			curr_y += f.glyph_height + line_spacing;
-			out_char_pos = 0;
+			if (! auto_break) {
+				draw_line(out_char_pos, draw_x, curr_y);
+				draw_x = x;
+				curr_x = x;
+				curr_y += f.glyph_height + line_spacing;
+				out_char_pos = 0;
+			} else {
+				if (text[in_char_pos] == ' ') {
+					draw_line(out_char_pos, draw_x, curr_y);
+					draw_x = x;
+					curr_x = x;
+					curr_y += f.glyph_height + line_spacing;
+					out_char_pos = 0;
+					// Skip the space, effectively replacing it with a newline
+					in_char_pos++;
+					continue;
+				}
+
+				long prev_space = ((long)out_char_pos) - 1;
+
+				while (prev_space != -1 && text_vbo_buf[prev_space--] != ' ');
+
+				if (prev_space == -1 && text_vbo_buf[0] != ' ') {
+					// The word is too long, we'll have to break the word with a hyphen
+					char next_char = text_vbo_buf[out_char_pos - 1];
+					text_vbo_buf[out_char_pos - 1] = '-';
+
+					draw_line(out_char_pos, draw_x, curr_y);
+					draw_x = x;
+					curr_x = x + f.glyph_width;
+					curr_y += f.glyph_height + line_spacing;
+					out_char_pos = 1;
+
+					text_vbo_buf[0] = next_char;
+				} else {
+					prev_space++;
+					draw_line(prev_space, draw_x, curr_y);
+
+					memmove(text_vbo_buf, text_vbo_buf + prev_space + 1, out_char_pos - prev_space - 1);
+					draw_x = x;
+					curr_y += f.glyph_height + line_spacing;
+
+					if (prev_space + 1 < (long)out_char_pos) {
+						out_char_pos -= (prev_space + 1);
+						curr_x = x + ((int)out_char_pos * f.glyph_width);
+					} else {
+						out_char_pos = 0;
+						curr_x = x;
+					}
+				}
+			}
+
 			continue;
 		}
 

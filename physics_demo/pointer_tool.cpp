@@ -14,6 +14,19 @@ namespace {
 	}
 }
 
+pointer_tool::mesh_updater::mesh_updater(event_buses &_buses) :
+	event_listener<pre_render_pass_event>(&_buses.render)
+{}
+
+int pointer_tool::mesh_updater::handle(pre_render_pass_event &event) {
+	if (selected_particle) {
+		move_mesh_to_particle(selected_particle_mesh, selected_particle);
+		hide_particle(particle_mesh, particle_index);
+	}
+
+	return 0;
+}
+
 pointer_tool::pointer_tool(
 	event_buses &_buses,
 	custom_event_bus &_custom_bus,
@@ -23,19 +36,29 @@ pointer_tool::pointer_tool(
 	tool(
 		_textures.store("pointer_tool_icon", texture("./icons/empty-hand.png")),
 		"Pointer Tool",
-		"Point at a particle to see its physical\nproperties."
+		"Point at a particle to see its physical properties. "
+		"Click and hold a particle (with Left Mouse) to move it around."
 	),
 	event_listener<program_start_event>(&_buses.lifecycle),
-	event_listener<pre_render_pass_event>(&_buses.render),
+	event_listener<pre_render_pass_event>(&_buses.render, -15),
 	event_listener<post_processing_event>(&_buses.render),
 	event_listener<particle_select_event>(&_custom_bus),
 	event_listener<particle_deselect_event>(&_custom_bus),
+	event_listener<mousedown_event>(&_buses.input),
+	event_listener<mouseup_event>(&_buses.input),
+	event_listener<player_move_event>(&_buses.player),
+	event_listener<player_look_event>(&_buses.player),
+	event_listener<player_spawn_event>(&_buses.player),
 	mesh_world(_mesh_world),
-	selected_particle_mesh(std::make_unique<mesh>(sphere_geom.get(), &selected_sphere_mtl))
+	selected_particle_mesh(std::make_unique<mesh>(sphere_geom.get(), &selected_sphere_mtl)),
+	meshes(_buses)
 {
 	event_listener<program_start_event>::subscribe();
 	event_listener<particle_select_event>::subscribe();
 	event_listener<particle_deselect_event>::subscribe();
+	event_listener<player_move_event>::subscribe();
+	event_listener<player_look_event>::subscribe();
+	event_listener<player_spawn_event>::subscribe();
 }
 
 void pointer_tool::activate() {
@@ -45,6 +68,9 @@ void pointer_tool::activate() {
 
 	event_listener<pre_render_pass_event>::subscribe();
 	event_listener<post_processing_event>::subscribe();
+	event_listener<mousedown_event>::subscribe();
+	event_listener<mouseup_event>::subscribe();
+	meshes.event_listener<pre_render_pass_event>::subscribe();
 }
 
 void pointer_tool::deactivate() {
@@ -52,8 +78,16 @@ void pointer_tool::deactivate() {
 		mesh_world.remove_mesh(selected_particle_mesh.get());
 	}
 
-	event_listener<pre_render_pass_event>::unsubscribe();
+	if (held_particle) {
+		held_particle->set_mass(held_particle_mass);
+		held_particle = nullptr;
+	}
+
+	event_listener<mouseup_event>::unsubscribe();
+	event_listener<mousedown_event>::unsubscribe();
 	event_listener<post_processing_event>::unsubscribe();
+	event_listener<pre_render_pass_event>::unsubscribe();
+	meshes.event_listener<pre_render_pass_event>::unsubscribe();
 }
 
 bool pointer_tool::is_active() const {
@@ -67,11 +101,14 @@ int pointer_tool::handle(program_start_event &event) {
 }
 
 int pointer_tool::handle(pre_render_pass_event &event) {
-	if (! selected_particle) {
-		return 0;
+	if (held_particle) {
+		held_particle->pos = phys::vec3(player_pos + (held_particle_dist * player_dir));
 	}
 
-	update_meshes();
+	meshes.selected_particle = selected_particle;
+	meshes.particle_mesh = particle_mesh;
+	meshes.selected_particle_mesh = selected_particle_mesh.get();
+	meshes.particle_index = particle_index;
 
 	return 0;
 }
@@ -150,7 +187,48 @@ int pointer_tool::handle(particle_deselect_event &event) {
 	return 0;
 }
 
-void pointer_tool::update_meshes() {
-	move_mesh_to_particle(selected_particle_mesh.get(), selected_particle);
-	hide_particle(particle_mesh, particle_index);
+int pointer_tool::handle(mousedown_event &event) {
+	if (event.button == GLFW_MOUSE_BUTTON_LEFT) {
+		if (selected_particle) {
+			held_particle = selected_particle;
+
+			phys::vec3 dx = held_particle->pos - player_pos;
+			held_particle_dist = std::sqrt(phys::dot(dx, dx));
+			held_particle_mass = held_particle->get_mass();
+			held_particle->set_mass(phys::infinity);
+		}
+	}
+
+	return 0;
+}
+
+int pointer_tool::handle(mouseup_event &event) {
+	if (event.button == GLFW_MOUSE_BUTTON_LEFT) {
+		if (held_particle) {
+			held_particle->set_mass(held_particle_mass);
+		}
+
+		held_particle = nullptr;
+	}
+
+	return 0;
+}
+
+int pointer_tool::handle(player_move_event &event) {
+	player_pos = event.pos;
+
+	return 0;
+}
+
+int pointer_tool::handle(player_look_event &event) {
+	player_dir = event.dir;
+
+	return 0;
+}
+
+int pointer_tool::handle(player_spawn_event &event) {
+	player_pos = event.pos;
+	player_dir = event.dir;
+
+	return 0;
 }

@@ -9,7 +9,12 @@ class pointer_tool :
 	public event_listener<pre_render_pass_event>,
 	public event_listener<post_processing_event>,
 	public event_listener<particle_select_event>,
-	public event_listener<particle_deselect_event>
+	public event_listener<particle_deselect_event>,
+	public event_listener<mousedown_event>,
+	public event_listener<mouseup_event>,
+	public event_listener<player_move_event>,
+	public event_listener<player_look_event>,
+	public event_listener<player_spawn_event>
 {
 public:
 	pointer_tool(
@@ -28,14 +33,38 @@ public:
 	int handle(post_processing_event &event) override;
 	int handle(particle_select_event &event) override;
 	int handle(particle_deselect_event &event) override;
+	int handle(mousedown_event &event) override;
+	int handle(mouseup_event &event) override;
+	int handle(player_move_event &event) override;
+	int handle(player_look_event &event) override;
+	int handle(player_spawn_event &event) override;
 
 private:
-	const phys::particle * selected_particle{ nullptr };
-	size_t particle_index{ 0 };
-	instanced_mesh * particle_mesh{ nullptr };
+	class mesh_updater :
+		public event_listener<pre_render_pass_event>
+	{
+	public:
+		phys::particle * selected_particle{};
+		instanced_mesh * particle_mesh{};
+		mesh * selected_particle_mesh{};
+		size_t particle_index{};
+
+		mesh_updater(event_buses &_buses);
+
+		int handle(pre_render_pass_event &event) override;
+	};
+
+	phys::particle * selected_particle{};
+	size_t particle_index{};
+	instanced_mesh * particle_mesh{};
 	world &mesh_world;
 	std::unique_ptr<mesh> selected_particle_mesh;
-	const font * debug_font{ nullptr };
+	const font * debug_font{};
 
-	void update_meshes();
+	glm::vec3 player_pos{};
+	glm::vec3 player_dir{};
+	phys::particle * held_particle{};
+	phys::real held_particle_dist{};
+	phys::real held_particle_mass{};
+	mesh_updater meshes;
 };

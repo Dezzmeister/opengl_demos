@@ -66,6 +66,9 @@ public:
 	// so this looks fine). `line_spacing` sets the number of pixels to leave between lines.
 	// 
 	// The text and background can be given colors, in RGBA format.
+	//
+	// `auto_break` can be set to break lines on spaces, or on very long words. A word will only
+	// be broken if it is too long to fit on one line.
 	void draw_text(
 		const std::string &text,
 		const font &f,
@@ -75,7 +78,8 @@ public:
 		int max_height,
 		int line_spacing,
 		const glm::vec4 &fg_color,
-		const glm::vec4 &bg_color
+		const glm::vec4 &bg_color,
+		bool auto_break = true
 	) const;
 
 	void draw_rect(
