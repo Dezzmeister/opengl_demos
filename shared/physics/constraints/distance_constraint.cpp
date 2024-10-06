@@ -19,6 +19,10 @@ phys::real phys::distance_constraint::eval_constraint() const {
 }
 
 phys::vec3 phys::distance_constraint::eval_gradient(const particle &p) const {
+	if (a()->p == b()->p) {
+		return vec3(0.0_r);
+	}
+
 	vec3 n = phys::normalize(a()->p - b()->p);
 
 	if (&p == a()) {

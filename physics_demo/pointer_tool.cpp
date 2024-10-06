@@ -4,6 +4,8 @@
 #include "particle_utils.h"
 #include "pointer_tool.h"
 
+using namespace phys::literals;
+
 namespace {
 	void write_vec3(std::stringstream &ss, const std::string &name, const phys::vec3 &v) {
 		ss << name << ": (" << v.x << ", " << v.y << ", " << v.z << ")\n";
@@ -37,7 +39,8 @@ pointer_tool::pointer_tool(
 		_textures.store("pointer_tool_icon", texture("./icons/empty-hand.png")),
 		"Pointer Tool",
 		"Point at a particle to see its physical properties. "
-		"Click and hold a particle (with Left Mouse) to move it around."
+		"Click and hold a particle (with Left Mouse) to move it around. "
+		"Right click a particle to freeze or unfreeze it."
 	),
 	event_listener<program_start_event>(&_buses.lifecycle),
 	event_listener<pre_render_pass_event>(&_buses.render, -15),
@@ -196,6 +199,22 @@ int pointer_tool::handle(mousedown_event &event) {
 			held_particle_dist = std::sqrt(phys::dot(dx, dx));
 			held_particle_mass = held_particle->get_mass();
 			held_particle->set_mass(phys::infinity);
+		}
+	} else if (event.button == GLFW_MOUSE_BUTTON_RIGHT) {
+		if (held_particle) {
+			if (frozen_particles.find(held_particle) != std::end(frozen_particles)) {
+				held_particle->set_mass(frozen_particles.at(held_particle));
+				frozen_particles.erase(held_particle);
+			} else {
+				frozen_particles[held_particle] = held_particle_mass;
+				held_particle_mass = phys::infinity;
+				held_particle->vel = phys::vec3(0.0_r);
+			}
+		} else if (selected_particle) {
+			if (frozen_particles.find(selected_particle) != std::end(frozen_particles)) {
+				selected_particle->set_mass(frozen_particles.at(selected_particle));
+				frozen_particles.erase(selected_particle);
+			}
 		}
 	}
 

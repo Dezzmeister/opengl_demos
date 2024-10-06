@@ -4,10 +4,13 @@
 
 using namespace phys::literals;
 
-phys::particle_world::particle_world(uint64_t _solver_iterations) :
+phys::particle_world::particle_world(
+	uint64_t _solver_iterations,
+	real _min_pos_change
+) :
 	solver_iterations(_solver_iterations),
 	inv_solver_iterations(1.0_r / (real)_solver_iterations),
-	min_pos_change_sqr(0.00001_r * 0.00001_r)
+	min_pos_change_sqr(_min_pos_change * _min_pos_change)
 {}
 
 void phys::particle_world::prepare_frame() {
@@ -65,32 +68,42 @@ void phys::particle_world::generate_collision_constraints(real dt) {
 
 void phys::particle_world::solve_constraints(real dt) {
 	for (size_t i = 0; i < solver_iterations; i++) {
+		size_t num_projected = 0;
+
 		if (solve_forward) {
 			for (constraint * c : fixed_constraints) {
-				c->project(inv_solver_iterations);
+				if (! c->is_satisfied()) {
+					c->project(inv_solver_iterations);
+					num_projected++;
+				}
 			}
 
 			for (std::unique_ptr<constraint> &c : collision_constraints) {
-				c->project(inv_solver_iterations);
+				if (! c->is_satisfied()) {
+					c->project(inv_solver_iterations);
+					num_projected++;
+				}
 			}
 		} else {
 			for (std::unique_ptr<constraint> &c : std::ranges::reverse_view(collision_constraints)) {
-				c->project(inv_solver_iterations);
+				if (! c->is_satisfied()) {
+					c->project(inv_solver_iterations);
+					num_projected++;
+				}
 			}
 
 			for (constraint * c : std::ranges::reverse_view(fixed_constraints)) {
-				c->project(inv_solver_iterations);
+				if (! c->is_satisfied()) {
+					c->project(inv_solver_iterations);
+					num_projected++;
+				}
 			}
 		}
 
 		solve_forward = ! solve_forward;
 
-		for (particle * p : particles) {
-			if (p->n) {
-				p->p += (p->p_accum / (real)p->n);
-				p->p_accum = vec3(0.0_r);
-				p->n = 0;
-			}
+		if (! num_projected) {
+			return;
 		}
 	}
 }

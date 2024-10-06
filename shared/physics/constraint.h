@@ -99,9 +99,7 @@ void phys::particle_constraint<N>::project(real inv_solver_iterations) {
 
 	for (size_t i = 0; i < N; i++) {
 		dps[i] *= -s;
-
-		particles[i]->p_accum += dps[i];
-		particles[i]->n++;
+		particles[i]->p += dps[i];
 	}
 }
 

@@ -10,7 +10,10 @@ namespace phys {
 	public:
 		particle_force_registry force_registry{};
 
-		particle_world(uint64_t _solver_iterations);
+		particle_world(
+			uint64_t _solver_iterations,
+			real _min_pos_change = (real)0.00005
+		);
 
 		void prepare_frame();
 		void run_physics(real dt);

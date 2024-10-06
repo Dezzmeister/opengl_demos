@@ -1,4 +1,5 @@
 #pragma once
+#include <unordered_map>
 #include "../shared/draw2d.h"
 #include "../shared/texture_store.h"
 #include "tools.h"
@@ -66,5 +67,6 @@ private:
 	phys::particle * held_particle{};
 	phys::real held_particle_dist{};
 	phys::real held_particle_mass{};
+	std::unordered_map<phys::particle *, phys::real> frozen_particles{};
 	mesh_updater meshes;
 };

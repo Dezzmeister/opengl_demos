@@ -30,13 +30,10 @@ phys::vec3 phys::plane_collision_constraint::eval_gradient(const particle &p) co
 }
 
 void phys::plane_collision_constraint::update_velocities(real dt) {
-	// TODO: Uncomment this and fix it
-	/*
-	decomposed_vec3 parts = decompose_vec3(old_vel, normal);
-
-	vec3 new_parallel = -parts.parallel * restitution;
+	decomposed_vec3 old_parts = decompose_vec3(old_vel, normal);
+	decomposed_vec3 new_parts = decompose_vec3(a()->vel, normal);
+	vec3 new_parallel = -old_parts.parallel * restitution;
 	real f = 1 - friction * dt;
 
-	a()->vel = new_parallel + f * parts.perp;
-	*/
+	a()->vel = new_parallel + f * new_parts.perp;
 }

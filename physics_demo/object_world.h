@@ -229,12 +229,16 @@ void world_state<N>::update_meshes() {
 		);
 
 		glm::vec3 axis = glm::cross(y_axis, dr);
-		float cos_t = glm::dot(y_axis, dr) / r;
-		float sin_t = glm::length(axis) / r;
-		float cos_t_2 = std::sqrt((1.0f + cos_t) / 2.0f);
-		float sin_t_2 = std::sqrt((1.0f - cos_t) / 2.0f);
+		glm::quat rot = glm::identity<glm::quat>();
 
-		glm::quat rot = glm::quat(cos_t_2, sin_t_2 * glm::normalize(axis));
+		if (r != 0.0f && glm::dot(axis, axis) != 0.0f) {
+			float cos_t = glm::dot(y_axis, dr) / r;
+			float sin_t = glm::length(axis) / r;
+			float cos_t_2 = std::sqrt((1.0f + cos_t) / 2.0f);
+			float sin_t_2 = std::sqrt((1.0f - cos_t) / 2.0f);
+
+			rot = glm::quat(cos_t_2, sin_t_2 * glm::normalize(axis));
+		}
 
 		glm::mat4 rot_mat = glm::mat4_cast(rot);
 
@@ -261,12 +265,16 @@ void world_state<N>::update_meshes() {
 			);
 
 			glm::vec3 axis = glm::cross(y_axis, dr);
-			float cos_t = glm::dot(y_axis, dr) / r;
-			float sin_t = glm::length(axis) / r;
-			float cos_t_2 = std::sqrt((1.0f + cos_t) / 2.0f);
-			float sin_t_2 = std::sqrt((1.0f - cos_t) / 2.0f);
+			glm::quat rot = glm::identity<glm::quat>();
 
-			glm::quat rot = glm::quat(cos_t_2, sin_t_2 * glm::normalize(axis));
+			if (r != 0.0f && glm::dot(axis, axis) != 0.0f) {
+				float cos_t = glm::dot(y_axis, dr) / r;
+				float sin_t = glm::length(axis) / r;
+				float cos_t_2 = std::sqrt((1.0f + cos_t) / 2.0f);
+				float sin_t_2 = std::sqrt((1.0f - cos_t) / 2.0f);
+
+				rot = glm::quat(cos_t_2, sin_t_2 * glm::normalize(axis));
+			}
 
 			glm::mat4 rot_mat = glm::mat4_cast(rot);
 
@@ -356,7 +364,7 @@ cable * world_state<N>::create_cable(size_t particle_a_index, size_t particle_b_
 	}
 
 	const phys::real step = d / segments_needed;
-	const phys::real linear_mass_density = 0.1_r /* kg/m */;
+	const phys::real linear_mass_density = 0.5_r /* kg/m */;
 	const phys::real mass = linear_mass_density * step;
 
 	for (size_t i = 0; i < segments_needed - 1; i++) {
@@ -365,7 +373,7 @@ cable * world_state<N>::create_cable(size_t particle_a_index, size_t particle_b_
 		p.vel = phys::vec3(0.0_r);
 		p.acc = phys::vec3(0.0_r);
 		p.force = phys::vec3(0.0_r);
-		p.damping = 0.5_r;
+		p.damping = 0.995_r;
 		p.set_mass(mass);
 
 		out->particles.push_back(p);
@@ -433,7 +441,7 @@ object_world<N>::object_world(
 		glm::vec3(0.0f, -10000.0f, 0.0f)
 	)),
 	mesh_world(_mesh_world),
-	phys_world(8),
+	phys_world(16),
 	custom_bus(_custom_bus),
 	floor_constraint_generator(std::make_unique<phys::plane_collision_constraint_generator<std::array<phys::particle, N>>>(
 		state->particles,
