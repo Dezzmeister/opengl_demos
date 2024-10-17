@@ -9,8 +9,8 @@ flashlight::flashlight(event_buses &_buses, const player &_pl, world &_w, const 
 		glm::radians(12.5f),
 		glm::radians(17.5f),
 		light_properties(
-			glm::vec3(1.0f),
-			glm::vec3(1.0f),
+			glm::vec3(0.1f),
+			glm::vec3(0.25f),
 			glm::vec3(1.0f)
 		),
 		attenuation_factors(

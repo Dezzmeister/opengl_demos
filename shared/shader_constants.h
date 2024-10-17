@@ -22,7 +22,8 @@ namespace constants {
 
 		{ "_texture_mat.diffuse", 24 },
 		{ "_texture_mat.specular", 25 },
-		{ "_texture_mat.shininess", 26 },
+		{ "_texture_mat.normal", 26 },
+		{ "_texture_mat.shininess", 27 },
 
 		{ "light.type", 0 },
 		{ "light.pos", 1 },

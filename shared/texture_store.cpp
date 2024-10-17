@@ -9,9 +9,13 @@ texture_store::texture_store(event_buses &_buses) :
 }
 
 int texture_store::handle(program_start_event &event) {
+	textures["flat_normal"] = std::make_unique<texture>("../resources/flat_normal.png");
+	textures["flat_specular_0.2"] = std::make_unique<texture>("../resources/flat_specular_0.2.png");
 	textures["wall"] = std::make_unique<texture>("../resources/wall.jpg");
 	textures["container2"] = std::make_unique<texture>("../resources/container2.png");
 	textures["container2_specular"] = std::make_unique<texture>("../resources/container2_specular.png");
+	textures["brickwall"] = std::make_unique<texture>("../resources/brickwall.jpg");
+	textures["brickwall_normal"] = std::make_unique<texture>("../resources/brickwall_normal.jpg");
 
 	event.textures = this;
 

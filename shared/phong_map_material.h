@@ -6,11 +6,13 @@ class phong_map_material : public material {
 public:
 	const std::string diffuse_map_name;
 	const std::string specular_map_name;
+	const std::string normal_map_name;
 	float shininess;
 
 	phong_map_material(
-		const std::string _diffuse_map_name,
-		const std::string _specular_map_name,
+		const std::string &_diffuse_map_name,
+		const std::string &_specular_map_name,
+		const std::string &_normal_map_name,
 		float _shininess
 	);
 

@@ -2,6 +2,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <chrono>
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "../shared/draw2d.h"
 #include "../shared/events.h"
 #include "../shared/flashlight.h"
@@ -260,7 +262,19 @@ phong_color_material_properties floor_mtl_props(
 	128 * 0.078125f
 );
 phong_color_material floor_mtl(floor_mtl_props);
-phong_map_material wooden_cube_mtl("container2", "container2_specular", 32.0f);
+phong_map_material wooden_cube_mtl(
+	"container2",
+	"container2_specular",
+	"flat_normal",
+	32.0f
+);
+
+phong_map_material brickwall_mtl(
+	"brickwall",
+	"flat_specular_0.2",
+	"brickwall_normal",
+	32.0f
+);
 
 // Red plastic
 phong_color_material candle_mtl{
@@ -287,6 +301,7 @@ struct object_controller :
 	std::unique_ptr<particle_emitter> fire{};
 	std::unique_ptr<geometry> sphere_geom;
 	std::unique_ptr<mesh> sphere{};
+	std::unique_ptr<mesh> wall{};
 	glm::vec3 light_motion{ 0.0f };
 
 	object_controller(event_buses &_buses, world &w) :
@@ -322,8 +337,8 @@ struct object_controller :
 		light = std::make_unique<point_light>(
 			glm::vec3(0.0f, 0.0f, 4.0f - width),
 			light_properties(
-				glm::vec3(1.0f),
-				glm::vec3(1.0f),
+				glm::vec3(0.1f),
+				glm::vec3(0.4f),
 				glm::vec3(1.0f)
 			),
 			attenuation_factors(
@@ -403,6 +418,13 @@ struct object_controller :
 		)) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(0.5f, 0.5f, 0.5f)));
 
 		w.add_mesh(sphere.get());
+
+		wall = std::make_unique<mesh>(shapes::plane.get(), &brickwall_mtl);
+		wall->set_model(glm::translate(glm::identity<glm::mat4>(), glm::vec3(
+			1.0f, 0.0f, 1.0f
+		)) * glm::rotate(glm::identity<glm::mat4>(), (float)(-M_PI / 2.0), glm::vec3(1, 0, 0)));
+
+		w.add_mesh(wall.get());
 	}
 
 	int handle(pre_render_pass_event &event) override {

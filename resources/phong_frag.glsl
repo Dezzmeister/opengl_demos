@@ -4,6 +4,7 @@ struct material {
 #ifdef USE_MAPS
 	sampler2D diffuse;
 	sampler2D specular;
+	sampler2D normal;
 #else
 	vec3 ambient;
 	vec3 diffuse;
@@ -64,6 +65,7 @@ in vec4 frag_pos_light_space[MAX_LIGHTS];
 
 #ifdef USE_MAPS
 in vec2 tex_coords;
+in mat3 tbn;
 #endif
 
 out vec4 frag_color;
@@ -153,6 +155,10 @@ void main() {
 	vec3 norm = normalize(frag_normal);
 
 #ifdef USE_MAPS
+	norm = texture(mat.normal, tex_coords).rgb;
+	norm = norm * 2.0 - 1.0;
+	norm = normalize(tbn * norm);
+
 	vec3 ambient_color = vec3(texture(mat.diffuse, tex_coords));
 	vec3 diffuse_color = ambient_color;
 	vec3 specular_color = vec3(texture(mat.specular, tex_coords));
