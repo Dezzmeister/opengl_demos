@@ -42,12 +42,14 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\force_generators\particle_drag.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\force_generators\particle_gravity.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\force_generators\particle_spring.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)physics\force_generators\rigid_body_gravity.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\math.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)mouse_controller.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\particle.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\particle_force_registry.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\particle_world.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)draw2d.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)physics\rigid_body.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)player.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)point_light.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)rendering.cpp" />
@@ -86,6 +88,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)physics\particle_force_registry.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)physics\particle_world.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)draw2d.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)physics\rigid_body.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)physics\rigid_body_force_generator.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)physics\rigid_body_force_generators.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)rendering.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)shader_constants.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)shapes.h" />
