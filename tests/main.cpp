@@ -1,10 +1,17 @@
+#include <float.h>
 #include "test.h"
 
 int main(int argc, const char * const * const argv) {
+	#pragma warning(push)
+	#pragma warning(disable: 4996)
+	_controlfp(EM_DENORMAL | EM_UNDERFLOW | EM_INEXACT, _MCW_EM);
+	#pragma warning(pop)
+
 	test::setup_json_parser_tests();
 	test::setup_base64_tests();
 	test::setup_ipaddr_tests();
 	test::setup_uri_tests();
+	test::setup_bvh_tests();
 
 	int passed = 0;
 	int total = 0;

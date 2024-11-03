@@ -34,6 +34,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)mesh.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)phong_color_material.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)phong_map_material.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)physics\collision\bounding_volumes.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\constraint.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\constraints\distance_constraint.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)physics\constraints\particle_collision_constraint.cpp" />
@@ -78,6 +79,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)instanced_mesh.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)data_formats\json_parser.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)phong_map_material.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)physics\collision\bounding_volumes.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)physics\collision\bvh.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)physics\constraint.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)physics\constraints.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)physics\math.h" />

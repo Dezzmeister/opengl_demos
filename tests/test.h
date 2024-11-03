@@ -1,4 +1,5 @@
 #pragma once
+#define DEBUG_TEST_FAILURES
 #include <functional>
 #include <optional>
 #include <source_location>
@@ -22,13 +23,21 @@ namespace test {
 	struct assertion_failure : public std::runtime_error {
 		assertion_failure(std::optional<std::string> message, const char * const file, int line) :
 			std::runtime_error("Test assertion failed in " + std::string(file) + " (line " + std::to_string(line) + ")" + (message.has_value() ? ": " + message.value() : ""))
-		{}
+		{
+#ifdef DEBUG_TEST_FAILURES
+			__debugbreak();
+#endif
+		}
 	};
 
 	struct forced_failure : public std::runtime_error {
 		forced_failure(std::optional<std::string> message, const char * const file, int line) :
 			std::runtime_error("Forced test failure in " + std::string(file) + " (line " + std::to_string(line) + ")" + (message.has_value() ? ": " + message.value() : ""))
-		{}
+		{
+#ifdef DEBUG_TEST_FAILURES
+			__debugbreak();
+#endif
+		}
 	};
 
 	inline void noop() {}
@@ -37,5 +46,6 @@ namespace test {
 	extern void setup_base64_tests();
 	extern void setup_ipaddr_tests();
 	extern void setup_uri_tests();
+	extern void setup_bvh_tests();
 }
 

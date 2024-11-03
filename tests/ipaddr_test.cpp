@@ -34,9 +34,6 @@ namespace {
 }
 
 void test::setup_ipaddr_tests() {
-	ip_parse_out<ipv6_addr> result = parse_ipv6_helper(L"1:22:333:4444:5:6:7:8:aaaa");
-	wprintf(result.out.c_str());
-
 	suite("IPv4", {
 		test("Parses an IP with four octets all set to zero", {
 			ip_parse_out<ipv4_addr> result = parse_ipv4_helper(L"0.0.0.0");
