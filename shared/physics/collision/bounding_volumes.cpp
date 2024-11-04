@@ -26,7 +26,7 @@ bool phys::bounding_sphere::overlaps(const bounding_sphere &other) const {
 	vec3 d_vec = other.center - center;
 	real dsqr = dot(d_vec, d_vec);
 
-	return dsqr <= (other.radius - radius) * (other.radius - radius);
+	return dsqr <= (other.radius + radius) * (other.radius + radius);
 }
 
 phys::real phys::bounding_sphere::growth(const bounding_sphere &other) const {

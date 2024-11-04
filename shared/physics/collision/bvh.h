@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <stack>
 #include <vector>
 #include "bounding_volumes.h"
 
@@ -7,11 +8,28 @@ namespace phys {
 	template <bounding_volume Volume, typename Identifier>
 	class bvh {
 	public:
+		struct coarse_collision_pair {
+			Volume v1;
+			Volume v2;
+			Identifier id1;
+			Identifier id2;
+
+			coarse_collision_pair(
+				const Volume &_v1,
+				const Volume &_v2,
+				Identifier _id1,
+				Identifier _id2
+			);
+		};
+
 		void insert(Identifier id, const Volume &vol);
 		bool remove(Identifier id);
 		void update(Identifier id, const Volume &vol);
 		bool has(Identifier id) const;
 		size_t size() const;
+
+		template <typename Container>
+		void generate_coarse_collisions(Container &pairs) const;
 
 	private:
 #ifdef DEBUG
@@ -49,8 +67,24 @@ namespace phys {
 
 		std::vector<id_node> ids{};
 		std::unique_ptr<node> root{};
+
+		template <typename Container>
+		void generate_coarse_collisions_with(Container &pairs, node * n, node * tree) const;
 	};
 }
+
+template <phys::bounding_volume Volume, typename Identifier>
+phys::bvh<Volume, Identifier>::coarse_collision_pair::coarse_collision_pair(
+	const Volume &_v1,
+	const Volume &_v2,
+	Identifier _id1,
+	Identifier _id2
+) :
+	v1(_v1),
+	v2(_v2),
+	id1(_id1),
+	id2(_id2)
+{}
 
 template <phys::bounding_volume Volume, typename Identifier>
 phys::bvh<Volume, Identifier>::node::node(const Volume &_vol, Identifier _id) :
@@ -216,4 +250,84 @@ bool phys::bvh<Volume, Identifier>::has(Identifier id) const {
 template <phys::bounding_volume Volume, typename Identifier>
 size_t phys::bvh<Volume, Identifier>::size() const {
 	return ids.size();
+}
+
+template <phys::bounding_volume Volume, typename Identifier>
+template <typename Container>
+void phys::bvh<Volume, Identifier>::generate_coarse_collisions(Container &pairs) const {
+	if (! root.get() || root->id) {
+		return;
+	}
+
+	assert(root->left.get());
+	assert(root->right.get());
+
+	std::stack<node *> nodes{};
+	nodes.push(root.get());
+
+	while (! nodes.empty()) {
+		node * n = nodes.top();
+		nodes.pop();
+
+		node * left = n->left.get();
+		node * right = n->right.get();
+
+		if (! left->id) {
+			nodes.push(left);
+		}
+
+		if (! right->id) {
+			nodes.push(right);
+		}
+
+		if (left->vol.overlaps(right->vol)) {
+			if (left->id && right->id) {
+				pairs.insert(std::end(pairs), coarse_collision_pair(left->vol, right->vol, left->id, right->id));
+			} else {
+				generate_coarse_collisions_with(pairs, left, right);
+			}
+		}
+	}
+}
+
+template <phys::bounding_volume Volume, typename Identifier>
+template <typename Container>
+void phys::bvh<Volume, Identifier>::generate_coarse_collisions_with(Container &pairs, node * n, node * tree) const {
+	if (! n->id) {
+		node * left = n->left.get();
+		node * right = n->right.get();
+
+		if (left->vol.overlaps(tree->vol)) {
+			generate_coarse_collisions_with(pairs, left, tree);
+		}
+
+		if (right->vol.overlaps(tree->vol)) {
+			generate_coarse_collisions_with(pairs, right, tree);
+		}
+
+		return;
+	}
+
+	std::stack<node *> nodes{};
+	nodes.push(tree);
+
+	while (! nodes.empty()) {
+		node * next = nodes.top();
+		nodes.pop();
+
+		if (! n->vol.overlaps(next->vol)) {
+			continue;
+		}
+
+		if (next->id) {
+			pairs.insert(std::end(pairs), coarse_collision_pair(n->vol, next->vol, n->id, next->id));
+		} else {
+			assert(! next->id);
+			assert(next->left.get());
+			assert(next->right.get());
+
+			nodes.push(next->left.get());
+			nodes.push(next->right.get());
+		}
+	}
 }

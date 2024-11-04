@@ -129,6 +129,18 @@ namespace {
 
 		return phys::bounding_sphere(phys::vec3(x, y, z), r);
 	}
+
+	template <typename Container>
+	bool contains_collision(const Container &c, int id1, int id2) {
+		for (const auto &pair : c) {
+			if (pair.id1 == id1 && pair.id2 == id2 ||
+				pair.id1 == id2 && pair.id2 == id1) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }
 
 void test::setup_bvh_tests() {
@@ -312,6 +324,45 @@ void test::setup_bvh_tests() {
 			expect_msg("s4 is present", objects.has(4));
 			expect_msg("s3 is not present", ! objects.has(3));
 			expect_msg("object with id 1000 is not present", ! objects.has(1000));
+		});
+
+		test("Generates coarse collision pairs", {
+			phys::bounding_sphere a1(phys::vec3(5.0_r), 1.0_r);
+			phys::bounding_sphere a2(phys::vec3(4.0_r), 2.0_r);
+			phys::bounding_sphere a3(phys::vec3(5.0_r, 4.0_r, 5.0_r), 1.0_r);
+
+			phys::bounding_sphere b1(phys::vec3(-5.0_r), 1.0_r);
+			phys::bounding_sphere b2(phys::vec3(-4.0_r), 2.0_r);
+			phys::bounding_sphere b3(phys::vec3(-5.0_r, -4.0_r, -5.0_r), 1.0_r);
+
+			phys::bounding_sphere c1(phys::vec3(10.0_r), 0.1_r);
+			phys::bounding_sphere c2(phys::vec3(11.0_r), 0.2_r);
+			phys::bounding_sphere c3(phys::vec3(12.0_r), 0.3_r);
+			phys::bounding_sphere c4(phys::vec3(13.0_r), 0.4_r);
+
+			sphere_bvh objects{};
+
+			objects.insert(1, a1);
+			objects.insert(11, b1);
+			objects.insert(101, c1);
+			objects.insert(2, a2);
+			objects.insert(3, a3);
+			objects.insert(102, c2);
+			objects.insert(103, c3);
+			objects.insert(104, c4);
+			objects.insert(12, b2);
+			objects.insert(13, b3);
+
+			std::vector<sphere_bvh::coarse_collision_pair> collision_pairs{};
+
+			objects.generate_coarse_collisions(collision_pairs);
+			expect_msg("contains 6 collision pairs", collision_pairs.size() == 6);
+			expect_msg("contains collision between a1 and a2", contains_collision(collision_pairs, 1, 2));
+			expect_msg("contains collision between a2 and a3", contains_collision(collision_pairs, 2, 3));
+			expect_msg("contains collision between a1 and a3", contains_collision(collision_pairs, 1, 3));
+			expect_msg("contains collision between b1 and b2", contains_collision(collision_pairs, 11, 12));
+			expect_msg("contains collision between b2 and b3", contains_collision(collision_pairs, 12, 13));
+			expect_msg("contains collision between b1 and b3", contains_collision(collision_pairs, 11, 13));
 		});
 	});
 }
