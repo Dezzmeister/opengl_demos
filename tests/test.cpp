@@ -1,4 +1,6 @@
 #include <cassert>
+#include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <ranges>
 #include "test.h"
@@ -42,7 +44,13 @@ int test::test_tree::num_tests() const {
 test::test_count test::test_tree::run(int tabs) {
 	test_count out{};
 
-	std::cout << std::string(tabs, '\t') << title << std::endl;
+	std::cout << std::string(tabs, '\t') << title << " ";
+
+	if (! test) {
+		std::cout << std::endl;
+	}
+
+	const auto start = std::chrono::steady_clock::now();
 
 	try {
 		if (before_all) {
@@ -74,11 +82,35 @@ test::test_count test::test_tree::run(int tabs) {
 			after_all();
 		}
 	} catch (std::runtime_error err) {
+		const auto end = std::chrono::steady_clock::now();
+		const std::chrono::nanoseconds time = end - start;
+		long long ns = time.count();
+		double ms = ((double)ns) / 1'000'000;
+
+		if (! test) {
+			std::cout << std::string(tabs, '\t');
+		}
+
+		std::cout << "(" << ms << "ms)" << std::endl;
+
 		int total = num_tests();
 
 		out.failed = total - out.passed;
 		std::cerr << "\n" << err.what() << "\n" << std::endl;
+
+		return out;
 	}
+
+	const auto end = std::chrono::steady_clock::now();
+	const std::chrono::nanoseconds time = end - start;
+	long long ns = time.count();
+	double ms = ((double)ns) / 1'000'000;
+
+	if (! test) {
+		std::cout << std::string(tabs, '\t');
+	}
+
+	std::cout << "(" << ms << "ms)" << std::endl;
 
 	return out;
 }
@@ -148,6 +180,7 @@ void test::after_all(const callback &cb) {
 }
 
 void test::run() {
+	std::cout << std::fixed << std::setprecision(2);
 	test_count total{};
 
 	for (test_tree &suite : to_ref_view(suites)) {
