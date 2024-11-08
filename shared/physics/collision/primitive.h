@@ -18,6 +18,12 @@ namespace phys {
 
 	protected:
 		primitive(
+			shape_type _type,
+			rigid_body * _body,
+			const mat4 &_offset
+		);
+
+		primitive(
 			int _type,
 			rigid_body * _body,
 			const mat4 &_offset

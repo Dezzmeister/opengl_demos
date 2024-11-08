@@ -3,6 +3,8 @@
 #include "../shared/data_formats/json_parser.h"
 #include "test.h"
 
+using namespace test;
+
 static const wchar_t complicated_example[] = LR"(
 {
 	"simple_key_1": 1,
@@ -44,9 +46,9 @@ LR"({
 	},
 })";
 
-void test::setup_json_parser_tests() {
-	suite("json", {
-		test("Parses a complicated JSON string", {
+void setup_json_parser_tests() {
+	describe("json", []() {
+		it("Parses a complicated JSON string", []() {
 			std::wstringstream wss(complicated_example);
 			json result = parse_json(wss);
 
@@ -87,7 +89,7 @@ void test::setup_json_parser_tests() {
 			expect_msg("root.obj_key_1.arr_key_1[5].simple_key_5 is 1e-6", obj->at(L"simple_key_5") == json_value_or_descriptor(1e-6));
 		});
 
-		test("Parses a JSON file", {
+		it("Parses a JSON file", []() {
 			std::wifstream wif(L"./json_parser_test.json");
 			json result = parse_json(wif);
 
@@ -95,7 +97,7 @@ void test::setup_json_parser_tests() {
 			expect(result.num_arrays() == 1);
 		});
 
-		test("Parses escape sequences", {
+		it("Parses escape sequences", []() {
 			std::wstringstream wss(escape_sequences);
 			json result = parse_json(wss);
 			json_value_or_descriptor root = result.get_root();
@@ -117,14 +119,14 @@ void test::setup_json_parser_tests() {
 			expect_msg("9th element is correct", arr->at(9) == json_value_or_descriptor(L"unicode beef: \ubeef"));
 		});
 
-		test("Parses a string with a non-ASCII character", {
+		it("Parses a string with a non-ASCII character", []() {
 			std::wstringstream wss(L"\"this contains unicode: \ubeef\"");
 			json result = parse_json(wss);
 
 			expect(result.get_root() == json_value_or_descriptor(L"this contains unicode: \ubeef"));
 		});
 
-		test("Parses an empty object", {
+		it("Parses an empty object", []() {
 			std::wstringstream wss(L"{}");
 			json result = parse_json(wss);
 
@@ -137,7 +139,7 @@ void test::setup_json_parser_tests() {
 			expect_msg("Root object is empty", obj->size() == 0);
 		});
 
-		test("Parses an empty array", {
+		it("Parses an empty array", []() {
 			std::wstringstream wss(L"[]");
 			json result = parse_json(wss);
 
@@ -150,56 +152,56 @@ void test::setup_json_parser_tests() {
 			expect_msg("Root array is empty", arr->size() == 0);
 		});
 
-		test("Parses one string", {
+		it("Parses one string", []() {
 			std::wstringstream wss(L"   \r\t\n\n   \"one lone string, but still valid json\"\n\n\t\r\t");
 			json result = parse_json(wss);
 
 			expect(result.get_root() == json_value_or_descriptor(L"one lone string, but still valid json"));
 		});
 
-		test("Parses one integer", {
+		it("Parses one integer", []() {
 			std::wstringstream wss(L"      \r\t\n      -789                 ");
 			json result = parse_json(wss);
 
 			expect(result.get_root() == json_value_or_descriptor(-789L));
 		});
 
-		test("Parses one double", {
+		it("Parses one double", []() {
 			std::wstringstream wss(L"     \n\n\n\n\n\n\r\r\r\r\r\r       8.76e2");
 			json result = parse_json(wss);
 
 			expect(result.get_root() == json_value_or_descriptor(8.76e2));
 		});
 
-		test("Parses 'true'", {
+		it("Parses 'true'", []() {
 			std::wstringstream wss(L"    true      ");
 			json result = parse_json(wss);
 
 			expect(result.get_root() == json_value_or_descriptor(true));
 		});
 
-		test("Parses 'false'", {
+		it("Parses 'false'", []() {
 			std::wstringstream wss(L"false \t\t\n");
 			json result = parse_json(wss);
 
 			expect(result.get_root() == json_value_or_descriptor(false));
 		});
 
-		test("Parses 'null'", {
+		it("Parses 'null'", []() {
 			std::wstringstream wss(L"null");
 			json result = parse_json(wss);
 
 			expect(result.get_root() == json_value_or_descriptor(nullptr));
 		});
 
-		test("Parses zero", {
+		it("Parses zero", []() {
 			std::wstringstream wss(L"0");
 			json result = parse_json(wss);
 
 			expect(result.get_root() == json_value_or_descriptor(0L));
 		});
 
-		test("Fails when an object contains an extra comma", {
+		it("Fails when an object contains an extra comma", []() {
 			std::wstringstream wss(extra_comma_failure);
 
 			try {
@@ -213,7 +215,7 @@ void test::setup_json_parser_tests() {
 			}
 		});
 
-		test("Fails when a string contains a control character", {
+		it("Fails when a string contains a control character", []() {
 			std::wstringstream wss(L"[\"this string contains a \n newline\"]");
 
 			try {
@@ -226,7 +228,7 @@ void test::setup_json_parser_tests() {
 			}
 		});
 
-		test("Fails when an integer contains a leading zero", {
+		it("Fails when an integer contains a leading zero", []() {
 			std::wstringstream wss(L"05");
 
 			try {

@@ -5,8 +5,8 @@
 
 namespace phys {
 	struct collision_algorithm {
-		const int shape_type_1{};
-		const int shape_type_2{};
+		int shape_type_1{};
+		int shape_type_2{};
 		collision_algorithm_func algorithm{};
 
 		collision_algorithm(
@@ -14,6 +14,8 @@ namespace phys {
 			int _shape_type_2,
 			const collision_algorithm_func &_algorithm
 		);
+
+		collision_algorithm() = default;
 	};
 
 	class contact_generator {

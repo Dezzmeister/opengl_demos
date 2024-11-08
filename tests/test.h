@@ -1,24 +1,48 @@
 #pragma once
-#define DEBUG_TEST_FAILURES
 #include <functional>
+#include <memory>
 #include <optional>
-#include <source_location>
+#include <stack>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
-#define suite(name, body) { test::test_suite &_curr_suite = test::test_suites[name]; body } test::noop()
-#define test(name, body) _curr_suite[(name)] = []() body
-
-// TODO: Fix these line numbers. None of these are multiline macros; this seems like an MSVC problem
-#define expect(cond) if (! (cond)) { throw test::assertion_failure(std::nullopt, __FILE__, __LINE__); } test::noop()
-#define expect_msg(msg, cond) if (! (cond)) { throw test::assertion_failure((msg), __FILE__, __LINE__); } test::noop()
+#define expect(cond) do { if (! (cond)) { throw test::assertion_failure(std::nullopt, __FILE__, __LINE__); } } while (0)
+#define expect_msg(msg, cond) do { if (! (cond)) { throw test::assertion_failure((msg), __FILE__, __LINE__); } } while (0)
 #define fail() throw test::forced_failure(std::nullopt, __FILE__, __LINE__)
 #define fail_msg(msg) throw test::forced_failure((msg), __FILE__, __LINE__)
 
 namespace test {
-	using test_suite = std::unordered_map<std::string, std::function<void(void)>>;
-	inline std::unordered_map<std::string, test_suite> test_suites{};
+	using callback = std::function<void(void)>;
+
+	struct test_count {
+		int passed{};
+		int failed{};
+
+		test_count(int _passed, int _failed);
+		test_count() = default;
+
+		friend test_count operator+(const test_count &a, const test_count &b);
+	};
+
+	struct test_tree {
+		std::string title{};
+		callback before_all{};
+		callback before_each{};
+		callback test{};
+		callback after_each{};
+		callback after_all{};
+		std::vector<std::unique_ptr<test_tree>> children{};
+
+		int num_tests() const;
+		test_count run(int tabs);
+	};
+
+	class test_setup_error : public std::runtime_error {
+	public:
+		using std::runtime_error::runtime_error;
+	};
 
 	struct assertion_failure : public std::runtime_error {
 		assertion_failure(std::optional<std::string> message, const char * const file, int line) :
@@ -40,12 +64,15 @@ namespace test {
 		}
 	};
 
-	inline void noop() {}
+	extern std::vector<std::unique_ptr<test_tree>> suites;
+	extern std::stack<test_tree *> curr_suite;
 
-	extern void setup_json_parser_tests();
-	extern void setup_base64_tests();
-	extern void setup_ipaddr_tests();
-	extern void setup_uri_tests();
-	extern void setup_bvh_tests();
+	void describe(const std::string &title, const callback &cb);
+	void it(const std::string &title, const callback &cb);
+	void before_all(const callback &cb);
+	void before_each(const callback &cb);
+	void after_each(const callback &cb);
+	void after_all(const callback &cb);
+
+	void run();
 }
-

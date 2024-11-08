@@ -4,6 +4,8 @@
 #include "../shared/physics/collision/bvh.h"
 #include "test.h"
 
+using namespace test;
+
 using sphere_bvh = phys::bvh<phys::bounding_sphere, int>;
 
 namespace {
@@ -143,9 +145,9 @@ namespace {
 	}
 }
 
-void test::setup_bvh_tests() {
-	suite("BVH", {
-		test("Inserts and groups objects", {
+void setup_bvh_tests() {
+	describe("BVH", []() {
+		it("Inserts and groups objects", []() {
 			sphere_bvh objects{};
 
 			objects.insert(1, s1);
@@ -170,7 +172,7 @@ void test::setup_bvh_tests() {
 			bvh_checks(objects);
 		});
 
-		test("Deletes objects", {
+		it("Deletes objects", []() {
 			sphere_bvh objects{};
 
 			objects.insert(1, s1);
@@ -197,7 +199,7 @@ void test::setup_bvh_tests() {
 			expect_msg("size is 0", objects.size() == 0);
 		});
 
-		test("Size does not underflow", {
+		it("Size does not underflow", []() {
 			sphere_bvh objects{};
 
 			objects.insert(1, s1);
@@ -221,7 +223,7 @@ void test::setup_bvh_tests() {
 			expect(objects.size() == 0);
 		});
 
-		test("Inserts and deletes many objects", {
+		it("Inserts and deletes many objects", []() {
 			std::uniform_real_distribution<phys::real> coord_distrib(-100.0_r, 100.0_r);
 			std::uniform_real_distribution<phys::real> radius_distrib(0.1_r, 2.0_r);
 			sphere_bvh objects{};
@@ -268,7 +270,7 @@ void test::setup_bvh_tests() {
 			volume_check(objects);
 		});
 
-		test("Updates objects", {
+		it("Updates objects", []() {
 			sphere_bvh objects{};
 
 			objects.insert(1, s1);
@@ -298,7 +300,7 @@ void test::setup_bvh_tests() {
 			expect_msg("root->right->right has id 2", objects.root->right->right->id == 2);
 		});
 
-		test("Does not delete objects that don't exist", {
+		it("Does not delete objects that don't exist", []() {
 			sphere_bvh objects{};
 
 			objects.insert(1, s1);
@@ -311,7 +313,7 @@ void test::setup_bvh_tests() {
 			expect_msg("size is 3", objects.size() == 3);
 		});
 
-		test("Indicates whether objects are present or not", {
+		it("Indicates whether objects are present or not", []() {
 			sphere_bvh objects{};
 
 			objects.insert(1, s1);
@@ -326,7 +328,7 @@ void test::setup_bvh_tests() {
 			expect_msg("object with id 1000 is not present", ! objects.has(1000));
 		});
 
-		test("Generates coarse collision pairs", {
+		it("Generates coarse collision pairs", []() {
 			phys::bounding_sphere a1(phys::vec3(5.0_r), 1.0_r);
 			phys::bounding_sphere a2(phys::vec3(4.0_r), 2.0_r);
 			phys::bounding_sphere a3(phys::vec3(5.0_r, 4.0_r, 5.0_r), 1.0_r);

@@ -60,7 +60,7 @@ void phys::contact_generator::register_collision_algorithm(
 	const collision_algorithm_func &algorithm
 ) {
 	register_collision_algorithm(
-		shape_type_1,
+		static_cast<int>(shape_type_1),
 		static_cast<int>(shape_type_2),
 		algorithm
 	);

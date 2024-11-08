@@ -135,9 +135,11 @@
   <ItemGroup>
     <ClCompile Include="base64_test.cpp" />
     <ClCompile Include="bvh_test.cpp" />
+    <ClCompile Include="collision_test.cpp" />
     <ClCompile Include="ipaddr_test.cpp" />
     <ClCompile Include="json_parser_test.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="test.cpp" />
     <ClCompile Include="uri_test.cpp" />
   </ItemGroup>
   <ItemGroup>
