@@ -93,8 +93,8 @@ void setup_json_parser_tests() {
 			std::wifstream wif(L"./json_parser_test.json");
 			json result = parse_json(wif);
 
-			expect(result.num_objects() == 12);
-			expect(result.num_arrays() == 1);
+			expect_cond(result.num_objects() == 12);
+			expect_cond(result.num_arrays() == 1);
 		});
 
 		it("Parses escape sequences", []() {
@@ -123,7 +123,7 @@ void setup_json_parser_tests() {
 			std::wstringstream wss(L"\"this contains unicode: \ubeef\"");
 			json result = parse_json(wss);
 
-			expect(result.get_root() == json_value_or_descriptor(L"this contains unicode: \ubeef"));
+			expect_cond(result.get_root() == json_value_or_descriptor(L"this contains unicode: \ubeef"));
 		});
 
 		it("Parses an empty object", []() {
@@ -156,49 +156,49 @@ void setup_json_parser_tests() {
 			std::wstringstream wss(L"   \r\t\n\n   \"one lone string, but still valid json\"\n\n\t\r\t");
 			json result = parse_json(wss);
 
-			expect(result.get_root() == json_value_or_descriptor(L"one lone string, but still valid json"));
+			expect_cond(result.get_root() == json_value_or_descriptor(L"one lone string, but still valid json"));
 		});
 
 		it("Parses one integer", []() {
 			std::wstringstream wss(L"      \r\t\n      -789                 ");
 			json result = parse_json(wss);
 
-			expect(result.get_root() == json_value_or_descriptor(-789L));
+			expect_cond(result.get_root() == json_value_or_descriptor(-789L));
 		});
 
 		it("Parses one double", []() {
 			std::wstringstream wss(L"     \n\n\n\n\n\n\r\r\r\r\r\r       8.76e2");
 			json result = parse_json(wss);
 
-			expect(result.get_root() == json_value_or_descriptor(8.76e2));
+			expect_cond(result.get_root() == json_value_or_descriptor(8.76e2));
 		});
 
 		it("Parses 'true'", []() {
 			std::wstringstream wss(L"    true      ");
 			json result = parse_json(wss);
 
-			expect(result.get_root() == json_value_or_descriptor(true));
+			expect_cond(result.get_root() == json_value_or_descriptor(true));
 		});
 
 		it("Parses 'false'", []() {
 			std::wstringstream wss(L"false \t\t\n");
 			json result = parse_json(wss);
 
-			expect(result.get_root() == json_value_or_descriptor(false));
+			expect_cond(result.get_root() == json_value_or_descriptor(false));
 		});
 
 		it("Parses 'null'", []() {
 			std::wstringstream wss(L"null");
 			json result = parse_json(wss);
 
-			expect(result.get_root() == json_value_or_descriptor(nullptr));
+			expect_cond(result.get_root() == json_value_or_descriptor(nullptr));
 		});
 
 		it("Parses zero", []() {
 			std::wstringstream wss(L"0");
 			json result = parse_json(wss);
 
-			expect(result.get_root() == json_value_or_descriptor(0L));
+			expect_cond(result.get_root() == json_value_or_descriptor(0L));
 		});
 
 		it("Fails when an object contains an extra comma", []() {
@@ -209,9 +209,9 @@ void setup_json_parser_tests() {
 
 				fail_msg("Expected the parser to throw");
 			} catch (json_parse_error err) {
-				expect(err.line_num == 7);
-				expect(err.col_num == 1);
-				expect(std::string(err.what()).find("Expected a quoted string") != std::string::npos);
+				expect_cond(err.line_num == 7);
+				expect_cond(err.col_num == 1);
+				expect_cond(std::string(err.what()).find("Expected a quoted string") != std::string::npos);
 			}
 		});
 
@@ -223,8 +223,8 @@ void setup_json_parser_tests() {
 
 				fail_msg("Expected the parser to throw");
 			} catch (json_parse_error err) {
-				expect(err.line_num == 2);
-				expect(err.col_num == 0);
+				expect_cond(err.line_num == 2);
+				expect_cond(err.col_num == 0);
 			}
 		});
 
@@ -236,8 +236,8 @@ void setup_json_parser_tests() {
 
 				fail_msg("Expected the parser to throw");
 			} catch (json_parse_error err) {
-				expect(err.line_num == 1);
-				expect(err.col_num == 1);
+				expect_cond(err.line_num == 1);
+				expect_cond(err.col_num == 1);
 			}
 		});
 	});

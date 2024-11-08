@@ -22,70 +22,70 @@ void setup_base64_tests() {
 			std::wstring in = L"c3RyaW5nIHdpdGhvdXQgcGFkZGluZyEh";
 			std::vector<uint8_t> bytes = decode_base64(in);
 
-			expect(to_s(bytes) == "string without padding!!");
+			expect(to_s(bytes)).to_be("string without padding!!");
 		});
 
 		it("Decodes a string with +1 ASCII char and explicit padding", []() {
 			std::wstring in = L"b25lIG1vcmUgY2hhcg==";
 			std::vector<uint8_t> bytes = decode_base64(in);
 
-			expect(to_s(bytes) == "one more char");
+			expect(to_s(bytes)).to_be("one more char");
 		});
 
 		it("Decodes a string with +2 ASCII chars and explicit padding", []() {
 			std::wstring in = L"dHdvIG1vcmUgY2hhcnM=";
 			std::vector<uint8_t> bytes = decode_base64(in);
 
-			expect(to_s(bytes) == "two more chars");
+			expect(to_s(bytes)).to_be("two more chars");
 		});
 
 		it("Decodes a string with +1 ASCII char and no padding", []() {
 			std::wstring in = L"b25lIG1vcmUgY2hhcg";
 			std::vector<uint8_t> bytes = decode_base64(in);
 
-			expect(to_s(bytes) == "one more char");
+			expect(to_s(bytes)).to_be("one more char");
 		});
 
 		it("Decodes a string with +2 ASCII chars and no padding", []() {
 			std::wstring in = L"dHdvIG1vcmUgY2hhcnM";
 			std::vector<uint8_t> bytes = decode_base64(in);
 
-			expect(to_s(bytes) == "two more chars");
+			expect(to_s(bytes)).to_be("two more chars");
 		});
 
 		it("Decodes an empty string", []() {
 			std::wstring in = L"";
 			std::vector<uint8_t> bytes = decode_base64(in);
 
-			expect(bytes.size() == 0);
+			expect(bytes).to_have_size(0);
 		});
 
 		it("Ignores excessive padding", []() {
 			std::wstring in = L"dGhpcyBzdHJpbmcgZG9lc24ndCBuZWVkIHBhZGRpbmcu============";
 			std::vector<uint8_t> bytes = decode_base64(in);
 
-			expect(to_s(bytes) == "this string doesn't need padding.");
+			expect(to_s(bytes)).to_be("this string doesn't need padding.");
 		});
 
 		it("Decodes an empty ASCII string with padding", []() {
 			std::wstring in = L"===";
 			std::vector<uint8_t> bytes = decode_base64(in);
 
-			expect(bytes.size() == 0);
+			expect(bytes).to_have_size(0);
 		});
 
 		it("Decodes a single ASCII character with explicit padding", []() {
 			std::wstring in = L"J===";
 			std::vector<uint8_t> bytes = decode_base64(in);
 
-			expect(to_s(bytes) == "$");
+			expect(to_s(bytes)).to_be("$");
 		});
 
 		it("Decodes a single ASCII character with no padding", []() {
 			std::wstring in = L"J";
 			std::vector<uint8_t> bytes = decode_base64(in);
 
-			expect(to_s(bytes) == "$");
+			expect(to_s(bytes)).to_be("$");
 		});
 
 		it("Fails to decode a single invalid base64 character", []() {
@@ -96,7 +96,7 @@ void setup_base64_tests() {
 
 				fail_msg("Expected base64 decoder to throw");
 			} catch (base64_error err) {
-				expect(err.char_pos == 0L);
+				expect(err.char_pos).to_be(0);
 			}
 		});
 
@@ -108,7 +108,7 @@ void setup_base64_tests() {
 
 				fail_msg("Expected base64 decoder to throw");
 			} catch (base64_error err) {
-				expect(err.char_pos == 36L);
+				expect(err.char_pos).to_be(36);
 			}
 		});
 
@@ -117,70 +117,70 @@ void setup_base64_tests() {
 				std::wstringstream in(L"c3RyaW5nIHdpdGhvdXQgcGFkZGluZyEh");
 				std::vector<uint8_t> bytes = decode_base64(in);
 
-				expect(to_s(bytes) == "string without padding!!");
+				expect(to_s(bytes)).to_be("string without padding!!");
 			});
 
 			it("Decodes a string with +1 ASCII char and explicit padding", []() {
 				std::wstringstream in(L"b25lIG1vcmUgY2hhcg==");
 				std::vector<uint8_t> bytes = decode_base64(in);
 
-				expect(to_s(bytes) == "one more char");
+				expect(to_s(bytes)).to_be("one more char");
 			});
 
 			it("Decodes a string with +2 ASCII chars and explicit padding", []() {
 				std::wstringstream in(L"dHdvIG1vcmUgY2hhcnM=");
 				std::vector<uint8_t> bytes = decode_base64(in);
 
-				expect(to_s(bytes) == "two more chars");
+				expect(to_s(bytes)).to_be("two more chars");
 			});
 
 			it("Decodes a string with +1 ASCII char and no padding", []() {
 				std::wstringstream in(L"b25lIG1vcmUgY2hhcg");
 				std::vector<uint8_t> bytes = decode_base64(in);
 
-				expect(to_s(bytes) == "one more char");
+				expect(to_s(bytes)).to_be("one more char");
 			});
 
 			it("Decodes a string with +2 ASCII chars and no padding", []() {
 				std::wstringstream in(L"dHdvIG1vcmUgY2hhcnM");
 				std::vector<uint8_t> bytes = decode_base64(in);
 
-				expect(to_s(bytes) == "two more chars");
+				expect(to_s(bytes)).to_be("two more chars");
 			});
 
 			it("Decodes an empty string", []() {
 				std::wstringstream in(L"");
 				std::vector<uint8_t> bytes = decode_base64(in);
 
-				expect(bytes.size() == 0);
+				expect(bytes).to_have_size(0);
 			});
 
 			it("Ignores excessive padding", []() {
 				std::wstringstream in(L"dGhpcyBzdHJpbmcgZG9lc24ndCBuZWVkIHBhZGRpbmcu============");
 				std::vector<uint8_t> bytes = decode_base64(in);
 
-				expect(to_s(bytes) == "this string doesn't need padding.");
+				expect(to_s(bytes)).to_be("this string doesn't need padding.");
 			});
 
 			it("Decodes an empty ASCII string with padding", []() {
 				std::wstringstream in(L"===");
 				std::vector<uint8_t> bytes = decode_base64(in);
 
-				expect(bytes.size() == 0);
+				expect(bytes).to_have_size(0);
 			});
 
 			it("Decodes a single ASCII character with explicit padding", []() {
 				std::wstringstream in(L"J===");
 				std::vector<uint8_t> bytes = decode_base64(in);
 
-				expect(to_s(bytes) == "$");
+				expect(to_s(bytes)).to_be("$");
 			});
 
 			it("Decodes a single ASCII character with no padding", []() {
 				std::wstringstream in(L"J");
 				std::vector<uint8_t> bytes = decode_base64(in);
 
-				expect(to_s(bytes) == "$");
+				expect(to_s(bytes)).to_be("$");
 			});
 
 			it("Fails to decode a single invalid base64 character", []() {
@@ -191,7 +191,7 @@ void setup_base64_tests() {
 
 					fail_msg("Expected base64 decoder to throw");
 				} catch (base64_error err) {
-					expect(err.char_pos == 0L);
+					expect(err.char_pos).to_be(0);
 				}
 			});
 
@@ -199,7 +199,7 @@ void setup_base64_tests() {
 				std::wstringstream in(L"YVZhbGlkQmFzZTY0U3RyaW5nVXBVbnRpbFRoZU5ld2xpbmU==\n");
 				std::vector<uint8_t> bytes = decode_base64(in);
 
-				expect(to_s(bytes) == "aValidBase64StringUpUntilTheNewline");
+				expect(to_s(bytes)).to_be("aValidBase64StringUpUntilTheNewline");
 			});
 		});
 	});

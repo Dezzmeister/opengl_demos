@@ -139,10 +139,13 @@
     <ClCompile Include="ipaddr_test.cpp" />
     <ClCompile Include="json_parser_test.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="test.cpp" />
+    <ClCompile Include="matchers.cpp" />
+    <ClCompile Include="setup.cpp" />
     <ClCompile Include="uri_test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="matchers.h" />
+    <ClInclude Include="setup.h" />
     <ClInclude Include="test.h" />
   </ItemGroup>
   <ItemGroup>

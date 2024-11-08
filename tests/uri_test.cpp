@@ -17,29 +17,29 @@ void setup_uri_tests() {
 			it("Parses an http scheme with an authority", []() {
 				uri result = parse_uri_helper(L"http://google.com/the/rest/of/the/uri");
 				
-				expect(result.scheme == L"http");
-				expect(result.path_and_rest == L"/the/rest/of/the/uri");
+				expect_cond(result.scheme == L"http");
+				expect_cond(result.path_and_rest == L"/the/rest/of/the/uri");
 			});
 
 			it("Parses a file scheme with an absolute path", []() {
 				uri result = parse_uri_helper(L"file:/absolute/path/to/a/file");
 				
-				expect(result.scheme == L"file");
-				expect(result.path_and_rest == L"/absolute/path/to/a/file");
+				expect_cond(result.scheme == L"file");
+				expect_cond(result.path_and_rest == L"/absolute/path/to/a/file");
 			});
 
 			it("Parses an unknown scheme with an empty path", []() {
 				uri result = parse_uri_helper(L"unknown-scheme:");
 
-				expect(result.scheme == L"unknown-scheme");
-				expect(result.path_and_rest == L"");
+				expect_cond(result.scheme == L"unknown-scheme");
+				expect_cond(result.path_and_rest == L"");
 			});
 
 			it("Parses an unknown scheme with unusual albeit valid characters", []() {
 				uri result = parse_uri_helper(L"unknown-sch3m3-with+.-+-+weird-ch4r4ct3r5://127.0.0.1");
 
-				expect(result.scheme == L"unknown-sch3m3-with+.-+-+weird-ch4r4ct3r5");
-				expect(result.path_and_rest == L"");
+				expect_cond(result.scheme == L"unknown-sch3m3-with+.-+-+weird-ch4r4ct3r5");
+				expect_cond(result.path_and_rest == L"");
 			});
 
 			it("Fails to parse a scheme that contains invalid characters", []() {
@@ -47,7 +47,7 @@ void setup_uri_tests() {
 					uri result = parse_uri_helper(L"scheme*with-@%-invalid-chars://google.com");
 					fail_msg("Expected parser to throw");
 				} catch (uri_error err) {
-					expect(err.char_pos == 6);
+					expect_cond(err.char_pos == 6);
 				}
 			});
 
@@ -56,7 +56,7 @@ void setup_uri_tests() {
 					uri result = parse_uri_helper(L"9scheme://google.com");
 					fail_msg("Expected parser to throw");
 				} catch (uri_error err) {
-					expect(err.char_pos == 0);
+					expect_cond(err.char_pos == 0);
 				}
 			});
 		});
@@ -201,7 +201,7 @@ void setup_uri_tests() {
 					uri result = parse_uri_helper(L"http://10.0.0.1:/path");
 					fail_msg("Expected parser to throw");
 				} catch (uri_error err) {
-					expect(err.char_pos == 16);
+					expect_cond(err.char_pos == 16);
 				}
 			});
 
@@ -210,7 +210,7 @@ void setup_uri_tests() {
 					uri result = parse_uri_helper(L"http://invalid[char/path?query");
 					fail_msg("Expected parser to throw");
 				} catch (uri_error err) {
-					expect(err.char_pos == 14);
+					expect_cond(err.char_pos == 14);
 				}
 			});
 		});

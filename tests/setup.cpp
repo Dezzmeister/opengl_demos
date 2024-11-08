@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <iostream>
 #include <ranges>
-#include "test.h"
+#include "setup.h"
 
 namespace {
 	template <typename T>
@@ -57,24 +57,20 @@ test::test_count test::test_tree::run(int tabs) {
 			before_all();
 		}
 
-		assert(! test == ! children.empty());
-
 		if (test) {
 			test();
 			out.passed++;
 		}
 
-		if (! children.empty()) {
-			for (test_tree &tree : to_ref_view(children)) {
-				if (before_each) {
-					before_each();
-				}
+		for (test_tree &tree : to_ref_view(children)) {
+			if (before_each) {
+				before_each();
+			}
 
-				out = out + tree.run(tabs + 1);
+			out = out + tree.run(tabs + 1);
 
-				if (after_each) {
-					after_each();
-				}
+			if (after_each) {
+				after_each();
 			}
 		}
 

@@ -207,20 +207,20 @@ void setup_bvh_tests() {
 			objects.insert(3, s3);
 			objects.insert(4, s4);
 
-			expect(objects.size() == 4);
+			expect_cond(objects.size() == 4);
 
 			objects.remove(1);
 			objects.remove(2);
 			objects.remove(3);
 			objects.remove(4);
 
-			expect(objects.size() == 0);
+			expect_cond(objects.size() == 0);
 
 			for (int i = 0; i < 10; i++) {
 				objects.remove(i);
 			}
 
-			expect(objects.size() == 0);
+			expect_cond(objects.size() == 0);
 		});
 
 		it("Inserts and deletes many objects", []() {

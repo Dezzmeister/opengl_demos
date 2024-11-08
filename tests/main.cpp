@@ -6,6 +6,7 @@ extern void setup_base64_tests();
 extern void setup_ipaddr_tests();
 extern void setup_uri_tests();
 extern void setup_bvh_tests();
+extern void setup_collision_tests();
 
 int main(int argc, const char * const * const argv) {
 	#pragma warning(push)
@@ -18,6 +19,7 @@ int main(int argc, const char * const * const argv) {
 	setup_ipaddr_tests();
 	setup_uri_tests();
 	setup_bvh_tests();
+	setup_collision_tests();
 
 	test::run();
 
