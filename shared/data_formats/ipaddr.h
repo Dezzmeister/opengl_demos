@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 #include <variant>
+#include "../traits.h"
 #include "parsing.h"
 
 struct ipv4_addr {
@@ -33,3 +34,11 @@ std::optional<ipv4_addr> parse_ipv4(parsing::parser_state &state, std::wstringst
 // was present; otherwise, the parser will be left at the first invalid character. In either
 // case, any consumed chars will be written to the output stream.
 std::optional<ipv6_addr> parse_ipv6(parsing::parser_state &state, std::wstringstream &out);
+
+namespace traits {
+	template <>
+	std::string to_string<ipv4_addr>(const ipv4_addr &addr, size_t indent);
+
+	template <>
+	std::string to_string<ipv6_addr>(const ipv6_addr &addr, size_t indent);
+}

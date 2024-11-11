@@ -10,7 +10,7 @@ phys::collision_algorithm_func phys::algorithms::sphere_sphere_collision =
 
 		vec3 pos_a = a.body->pos + truncate(a.offset[3]);
 		vec3 pos_b = b.body->pos + truncate(b.offset[3]);
-		vec3 d_vec = pos_a - pos_b;
+		vec3 d_vec = pos_b - pos_a;
 		real d = std::sqrt(dot(d_vec, d_vec));
 		real min_radius = a.radius + b.radius;
 
@@ -21,9 +21,9 @@ phys::collision_algorithm_func phys::algorithms::sphere_sphere_collision =
 		contact c(
 			a.body,
 			b.body,
-			d_vec / d,
 			pos_a + d_vec / 2.0_r,
-			d - min_radius
+			d_vec / d,
+			min_radius - d
 		);
 
 		contacts.insert(std::end(contacts), c);

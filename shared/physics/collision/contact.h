@@ -1,4 +1,5 @@
 #pragma once
+#include "../../traits.h"
 #include "../math.h"
 #include "../rigid_body.h"
 
@@ -18,5 +19,10 @@ namespace phys {
 			const vec3 &_normal,
 			real _penetration
 		);
+
+		friend bool operator==(const contact &a, const contact &b);
 	};
 }
+
+template <>
+std::string traits::to_string(const phys::contact &c, size_t indent);

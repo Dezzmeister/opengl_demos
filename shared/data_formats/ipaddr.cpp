@@ -288,3 +288,19 @@ bool operator==(const ipv6_addr &a, const ipv6_addr &b) {
 
 	return true;
 }
+
+template <>
+std::string traits::to_string<ipv4_addr>(const ipv4_addr &addr, size_t indent) {
+	return (
+		std::to_string(addr.addr[0]) + "." +
+		std::to_string(addr.addr[1]) + "." +
+		std::to_string(addr.addr[2]) + "." +
+		std::to_string(addr.addr[3])
+	);
+}
+
+template <>
+std::string traits::to_string<ipv6_addr>(const ipv6_addr &addr, size_t indent) {
+	// TODO: Implement this
+	throw "Unimplemented";
+}

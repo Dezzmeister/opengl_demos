@@ -1,7 +1,14 @@
 #pragma once
 #include <stdexcept>
+#include <string>
 
 namespace util {
+	template <typename T>
+	concept numeric = std::integral<T> || std::floating_point<T>;
+
+	template <typename T>
+	concept not_numeric = ! numeric<T>;
+
 	template <typename T, const size_t N>
 	constexpr size_t c_arr_size(const T(&)[N]) {
 		return N;
@@ -34,5 +41,23 @@ namespace util {
 		}
 
 		throw std::logic_error("Key not in map");
+	}
+
+	constexpr float epsilon = 1e-6f;
+
+	template <numeric T>
+	bool eq_within_epsilon(const T &a, const T &b) {
+		return std::abs(a - b) <= (T)epsilon;
+	}
+
+	template <typename T>
+	bool eq_within_epsilon(const T &a, const T &b) {
+		for (typename T::length_type i = 0; i < T::length(); i++) {
+			if (! eq_within_epsilon(a[i], b[i])) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 };

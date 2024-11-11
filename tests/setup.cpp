@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <iostream>
 #include <ranges>
+#include "matchers.h"
 #include "setup.h"
 
 namespace {
@@ -59,6 +60,14 @@ test::test_count test::test_tree::run(int tabs) {
 
 		if (test) {
 			test();
+
+			if (prev_err) {
+				const assertion_failure err = prev_err.value();
+				prev_err = {};
+
+				throw err;
+			}
+
 			out.passed++;
 		}
 
